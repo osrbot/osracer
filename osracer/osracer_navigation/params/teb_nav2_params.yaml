@@ -103,9 +103,9 @@ bt_navigator_rclcpp_node:
 
 controller_server:
   ros__parameters:
-    odom_topic: odom
+    odom_topic: odometry/filtered
     use_sim_time: False
-    controller_frequency: 10.0
+    controller_frequency: 20.0
     controller_plugin_types: ["teb_local_planner::TebLocalPlannerROS"]
     controller_plugins: ["FollowPath"]
     FollowPath:
@@ -113,47 +113,47 @@ controller_server:
 
       # Trajectory
       teb_autosize: 1.0
-      dt_ref: 0.5
+      dt_ref: 0.4
       dt_hysteresis: 0.125
-      max_samples: 1000
+      max_samples: 500
       global_plan_overwrite_orientation: True
       allow_init_with_backwards_motion: True
-      max_global_plan_lookahead_dist: 3.0
+      max_global_plan_lookahead_dist: 5.0
       global_plan_viapoint_sep: -1.0
       global_plan_prune_distance: 1.0
       exact_arc_length: False
-      feasibility_check_no_poses: 2
+      feasibility_check_no_poses: 1
       publish_feedback: False
           
       # Robot
               
       max_vel_x: 3.0
-      max_vel_x_backwards: 1.0
+      max_vel_x_backwards: 1.5
       max_vel_y: 0.0
-      max_vel_theta: 1.0  # the angular velocity is also bounded by min_turning_radius in case of a carlike robot (r = v / omega)
-      acc_lim_x: 2.5
-      acc_lim_theta: 1.5
+      max_vel_theta: 2.0  # the angular velocity is also bounded by min_turning_radius in case of a carlike robot (r = v / omega)
+      acc_lim_x: 5.0
+      acc_lim_theta: 3.0
 
       min_turning_radius: 0.8
-      wheelbase: 0.21
-      cmd_angle_instead_rotvel: False
+      wheelbase: 0.4
+      cmd_angle_instead_rotvel: false
 
       footprint_model: # types: "point", "circular", "two_circles", "line", "polygon"
         type: "line"
         radius: 0.2 # for type "circular"
         line_start: [0.0, 0.0] # for type "line"
-        line_end: [0.6, 0.0] # for type "line"
+        line_end: [0.4, 0.0] # for type "line"
 
       # GoalTolerance
-      xy_goal_tolerance: 0.3
-      yaw_goal_tolerance: 0.2
+      xy_goal_tolerance: 0.35
+      yaw_goal_tolerance: 0.35
       free_goal_vel: False
       complete_global_plan: True
           
       # Obstacles
           
-      min_obstacle_dist: 0.35
-      inflation_dist: 0.6
+      min_obstacle_dist: 0.25
+      inflation_dist: 0.45
       include_costmap_obstacles: True
       costmap_obstacles_behind_robot_dist: 1.0
       obstacle_poses_affected: 15
@@ -161,33 +161,33 @@ controller_server:
       dynamic_obstacle_inflation_dist: 0.8
       include_dynamic_obstacles: True 
 
-      costmap_converter_plugin: "costmap_converter::CostmapToPolygonsDBSMCCH"
+      costmap_converter_plugin: ""
       costmap_converter_spin_thread: True
       costmap_converter_rate: 5
 
       # Optimization
           
-      no_inner_iterations: 5
-      no_outer_iterations: 4
+      no_inner_iterations: 3
+      no_outer_iterations: 2
       optimization_activate: True
       optimization_verbose: False
       penalty_epsilon: 0.1
       obstacle_cost_exponent: 4.0
-      weight_max_vel_x: 2.0
+      weight_max_vel_x: 100.0
       weight_max_vel_theta: 1.0
       weight_acc_lim_x: 1.0
-      weight_acc_lim_theta: 2.0
-      weight_kinematics_nh: 1000.0
-      weight_kinematics_forward_drive: 1.0
-      weight_kinematics_turning_radius: 1.0
-      weight_optimaltime: 20.0 # must be > 0
+      weight_acc_lim_theta: 1.0
+      weight_kinematics_nh: 100.0
+      weight_kinematics_forward_drive: 20.0
+      weight_kinematics_turning_radius: 10.0
+      weight_optimaltime: 100.0 # must be > 0
       weight_shortest_path: 0.0
-      weight_obstacle: 100.0
-      weight_inflation: 0.2
-      weight_dynamic_obstacle: 10.0 # not in use yet
-      weight_dynamic_obstacle_inflation: 0.2
+      weight_obstacle: 10.0
+      weight_inflation: 1.0
+      weight_dynamic_obstacle: 5.0
+      weight_dynamic_obstacle_inflation: 1.0
       weight_viapoint: 1.0
-      weight_adapt_factor: 2.0
+      weight_adapt_factor: 1.0
 
       # Homotopy Class Planner
 
@@ -245,7 +245,7 @@ local_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
-        inflation_radius: 0.3
+        inflation_radius: 0.25
       voxel_layer:
         plugin: "nav2_costmap_2d::VoxelLayer"
         enabled: True
@@ -309,7 +309,7 @@ global_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
-        inflation_radius: 0.5
+        inflation_radius: 0.35
       always_send_full_costmap: True
   global_costmap_client:
     ros__parameters:
@@ -353,9 +353,7 @@ recoveries_server:
     costmap_topic: local_costmap/costmap_raw
     footprint_topic: local_costmap/published_footprint
     cycle_frequency: 10.0
-    recovery_plugins: ["spin", "backup", "wait"]
-    spin:
-      plugin: "nav2_recoveries/Spin"
+    recovery_plugins: ["backup", "wait"]
     backup:
       plugin: "nav2_recoveries/BackUp"
     wait:

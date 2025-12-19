@@ -24,7 +24,7 @@ def cmd_callback(data):
   global pub
   
   v = data.linear.x
-  v = min(max(v, -0.8), 0.8)
+  # v = min(max(v, -0.8), 0.8)
   steering = float(convert_trans_rot_vel_to_steering_angle(v, data.angular.z, wheelbase))
   
   msg = AckermannDrive()

@@ -39,6 +39,7 @@ def generate_launch_description():
     slam = LaunchConfiguration('slam')
     map_yaml_file = LaunchConfiguration('map')
     use_sim_time = LaunchConfiguration('use_sim_time')
+    planner = LaunchConfiguration('planner')
     params_file = LaunchConfiguration('params_file')
     autostart = LaunchConfiguration('autostart')
     use_composition = LaunchConfiguration('use_composition')
@@ -105,9 +106,14 @@ def generate_launch_description():
         default_value='false',
         description='Use simulation (Gazebo) clock if true')
 
+    declare_planner_cmd = DeclareLaunchArgument(
+        'planner',
+        default_value='teb',
+        description='Local planner to use: teb or dwb')
+
     declare_params_file_cmd = DeclareLaunchArgument(
         'params_file',
-        default_value=os.path.join(bringup_dir, 'params', 'teb_nav2_params.yaml'),
+        default_value=[bringup_dir, '/params/', planner, '_nav2_params.yaml'],
         description='Full path to the ROS2 parameters file to use for all launched nodes')
 
     declare_autostart_cmd = DeclareLaunchArgument(
@@ -187,6 +193,7 @@ def generate_launch_description():
     ld.add_action(declare_slam_cmd)
     ld.add_action(declare_map_yaml_cmd)
     ld.add_action(declare_use_sim_time_cmd)
+    ld.add_action(declare_planner_cmd)
     ld.add_action(declare_params_file_cmd)
     ld.add_action(declare_autostart_cmd)
     ld.add_action(declare_use_composition_cmd)
