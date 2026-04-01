@@ -1,0 +1,3 @@
+KERNEL=="tty*", SUBSYSTEM=="tty", ATTRS{idVendor}=="303a", ATTRS{idProduct}=="0002", MODE="0666", SYMLINK+="osrbot_led_matrix", GROUP="dialout"
+
+KERNEL=="tty*", SUBSYSTEM=="tty", ATTRS{idVendor}=="1209", ATTRS{idProduct}=="c550", MODE="0666", SYMLINK+="osrbot_led_matrix", GROUP="dialout"
