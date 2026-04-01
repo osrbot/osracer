@@ -231,7 +231,7 @@ local_costmap:
     ros__parameters:
       update_frequency: 10.0
       publish_frequency: 5.0
-      footprint: ' [[0.45,0.14],[0.45,-0.14],[-0.05,-0.14],[-0.05,0.14]]'
+      footprint: ' [[0.42,0.14],[0.42,-0.14],[-0.08,-0.14],[-0.08,0.14]]'
       footprint_padding: 0.009999999776482582
       global_frame: odom
       robot_base_frame: base_link
