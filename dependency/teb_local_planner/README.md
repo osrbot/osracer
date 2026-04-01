@@ -1,1 +1,0 @@
-# teb_local_planner-for-ros2-humble
