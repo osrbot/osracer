@@ -86,6 +86,13 @@ sudo service udev restart
 sudo udevadm trigger
 ```
 
+### 1.6 Update Source Code With Git
+
+```bash
+cd ~/your_worksapce/src/osracer && git add . && git stash && git pull --recurse-submodules
+
+# git clone --recursive https://github.com/osrbot/osracer.git
+```
 ---
 
 ## 2. Quick Start (Bringup)
