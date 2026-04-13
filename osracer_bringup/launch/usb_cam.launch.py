@@ -14,6 +14,7 @@ remappings = [
     ('image_raw/compressedDepth', f'{camera_name}/compressedDepth'),
     ('image_raw/theora', f'{camera_name}/image_raw/theora'),
     ('camera_info', f'{camera_name}/camera_info'),
+    ('set_camera_info', f'{camera_name}/set_camera_info'),
 ]
 
 def generate_launch_description():
