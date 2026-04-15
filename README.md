@@ -108,10 +108,45 @@ ros2 launch osracer_bringup bringup.launch.py
 ## 3. Hardware Modules
 
 ### 3.1 Chassis Control
-Launch only the Ackermann chassis driver:
-```bash
-ros2 launch osracer_bringup chassis_ackermann.launch.py
+Launch the Ackermann chassis driver. You can choose between raw odometry or EKF-fused odometry (IMU + Encoders).
+
+**Architecture Overview:**
+```mermaid
+graph TD
+    A[Serial Port /dev/osrbot_base] --> B[osracer_chassis node]
+    B -- "Raw IMU (/imu)" --> C{use_ekf:=true?}
+    B -- "Raw Odom (/odom)" --> C
+    
+    C -- Yes --> D[Complementary Filter]
+    D -- "Filtered IMU (/imu_filter)" --> E[EKF Node]
+    C -- Yes --> E
+    E -- "Fused Odom (/odometry/filtered)" --> F[Navigation/Mapping]
+    E -- "TF: odom -> base_link" --> G[TF Tree]
+    
+    C -- No --> H["Direct Topic Remapping"]
+    H -- "/imu_filter" --> F
+    H -- "/odometry/filtered" --> F
+    B -- "TF: odom -> base_link" --> G
 ```
+
+**Usage Options:**
+
+1. **Standard Mode (Default):** Use internal encoder-based odometry.
+   ```bash
+   ros2 launch osracer_bringup chassis_ackermann.launch.py
+   ```
+
+2. **EKF Mode (Recommended for SLAM):** Use EKF to fuse IMU and encoders for better position estimation.
+   ```bash
+   ros2 launch osracer_bringup chassis_ackermann.launch.py use_ekf:=true
+   ```
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `use_ekf` | `false` | Enable/Disable Robot Localization (EKF) |
+| `publish_tf` | `auto` | Auto-set to `true` if EKF is off, `false` if EKF is on |
+| `port_name` | `/dev/osrbot_base` | Serial device port |
+| `wheelbase` | `0.285` | Distance between front and rear axles (m) |
 
 ### 3.2 Sensors
 **Lidar:**
@@ -122,6 +157,12 @@ ros2 launch osracer_bringup lidar.launch.py
 **USB Camera:**
 ```bash
 ros2 launch osracer_bringup usb_cam.launch.py
+```
+
+#### Camera Intrinsic Calibration with Calibration Plate 8*6
+
+```bash
+ros2 run camera_calibration cameracalibrator --size 8x6 --square 0.03 image:=/rgb/image_raw camera:=/rgb
 ```
 
 ### 3.3 Debugging & Visualization
