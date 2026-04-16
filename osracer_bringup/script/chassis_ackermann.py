@@ -138,7 +138,7 @@ class OsrbotCore(Node):
 
         # 将角速度 转换为转向角度
         # 公式: steering_angle = atan(wheelbase * angular_z / linear_x)
-        # 当线速度接近0时，转向角设为最大值以实现原地转向
+        # 当线速度接近0时，根据角速度方向设为最大转向角（以实现小半径掉头）
         if abs(linear_x) < 0.01:
             steering_angle_rad = math.copysign(self.max_steering_angle_deg * math.pi / 180.0, angular_z)
         else:
@@ -199,9 +199,9 @@ class OsrbotCore(Node):
                     self.get_logger().error("串口读取错误，连接可能已断开。")
                     break
                 except UnicodeDecodeError:
-                    self.get_logger().warn("无法解码串口数据。")
+                    self.get_logger().warning("无法解码串口数据。")
             else:
-                time.sleep(0.01) # 短暂休眠，避免CPU占用过高
+                time.sleep(0.001) # 短暂休眠，保持响应性
 
     def parse_serial_data(self, line: str):
         """解析来自ESP32的单行数据"""
@@ -341,11 +341,16 @@ class OsrbotCore(Node):
         return q
 
     def watchdog_check(self):
-        """检查命令超时，如果超时则停止发送命令，让ESP32接管"""
+        """检查命令超时，如果超时则停止发送命令，并发送停止指令到底盘"""
         time_since_last_cmd = (self.get_clock().now() - self.last_cmd_time).nanoseconds / 1e9
         if time_since_last_cmd > self.cmd_watchdog_timeout:
-            # 超时后不发送任何东西，ESP32的SERIAL_TIMEOUT会触发
-            pass
+            # 发送停止命令
+            command = "v 0.00 0.00\n"
+            with self.serial_lock:
+                try:
+                    self.serial.write(command.encode('utf-8'))
+                except serial.SerialException:
+                    pass
 
 
 def main(args=None):

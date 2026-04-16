@@ -1,0 +1,124 @@
+name: ROS2 Static Checks
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  package-xml:
+    name: package.xml validation
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install catkin_pkg
+        run: pip install catkin_pkg
+
+      - name: Validate package.xml files
+        run: |
+          python3 - <<'EOF'
+          import sys
+          import glob
+          from catkin_pkg.package import parse_package
+
+          errors = []
+          for path in glob.glob("**/package.xml", recursive=True):
+              if "osracer_dependency" in path:
+                  continue
+              try:
+                  pkg = parse_package(path)
+                  print(f"OK: {path} (name={pkg.name}, version={pkg.version})")
+                  # Warn on placeholder values
+                  if pkg.version == "0.0.0":
+                      print(f"  WARN: {path} has placeholder version 0.0.0")
+                  for m in pkg.maintainers:
+                      if "todo" in m.email.lower():
+                          print(f"  WARN: {path} has placeholder maintainer email: {m.email}")
+              except Exception as e:
+                  errors.append(f"FAIL: {path}: {e}")
+                  print(f"FAIL: {path}: {e}")
+
+          if errors:
+              sys.exit(1)
+          EOF
+
+  launch-syntax:
+    name: Launch file syntax check
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Check Python launch files compile
+        run: |
+          python3 - <<'EOF'
+          import sys
+          import ast
+          import glob
+
+          errors = []
+          for path in glob.glob("**/launch/*.py", recursive=True):
+              if "osracer_dependency" in path:
+                  continue
+              try:
+                  with open(path) as f:
+                      source = f.read()
+                  ast.parse(source)
+                  print(f"OK: {path}")
+              except SyntaxError as e:
+                  errors.append(f"FAIL: {path}: {e}")
+                  print(f"FAIL: {path}: {e}")
+
+          if errors:
+              sys.exit(1)
+          EOF
+
+      - name: Check XML launch files are valid XML
+        run: |
+          python3 - <<'EOF'
+          import sys
+          import glob
+          import xml.etree.ElementTree as ET
+
+          errors = []
+          for path in glob.glob("**/launch/*.xml", recursive=True):
+              if "osracer_dependency" in path:
+                  continue
+              try:
+                  ET.parse(path)
+                  print(f"OK: {path}")
+              except ET.ParseError as e:
+                  errors.append(f"FAIL: {path}: {e}")
+                  print(f"FAIL: {path}: {e}")
+
+          if errors:
+              sys.exit(1)
+          EOF
+
+  python-imports:
+    name: Unused import detection
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install autoflake
+        run: pip install autoflake
+
+      - name: Check for unused imports
+        run: |
+          autoflake \
+            --check \
+            --remove-unused-variables \
+            --remove-all-unused-imports \
+            osracer_bringup/script/twist_bridge.py \
+            osracer_bringup/script/led_matrix.py \
+            osracer_bringup/script/chassis_ackermann.py

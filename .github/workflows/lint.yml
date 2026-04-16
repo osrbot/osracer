@@ -1,0 +1,46 @@
+name: Lint
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  python-lint:
+    name: Python (ruff)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install ruff
+        run: pip install ruff
+
+      # ruff.toml at repo root controls rules (F + E9 + W6 only — real bugs, no style)
+      - name: ruff check
+        run: ruff check .
+
+  yaml-lint:
+    name: YAML lint
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install yamllint
+        run: pip install yamllint
+
+      - name: yamllint
+        run: |
+          yamllint \
+            osracer_bringup/param/ \
+            osracer_navigation/params/ \
+            osracer_slam/param/ \
+            -d "{extends: default, rules: {line-length: {max: 120}, truthy: disable}}"
