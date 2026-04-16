@@ -8,78 +8,78 @@ from launch.conditions import IfCondition, UnlessCondition
 from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
-    # 基础参数声明
+    # Base parameter declarations
     port_name_arg = DeclareLaunchArgument(
         'port_name',
         default_value='/dev/osrbot_base',
-        description='串口设备名称'
+        description='Serial port device name'
     )
     
     baud_rate_arg = DeclareLaunchArgument(
         'baud_rate',
         default_value='460800',
-        description='串口波特率'
+        description='Serial port baud rate'
     )
     
     odom_frame_arg = DeclareLaunchArgument(
         'odom_frame',
         default_value='odom',
-        description='里程计TF框架名称'
+        description='Odometry TF frame name'
     )
     
     base_frame_arg = DeclareLaunchArgument(
         'base_frame',
         default_value='base_footprint',
-        description='机器人基础TF框架名称'
+        description='Robot base TF frame name'
     )
     
     imu_frame_arg = DeclareLaunchArgument(
         'imu_frame',
         default_value='imu_link',
-        description='IMU传感器TF框架名称'
+        description='IMU sensor TF frame name'
     )
     
     wheelbase_arg = DeclareLaunchArgument(
         'wheelbase',
         default_value='0.285',
-        description='车辆轴距（米）'
+        description='Vehicle wheelbase (meters)'
     )
     
     max_steering_angle_arg = DeclareLaunchArgument(
         'max_steering_angle_deg',
         default_value='30.0',
-        description='最大转向角度（度）'
+        description='Maximum steering angle (degrees)'
     )
     
     cmd_timeout_arg = DeclareLaunchArgument(
         'cmd_watchdog_timeout_s',
         default_value='0.5',
-        description='命令看门狗超时时间（秒）'
+        description='Command watchdog timeout (seconds)'
     )
 
-    # EKF 相关参数
+    # EKF related parameters
     use_ekf_arg = DeclareLaunchArgument(
         'use_ekf',
         default_value='false',
-        description='是否启用 EKF 融合定位'
+        description='Whether to enable EKF fusion localization'
     )
 
     publish_tf_arg = DeclareLaunchArgument(
         'publish_tf',
         default_value=PythonExpression(["'False' if ", LaunchConfiguration('use_ekf'), " else 'True'"]),
-        description='是否由底盘节点发布 TF'
+        description='Whether the chassis node publishes TF'
     )    
     
     use_respawn_arg = DeclareLaunchArgument(
         'use_respawn',
         default_value='false',
-        description='是否启用节点自动重启'
+        description='Whether to enable node auto-respawn'
     )
     
     log_level_arg = DeclareLaunchArgument(
         'log_level',
         default_value='info',
-        description='日志级别'
+        description='Log level'
     )
     
     ekf_params_file_arg = DeclareLaunchArgument(
@@ -88,16 +88,16 @@ def generate_launch_description():
             FindPackageShare('osracer_bringup'),
             'param', 'chassis_ekf_params.yaml'
         ]),
-        description='EKF 参数文件路径'
+        description='Path to EKF parameter file'
     )
 
     map_frame_arg = DeclareLaunchArgument(
         'map_frame',
         default_value='map',
-        description='地图坐标系名称'
+        description='Map coordinate frame name'
     )
 
-    # 底盘节点
+    # Chassis node
     osracer_chassis_node = Node(
         package='osracer_bringup', 
         executable='chassis_ackermann.py',
@@ -123,11 +123,11 @@ def generate_launch_description():
         ]
     )
 
-    # EKF 相关节点组
+    # EKF related node group
     ekf_group = GroupAction(
         condition=IfCondition(LaunchConfiguration('use_ekf')),
         actions=[
-            # 互补滤波器
+            # Complementary Filter
             Node(
                 package='imu_complementary_filter',
                 executable='complementary_filter_node',
@@ -148,7 +148,7 @@ def generate_launch_description():
                 }],
                 arguments=["--ros-args", "--log-level", LaunchConfiguration('log_level')],
             ),
-            # EKF 节点
+            # EKF Node
             Node(
                 package='robot_localization',
                 executable='ekf_node',

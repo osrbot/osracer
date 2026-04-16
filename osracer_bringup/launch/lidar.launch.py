@@ -7,17 +7,17 @@ from launch_ros.actions import Node
 from launch.substitutions import TextSubstitution
 
 def generate_launch_description():
-    frame_id = LaunchConfiguration('frame_id')            # <!--frame_id 设置-->
-    output_topic0 = LaunchConfiguration('output_topic0')  # <!--topic 设置-->
-    inverted = LaunchConfiguration('inverted')            # <!--配置是否倒装，true 倒装-->
-    hostip = LaunchConfiguration('hostip')                # <!--配置本机监听地址，0.0.0.0 表示监听全部-->
-    port0 = LaunchConfiguration('port0')                  # <!--配置本机监听端口-->
-    angle_offset = LaunchConfiguration('angle_offset')    # <!--配置点云旋转角度，可以是负数-->
-    scanfreq = LaunchConfiguration('scanfreq')            # <!--配置扫描频率，范围：10、20、25、30-->
-    filter = LaunchConfiguration('filter')                # <!--配置滤波选项，范围：3、2、1、0 -->
-    laser_enable = LaunchConfiguration('laser_enable')    # <!--雷达扫描使能，范围：true、false-->
-    scan_range_start = LaunchConfiguration('scan_range_start')  # <!--雷达扫描起始角度，范围：45~315-->
-    scan_range_stop = LaunchConfiguration('scan_range_stop')    # <!--雷达扫描结束角度，范围：45~315，结束角度必须大于起始角度-->
+    frame_id = LaunchConfiguration('frame_id')            # <!--frame_id setting-->
+    output_topic0 = LaunchConfiguration('output_topic0')  # <!--topic setting-->
+    inverted = LaunchConfiguration('inverted')            # <!--inverted mount config, true if inverted-->
+    hostip = LaunchConfiguration('hostip')                # <!--host listen address, 0.0.0.0 for all-->
+    port0 = LaunchConfiguration('port0')                  # <!--host listen port-->
+    angle_offset = LaunchConfiguration('angle_offset')    # <!--point cloud rotation angle, can be negative-->
+    scanfreq = LaunchConfiguration('scanfreq')            # <!--scan frequency, range: 10, 20, 25, 30-->
+    filter = LaunchConfiguration('filter')                # <!--filter options, range: 0, 1, 2, 3-->
+    laser_enable = LaunchConfiguration('laser_enable')    # <!--laser scan enable, true/false-->
+    scan_range_start = LaunchConfiguration('scan_range_start')  # <!--scan range start angle, range: 45~315-->
+    scan_range_stop = LaunchConfiguration('scan_range_stop')    # <!--scan range stop angle, range: 45~315, must be > start-->
     sensorip = LaunchConfiguration('sensorip')
 
     declare_frame_id_cmd = DeclareLaunchArgument(

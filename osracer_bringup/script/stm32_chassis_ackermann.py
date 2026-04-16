@@ -20,10 +20,10 @@ from tf_transformations import quaternion_from_euler
 import tf2_ros
 from tf2_ros import TransformBroadcaster
 
-# 协议常量
+# Protocol Constants
 PROTOCOL_HEAD = 0xAA55
 
-# 包类型
+# Packet Types
 PACK_TYPE_HEART_BEAT = 0x0000
 PACK_TYPE_CMD_VEL = 0x0001
 PACK_TYPE_ACKMAN_VEL = 0x0002
@@ -32,7 +32,7 @@ PACK_TYPE_ODOM_RESPONSE = 0x8000
 PACK_TYPE_HEART_BEAT_RESPONSE = 0x8002
 PACK_TYPE_IMU_REPONSE = 0x8003
 
-# 默认参数
+# Default Parameters
 DEFAULT_SERIAL_DEVICE = "/dev/ACM0"
 DEFAULT_SERIAL_BAUDRATE = 115200
 DEFAULT_BASE_FRAME = "base_link"
@@ -40,33 +40,33 @@ DEFAULT_ODOM_FRAME = "odom"
 DEFAULT_IMU_FRAME = "imu_link"
 DEFAULT_PUBLISH_TF = False
 
-# 性能优化参数
+# Performance Optimization Parameters
 SERIAL_READ_BUFFER_SIZE = 4096
 SERIAL_WRITE_BUFFER_SIZE = 1024
 MAX_PACKET_SIZE = 1024
 RECV_BUFFER_SIZE = 8192
 
 def build_cmd(cmd_type, data):
-    """构建命令包"""
+    """Build command packet"""
     buf = bytearray()
     
-    # 包头 (小端序: 0x55 0xAA)
+    # Packet header (Little-endian: 0x55 0xAA)
     buf.append(PROTOCOL_HEAD & 0xFF)        # 0x55
     buf.append((PROTOCOL_HEAD >> 8) & 0xFF) # 0xAA
     
-    # 长度 (数据长度 + 2字节包类型)
+    # Length (Data length + 2 bytes packet type)
     length = len(data) + 2
-    buf.append(length & 0xFF)               # 长度低字节
-    buf.append((length >> 8) & 0xFF)        # 长度高字节
+    buf.append(length & 0xFF)               # Length LSB
+    buf.append((length >> 8) & 0xFF)        # Length MSB
     
-    # 包类型 (小端序)
-    buf.append(cmd_type & 0xFF)             # 包类型低字节
-    buf.append((cmd_type >> 8) & 0xFF)      # 包类型高字节
+    # Packet type (Little-endian)
+    buf.append(cmd_type & 0xFF)             # Type LSB
+    buf.append((cmd_type >> 8) & 0xFF)      # Type MSB
     
-    # 数据
+    # Data
     buf.extend(data)
     
-    # BCC校验 - 从索引4(长度字段)开始到数据结束
+    # BCC Checksum - From index 4 (length field) to the end of data
     bcc = 0
     for i in range(4, len(buf)):
         bcc ^= buf[i]
@@ -76,7 +76,7 @@ def build_cmd(cmd_type, data):
     return buf
 
 class HighPerformanceSerial:
-    """高性能串口包装类"""
+    """High-performance serial wrapper class"""
     def __init__(self, port, baudrate, timeout=0.1):
         self.port = port
         self.baudrate = baudrate
@@ -86,7 +86,7 @@ class HighPerformanceSerial:
         self._is_open = False
         
     def open(self):
-        """打开串口"""
+        """Open serial port"""
         try:
             if self._is_open:
                 self.close()
@@ -113,12 +113,12 @@ class HighPerformanceSerial:
             return self._is_open
             
         except SerialException as e:
-            print(f"打开串口失败: {e}")
+            print(f"Failed to open serial port: {e}")
             self._is_open = False
             return False
     
     def close(self):
-        """关闭串口"""
+        """Close serial port"""
         try:
             if self.serial_conn and self.serial_conn.is_open:
                 self.serial_conn.close()
@@ -127,21 +127,21 @@ class HighPerformanceSerial:
             pass
     
     def is_open(self):
-        """检查串口是否打开"""
+        """Check if serial port is open"""
         return self._is_open and self.serial_conn and self.serial_conn.is_open
     
     def read(self, size=1024):
-        """读取数据"""
+        """Read data"""
         try:
             if self.is_open():
                 return self.serial_conn.read(size)
         except Exception as e:
-            print(f"串口读取错误: {e}")
+            print(f"Serial read error: {e}")
             self._is_open = False
         return None
     
     def write(self, data):
-        """写入数据"""
+        """Write data"""
         with self.write_lock:
             try:
                 if self.is_open():
@@ -149,32 +149,32 @@ class HighPerformanceSerial:
                     self.serial_conn.flush()
                     return sent
             except Exception as e:
-                print(f"串口写入错误: {e}")
+                print(f"Serial write error: {e}")
                 self._is_open = False
             return 0
 
 class ProtocolParser:
-    """高性能协议解析器"""
+    """High-performance protocol parser"""
     def __init__(self):
         self.buffer = bytearray()
         self.max_buffer_size = RECV_BUFFER_SIZE
         
     def add_data(self, data):
-        """添加新数据到缓冲区"""
+        """Add new data to buffer"""
         self.buffer.extend(data)
         
-        # 防止缓冲区无限增长
+        # Prevent infinite buffer growth
         if len(self.buffer) > self.max_buffer_size:
-            # 保留最近的数据
+            # Keep the most recent data
             keep_size = min(self.max_buffer_size // 2, len(self.buffer))
             self.buffer = self.buffer[-keep_size:]
     
     def parse_packets(self):
-        """解析完整数据包"""
+        """Parse complete packets"""
         packets = []
         
-        while len(self.buffer) >= 7:  # 最小包长度
-            # 查找包头
+        while len(self.buffer) >= 7:  # Minimum packet length
+            # Search for packet header
             head_pos = -1
             for i in range(len(self.buffer) - 1):
                 if self.buffer[i] == (PROTOCOL_HEAD & 0xFF) and \
@@ -183,47 +183,47 @@ class ProtocolParser:
                     break
             
             if head_pos == -1:
-                # 没有找到包头，清空缓冲区
+                # Header not found, clear buffer
                 self.buffer.clear()
                 break
             
             if head_pos > 0:
-                # 移除包头前的无效数据
+                # Remove invalid data before header
                 del self.buffer[:head_pos]
                 continue
             
-            # 检查长度是否足够
+            # Check if length is sufficient
             if len(self.buffer) < 6:
                 break
                 
-            # 解析长度字段
+            # Parse length field
             data_len = self.buffer[2] + (self.buffer[3] << 8)
-            total_packet_len = 4 + data_len + 1  # 包头4 + 数据长度 + 校验位
+            total_packet_len = 4 + data_len + 1  # Header 4 + data length + checksum byte
             
             if total_packet_len > MAX_PACKET_SIZE:
-                # 包长度异常，跳过这个字节继续查找
+                # Invalid packet length, skip byte and continue search
                 del self.buffer[0]
                 continue
                 
             if len(self.buffer) < total_packet_len:
-                # 数据不完整，等待更多数据
+                # Incomplete data, wait for more
                 break
             
-            # 提取完整数据包
+            # Extract complete packet
             packet = bytes(self.buffer[:total_packet_len])
             
-            # BCC校验
+            # BCC verification
             if self.verify_bcc(packet):
                 packets.append(packet)
                 del self.buffer[:total_packet_len]
             else:
-                # 校验失败，跳过这个字节继续查找
+                # Verification failed, skip byte and continue search
                 del self.buffer[0]
         
         return packets
     
     def verify_bcc(self, packet):
-        """BCC校验"""
+        """BCC verification"""
         if len(packet) < 5:
             return False
             
@@ -234,7 +234,7 @@ class ProtocolParser:
         return bcc == packet[-1]
     
     def clear(self):
-        """清空缓冲区"""
+        """Clear buffer"""
         self.buffer.clear()
 
 class OsrbotCore(Node):
@@ -243,11 +243,11 @@ class OsrbotCore(Node):
         self.init_done = False
         self.running = True
         
-        # 参数
+        # Parameters
         self.serial_port = self.declare_parameter("serial_port", DEFAULT_SERIAL_DEVICE).value
         self.serial_baudrate = self.declare_parameter("serial_baudrate", DEFAULT_SERIAL_BAUDRATE).value
         
-        # 性能优化组件
+        # Performance optimization components
         self.serial_interface = HighPerformanceSerial(
             self.serial_port, 
             self.serial_baudrate,
@@ -255,49 +255,49 @@ class OsrbotCore(Node):
         )
         self.protocol_parser = ProtocolParser()
         
-        # 统计信息
+        # Statistics information
         self.packet_count = 0
         self.error_count = 0
         self.heartbeat_count = 0
         self.last_stat_time = time.time()
         self.last_heartbeat_time = time.time()
         
-        # 定时器管理 - 使用不同的属性名避免冲突
+        # Timer management - use different property names to avoid conflicts
         self.managed_timers = []
         
-        # 串口线程
+        # Serial thread
         self.serial_thread = None
         self.communication_timeout = False
         
-        # 初始化串口和定时器
+        # Initialize serial and timers
         self.setup_timers()
         self.open_serial()
         
         self.init_done = True
         
     def setup_timers(self):
-        """设置定时器 - 统一管理"""
-        # 清理现有定时器
+        """Setup timers - unified management"""
+        # Cleanup existing timers
         self.cleanup_timers()
         
-        # 心跳定时器 - 固定间隔发送
+        # Heartbeat timer - fixed interval sending
         heartbeat_timer = self.create_timer(0.2, self.heart_callback)
         self.managed_timers.append(heartbeat_timer)
         
-        # 通信超时检测定时器
+        # Communication timeout detection timer
         comm_timer = self.create_timer(0.5, self.communication_error_callback)
         self.managed_timers.append(comm_timer)
         
-        # 统计定时器
+        # Statistics timer
         stat_timer = self.create_timer(5.0, self.stat_callback)
         self.managed_timers.append(stat_timer)
         
-        # 串口健康检查定时器
+        # Serial health check timer
         health_timer = self.create_timer(10.0, self.serial_health_check)
         self.managed_timers.append(health_timer)
     
     def cleanup_timers(self):
-        """清理所有定时器"""
+        """Cleanup all timers"""
         for timer in self.managed_timers:
             try:
                 timer.cancel()
@@ -307,25 +307,25 @@ class OsrbotCore(Node):
         self.managed_timers.clear()
     
     def open_serial(self):
-        """打开串口连接"""
+        """Open serial connection"""
         if self.serial_interface.open():
-            # 启动接收线程
+            # Start receive thread
             if self.serial_thread and self.serial_thread.is_alive():
-                # 等待旧线程结束
+                # Wait for old thread to end
                 self.serial_thread.join(timeout=1.0)
                 
             self.serial_thread = threading.Thread(target=self.serial_receive_thread)
             self.serial_thread.daemon = True
             self.serial_thread.start()
-            self.get_logger().info("串口打开成功")
+            self.get_logger().info("Serial port opened successfully")
             self.communication_timeout = False
             self.last_heartbeat_time = time.time()
         else:
-            self.get_logger().warning("串口打开失败，2秒后重试")
-            # 使用单次定时器进行重连
+            self.get_logger().warning("Failed to open serial port, retrying in 2 seconds")
+            # Use one-shot timer for reconnection
             def delayed_reconnect():
                 self.reconnect_serial()
-                # 从管理列表中移除这个一次性定时器
+                # Remove this one-shot timer from managed list
                 if hasattr(self, '_reconnect_timer') and self._reconnect_timer in self.managed_timers:
                     self.managed_timers.remove(self._reconnect_timer)
             
@@ -333,106 +333,106 @@ class OsrbotCore(Node):
             self.managed_timers.append(self._reconnect_timer)
     
     def reconnect_serial(self):
-        """重新连接串口"""
+        """Reconnect serial port"""
         if not self.serial_interface.is_open():
-            self.get_logger().info("尝试重新连接串口...")
+            self.get_logger().info("Attempting to reconnect serial port...")
             self.open_serial()
     
     def serial_health_check(self):
-        """串口健康检查"""
+        """Serial health check"""
         if not self.serial_interface.is_open():
-            self.get_logger().warning("串口连接断开，尝试重连")
+            self.get_logger().warning("Serial connection lost, attempting reconnect")
             self.open_serial()
         
-        # 检查心跳是否正常
+        # Check if heartbeat is normal
         current_time = time.time()
-        if current_time - self.last_heartbeat_time > 2.0:  # 2秒没有心跳响应
+        if current_time - self.last_heartbeat_time > 2.0:  # 2 seconds without heartbeat response
             if not self.communication_timeout:
-                self.get_logger().warning("心跳通信超时")
+                self.get_logger().warning("Heartbeat communication timeout")
                 self.communication_timeout = True
     
     def serial_receive_thread(self):
-        """高性能串口接收线程"""
+        """High-performance serial receive thread"""
         consecutive_errors = 0
         max_consecutive_errors = 5
         
         while self.running and rclpy.ok():
             try:
-                # 批量读取数据
+                # Batch read data
                 data = self.serial_interface.read(SERIAL_READ_BUFFER_SIZE)
                 if data:
-                    consecutive_errors = 0  # 重置错误计数
+                    consecutive_errors = 0  # Reset error count
                     
-                    # 添加到解析器
+                    # Add to parser
                     self.protocol_parser.add_data(data)
                     
-                    # 批量解析数据包
+                    # Batch parse packets
                     packets = self.protocol_parser.parse_packets()
                     for packet in packets:
                         self.handle_serial_packet(packet)
                 else:
-                    # 没有数据，短暂休眠
+                    # No data, short sleep
                     time.sleep(0.001)
                     
             except Exception as e:
                 consecutive_errors += 1
                 self.error_count += 1
                 if consecutive_errors >= max_consecutive_errors:
-                    self.get_logger().error(f"串口接收连续错误，尝试重连: {e}")
+                    self.get_logger().error(f"Consecutive serial receive errors, attempting reconnect: {e}")
                     time.sleep(0.1)
-                    break  # 退出线程，等待重连
+                    break  # Exit thread, wait for reconnect
                 time.sleep(0.01)
     
     def handle_serial_packet(self, packet):
-        """处理单个串口数据包"""
+        """Handle a single serial packet"""
         try:
             if self.init_done:
-                # 更新统计
+                # Update statistics
                 self.packet_count += 1
                 
-                # 处理数据包
+                # Process packet
                 self.osrbot_data_proc(packet)
                 
-                # 重置通信超时标志
+                # Reset communication timeout flag
                 self.communication_timeout = False
                 self.last_heartbeat_time = time.time()
                 
         except Exception as e:
             self.error_count += 1
-            self.get_logger().warning(f"处理数据包异常: {e}")
+            self.get_logger().warning(f"Exception handling packet: {e}")
     
     def communication_error_callback(self):
-        """通信错误回调"""
+        """Communication error callback"""
         if self.communication_timeout:
-            self.get_logger().warning("串口通信超时，尝试恢复")
+            self.get_logger().warning("Serial communication timeout, attempting recovery")
             self.reconnect_serial()
     
     def stat_callback(self):
-        """统计信息回调"""
+        """Statistics callback"""
         current_time = time.time()
         elapsed = current_time - self.last_stat_time
         packet_rate = self.packet_count / elapsed if elapsed > 0 else 0
         
         self.get_logger().info(
-            f"串口统计: {self.packet_count}包, {packet_rate:.1f}包/秒, "
-            f"心跳: {self.heartbeat_count}, 错误: {self.error_count}, "
-            f"超时: {self.communication_timeout}"
+            f"Serial Stats: {self.packet_count} packets, {packet_rate:.1f} packets/sec, "
+            f"Heartbeats: {self.heartbeat_count}, Errors: {self.error_count}, "
+            f"Timeout: {self.communication_timeout}"
         )
         
-        # 重置统计
+        # Reset statistics
         self.packet_count = 0
         self.heartbeat_count = 0
         self.error_count = 0
         self.last_stat_time = current_time
     
     def heart_callback(self):
-        """心跳回调 - 修复版本"""
+        """Heartbeat callback - fixed version"""
         try:
             if not self.serial_interface.is_open():
                 self.reconnect_serial()
                 return
                 
-            # 发送心跳包
+            # Send heartbeat packet
             dummy = 0
             data = struct.pack('<H', dummy)
             buf = build_cmd(PACK_TYPE_HEART_BEAT, data)
@@ -441,15 +441,15 @@ class OsrbotCore(Node):
             if sent == len(buf):
                 self.heartbeat_count += 1
             else:
-                self.get_logger().warning("心跳包发送失败")
+                self.get_logger().warning("Failed to send heartbeat packet")
                 self.communication_timeout = True
                 
         except Exception as e:
-            self.get_logger().warning(f"心跳包发送异常: {e}")
+            self.get_logger().warning(f"Exception sending heartbeat packet: {e}")
             self.communication_timeout = True
     
     def serial_send(self, data):
-        """发送串口数据"""
+        """Send serial data"""
         try:
             if not self.serial_interface.is_open():
                 return -1
@@ -460,59 +460,59 @@ class OsrbotCore(Node):
             return -1
     
     def osrbot_data_proc(self, buf):
-        """处理接收到的数据包（子类实现）"""
+        """Process received packets (subclass implementation)"""
         raise NotImplementedError("Subclasses must implement this method")
     
     def destroy_node(self):
-        """销毁节点 - 修复资源清理"""
-        self.get_logger().info("正在关闭节点...")
+        """Destroy node - resource cleanup"""
+        self.get_logger().info("Closing node...")
         self.running = False
         
-        # 等待串口线程结束
+        # Wait for serial thread to end
         if self.serial_thread and self.serial_thread.is_alive():
             self.serial_thread.join(timeout=2.0)
         
-        # 关闭串口
+        # Close serial port
         self.serial_interface.close()
         
-        # 清理定时器
+        # Cleanup timers
         self.cleanup_timers()
         
-        # 清空协议解析器缓冲区
+        # Clear protocol parser buffer
         self.protocol_parser.clear()
         
         super().destroy_node()
 
-# OsrbotChassis 和 OsrbotAckermann 类保持不变
+# OsrbotChassis and OsrbotAckermann classes remain unchanged
 class OsrbotChassis(OsrbotCore):
     def __init__(self):
         super().__init__()
         
-        # 参数
+        # Parameters
         self.base_frame = self.declare_parameter("base_frame", DEFAULT_BASE_FRAME).value
         self.odom_frame = self.declare_parameter("odom_frame", DEFAULT_ODOM_FRAME).value
         self.imu_frame = self.declare_parameter("imu_frame", DEFAULT_IMU_FRAME).value
         self.publish_tf = self.declare_parameter("publish_tf", DEFAULT_PUBLISH_TF).value
         
-        # 发布器
+        # Publishers
         self.odom_pub = self.create_publisher(Odometry, "odom", 10)
         self.imu_pub = self.create_publisher(Imu, "imu", 10)
         
-        # TF广播器
+        # TF Broadcaster
         self.tf_broadcaster = TransformBroadcaster(self)
         
         self.publisher_init_done = True
     
     def osrbot_data_proc(self, buf):
-        """处理接收到的数据包"""
+        """Process received packets"""
         if not self.publisher_init_done:
             return
             
-        # 解析协议包
+        # Parse protocol packet
         if len(buf) < 6:
             return
             
-        # 包类型在偏移4的位置 (小端序)
+        # Packet type at offset 4 (Little-endian)
         pack_type = struct.unpack_from('<H', buf, 4)[0]
         
         if pack_type == PACK_TYPE_ODOM_RESPONSE:
@@ -520,12 +520,12 @@ class OsrbotChassis(OsrbotCore):
         elif pack_type == PACK_TYPE_IMU_REPONSE:
             self.handle_imu_data(buf)
         elif pack_type == PACK_TYPE_HEART_BEAT_RESPONSE:
-            # 心跳响应，更新最后心跳时间
+            # Heartbeat response, update last heartbeat time
             self.last_heartbeat_time = time.time()
             self.communication_timeout = False
     
     def handle_odom_data(self, buf):
-        """处理里程计数据"""
+        """Handle odometry data"""
         data_start = 6
         data_len = len(buf) - data_start - 1
         
@@ -535,25 +535,25 @@ class OsrbotChassis(OsrbotCore):
                 odom_data = struct.unpack('<ffffffffff', data)
                 x, y, z, yaw, lin_x, lin_y, lin_z, ang_x, ang_y, ang_z = odom_data
                 
-                # 发布Odometry消息
+                # Publish Odometry message
                 odom_msg = Odometry()
                 current_time = self.get_clock().now().to_msg()
                 odom_msg.header.stamp = current_time
                 odom_msg.header.frame_id = self.odom_frame
                 
-                # 位置
+                # Position
                 odom_msg.pose.pose.position.x = x
                 odom_msg.pose.pose.position.y = y
                 odom_msg.pose.pose.position.z = z
                 
-                # 方向
+                # Direction
                 quat = quaternion_from_euler(0, 0, yaw)
                 odom_msg.pose.pose.orientation.x = quat[0]
                 odom_msg.pose.pose.orientation.y = quat[1]
                 odom_msg.pose.pose.orientation.z = quat[2]
                 odom_msg.pose.pose.orientation.w = quat[3]
                 
-                # 速度
+                # Velocity
                 odom_msg.child_frame_id = self.base_frame
                 odom_msg.twist.twist.linear.x = lin_x
                 odom_msg.twist.twist.linear.y = lin_y
@@ -564,7 +564,7 @@ class OsrbotChassis(OsrbotCore):
                 
                 self.odom_pub.publish(odom_msg)
                 
-                # 发布TF
+                # Publish TF
                 if self.publish_tf:
                     transform = TransformStamped()
                     transform.header.stamp = current_time
@@ -581,10 +581,10 @@ class OsrbotChassis(OsrbotCore):
                     self.tf_broadcaster.sendTransform(transform)
                 
         except Exception as e:
-            self.get_logger().warning(f"处理里程计数据失败: {e}")
+            self.get_logger().warning(f"Failed to process odometry data: {e}")
     
     def handle_imu_data(self, buf):
-        """处理IMU数据"""
+        """Handle IMU data"""
         data_start = 6
         data_len = len(buf) - data_start - 1
         
@@ -599,23 +599,23 @@ class OsrbotChassis(OsrbotCore):
                 imu_msg.header.stamp = current_time
                 imu_msg.header.frame_id = self.imu_frame
                 
-                # 方向
+                # Direction
                 imu_msg.orientation.x = qx
                 imu_msg.orientation.y = qy
                 imu_msg.orientation.z = qz
                 imu_msg.orientation.w = qw
                 
-                # 角速度
+                # Angular Velocity
                 imu_msg.angular_velocity.x = ang_x
                 imu_msg.angular_velocity.y = ang_y
                 imu_msg.angular_velocity.z = ang_z
                 
-                # 线性加速度
+                # Linear Acceleration
                 imu_msg.linear_acceleration.x = acc_x
                 imu_msg.linear_acceleration.y = acc_y
                 imu_msg.linear_acceleration.z = acc_z
                 
-                # 协方差   have a impact for cartographer account for enable the follow lines
+                # Covariance - may impact Cartographer if these are enabled
                 # imu_msg.orientation_covariance[0] = -1
                 # imu_msg.angular_velocity_covariance[0] = -1
                 # imu_msg.linear_acceleration_covariance[0] = -1
@@ -623,13 +623,13 @@ class OsrbotChassis(OsrbotCore):
                 self.imu_pub.publish(imu_msg)
                 
         except Exception as e:
-            self.get_logger().warning(f"处理IMU数据失败: {e}")
+            self.get_logger().warning(f"Failed to process IMU data: {e}")
 
 class OsrbotAckermann(OsrbotChassis):
     def __init__(self):
         super().__init__()
         
-        # 订阅Ackermann控制命令
+        # Subscribe to Ackermann control commands
         self.ackermann_sub = self.create_subscription(
             AckermannDrive, 
             "ackermann_cmd",
@@ -640,7 +640,7 @@ class OsrbotAckermann(OsrbotChassis):
         self.init_done = True
     
     def ackermann_callback(self, msg):
-        """Ackermann控制命令回调"""
+        """Ackermann control command callback"""
         try:
             steering_angle = msg.steering_angle
             speed = msg.speed
@@ -651,7 +651,7 @@ class OsrbotAckermann(OsrbotChassis):
             self.serial_send(buf)
                 
         except Exception as e:
-            self.get_logger().warning(f"发送Ackermann命令失败: {e}")
+            self.get_logger().warning(f"Failed to send Ackermann command: {e}")
 
 def main():
     rclpy.init()
@@ -665,7 +665,7 @@ def main():
     except ExternalShutdownException:
         pass
     except Exception as e:
-        print(f"程序异常: {e}")
+        print(f"Exception in program: {e}")
     finally:
         if 'node' in locals():
             node.destroy_node()

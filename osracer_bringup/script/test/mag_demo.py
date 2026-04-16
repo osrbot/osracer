@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-磁力计数据转发节点 - 从串口接收磁力计数据并发布为ROS2话题
-数据格式：m x y z   (x, y, z 单位为高斯)
+Magnetometer data forwarder node - Receives magnetometer data from serial and publishes as a ROS2 topic
+Data format: m x y z (x, y, z in Gauss)
 """
 
 import rclpy
@@ -12,69 +12,69 @@ import threading
 from typing import Optional
 
 class MagnetometerForwarder(Node):
-    """磁力计数据转发节点"""
+    """Magnetometer data forwarder node"""
     
     def __init__(self):
         super().__init__('magnetometer_forwarder')
         
-        # 参数配置
+        # Parameter configuration
         self.declare_parameter('serial_port', '/dev/ttyACM0')
         self.declare_parameter('baud_rate', 115200)
         self.declare_parameter('topic_name', 'magnetometer_data')
-        self.declare_parameter('frame_id', 'imu_link')  # 磁场数据的参考坐标系
+        self.declare_parameter('frame_id', 'imu_link')  # Reference coordinate frame for mag data
         
-        # 获取参数
+        # Get parameters
         serial_port = self.get_parameter('serial_port').get_parameter_value().string_value
         baud_rate = self.get_parameter('baud_rate').get_parameter_value().integer_value
         topic_name = self.get_parameter('topic_name').get_parameter_value().string_value
         self.frame_id = self.get_parameter('frame_id').get_parameter_value().string_value
         
-        # 创建发布者
+        # Create publisher
         self.publisher = self.create_publisher(MagneticField, topic_name, 10)
         
-        # 初始化串口
+        # Initialize serial port
         self.serial_port: Optional[serial.Serial] = None
         
         try:
-            # 打开串口
+            # Open serial port
             self.serial_port = serial.Serial(
                 port=serial_port,
                 baudrate=baud_rate,
-                timeout=1.0  # 读取超时1秒
+                timeout=1.0  # Read timeout 1 second
             )
             
-            self.get_logger().info(f'已连接到串口: {serial_port}, 波特率: {baud_rate}')
+            self.get_logger().info(f'Connected to serial port: {serial_port}, baud rate: {baud_rate}')
             
-            # 启动接收线程
+            # Start receive thread
             self.receive_thread = threading.Thread(target=self.receive_data, daemon=True)
             self.receive_thread.start()
             
         except Exception as e:
-            self.get_logger().error(f'无法打开串口 {serial_port}: {e}')
+            self.get_logger().error(f'Failed to open serial port {serial_port}: {e}')
     
     def receive_data(self):
-        """接收串口数据"""
+        """Receive serial data"""
         if self.serial_port is None:
             return
             
         while rclpy.ok():
             try:
-                # 读取串口数据
+                # Read serial data
                 if self.serial_port.in_waiting > 0:
-                    # 读取一行数据
+                    # Read a line of data
                     line = self.serial_port.readline().decode('utf-8', errors='ignore').strip()
                     
                     if line:
-                        # 检查是否为磁力计数据协议格式
+                        # Check packet format
                         if line.startswith('m '):
-                            # 解析并发布到ROS话题
+                            # Parse and publish to ROS topic
                             self.publish_magnetometer(line)
                             
             except UnicodeDecodeError:
-                # 忽略解码错误
+                # Ignore decoding errors
                 pass
             except Exception as e:
-                self.get_logger().error(f'串口读取错误: {e}')
+                self.get_logger().error(f'Serial read error: {e}')
                 break
     
     def publish_magnetometer(self, data_str: str):
@@ -87,7 +87,7 @@ class MagnetometerForwarder(Node):
             y_gauss = float(parts[2])
             z_gauss = float(parts[3])
             
-            # 转换为特斯拉 (1 Gauss = 1e-4 Tesla)
+            # Convert to Tesla (1 Gauss = 1e-4 Tesla)
             x_tesla = x_gauss * 1e-4
             y_tesla = y_gauss * 1e-4
             z_tesla = z_gauss * 1e-4
@@ -98,18 +98,18 @@ class MagnetometerForwarder(Node):
             msg.magnetic_field.x = x_tesla
             msg.magnetic_field.y = y_tesla
             msg.magnetic_field.z = z_tesla
-            # msg.magnetic_field_covariance[0] = -1.0  # 未知协方差
+            # msg.magnetic_field_covariance[0] = -1.0  # Unknown covariance
             
             self.publisher.publish(msg)
             
         except (ValueError, IndexError) as e:
-            self.get_logger().debug(f'数据解析错误: {e}')
+            self.get_logger().debug(f'Data parsing error: {e}')
     
     def cleanup(self):
-        """清理资源"""
+        """Cleanup resources"""
         if self.serial_port and self.serial_port.is_open:
             self.serial_port.close()
-            self.get_logger().info('串口已关闭')
+            self.get_logger().info('Serial port closed')
 
 def main(args=None):
     rclpy.init(args=args)
