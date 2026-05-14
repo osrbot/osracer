@@ -1,5 +1,5 @@
-KERNEL=="video[0-9]*", SUBSYSTEM=="video4linux", ATTRS{idVendor}=="05a3", ATTRS{idProduct}=="9230", MODE:="0666", GROUP:="dialout", SYMLINK+="osrbot_usb_cam"
+KERNEL=="video[0-9]*", SUBSYSTEM=="video4linux", ATTR{index}=="0", ATTRS{idVendor}=="05a3", ATTRS{idProduct}=="9230", MODE:="0666", GROUP:="dialout", SYMLINK+="osrbot_usb_cam"
 
-KERNEL=="video[0-9]*", SUBSYSTEM=="video4linux", ATTRS{idVendor}=="2993", ATTRS{idProduct}=="0858", MODE:="0666", GROUP:="dialout", SYMLINK+="osrbot_usb_cam"
+KERNEL=="video[0-9]*", SUBSYSTEM=="video4linux", ATTR{index}=="0", ATTRS{idVendor}=="2993", ATTRS{idProduct}=="0858", MODE:="0666", GROUP:="dialout", SYMLINK+="osrbot_usb_cam"
 
-KERNEL=="video[0-9]*", SUBSYSTEM=="video4linux", ATTRS{idVendor}=="1bcf", ATTRS{idProduct}=="2cd1", MODE:="0666", GROUP:="dialout", SYMLINK+="osrbot_usb_cam"
+KERNEL=="video[0-9]*", SUBSYSTEM=="video4linux", ATTR{index}=="0", ATTRS{idVendor}=="1bcf", ATTRS{idProduct}=="2cd1", MODE:="0666", GROUP:="dialout", SYMLINK+="osrbot_usb_cam"
