@@ -13,8 +13,8 @@ from std_msgs.msg import String
 class LedMatrixNode(Node):
     def __init__(self):
         super().__init__('led_matrix_node')
-        self.port = self.declare_parameter('port', '/dev/ttyACM0').value
-        self.baud = self.declare_parameter('baudrate', 115200).value
+        self.port = self.declare_parameter('serial_port', '/dev/ttyACM0').value
+        self.baud = self.declare_parameter('serial_baudrate', 115200).value
         self.topic = self.declare_parameter('input_topic', 'led_matrix/command').value
         self.append_newline = self.declare_parameter('append_newline', True).value
 
