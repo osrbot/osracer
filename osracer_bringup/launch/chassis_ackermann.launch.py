@@ -60,7 +60,7 @@ def generate_launch_description():
     # EKF related parameters
     use_ekf_arg = DeclareLaunchArgument(
         'use_ekf',
-        default_value='false',
+        default_value='False',
         description='Whether to enable EKF fusion localization'
     )
 
@@ -72,7 +72,7 @@ def generate_launch_description():
     
     use_respawn_arg = DeclareLaunchArgument(
         'use_respawn',
-        default_value='false',
+        default_value='False',
         description='Whether to enable node auto-respawn'
     )
     
