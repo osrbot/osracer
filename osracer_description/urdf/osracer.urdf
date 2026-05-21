@@ -1,0 +1,532 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot
+  name="osracer">
+  <link
+    name="base_footprint">
+  </link>
+  <joint name="base_footprint_to_base_link" type="fixed">
+    <parent link="base_footprint" />
+    <child link="base_link" />
+    <origin xyz="0 0 0.0315" rpy="0 0 0"/>
+  </joint>
+  <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="-0.027761 -0.014339 -0.081554"
+        rpy="0 0 0" />
+      <mass
+        value="1.6211" />
+      <inertia
+        ixx="0.002377"
+        ixy="0.00"
+        ixz="0.00"
+        iyy="0.0058394"
+        iyz="0.00"
+        izz="0.0070057" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://osracer_description/meshes/base_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://osracer_description/meshes/base_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link
+    name="camera_link">
+    <inertial>
+      <origin
+        xyz="0.029709 0.0025754 -0.1495"
+        rpy="3.1415 0 3.1415" />
+      <mass
+        value="0.0050" />
+      <inertia
+        ixx="0.02422"
+        ixy="0.00010347"
+        ixz="0.00098856"
+        iyy="0.021593"
+        iyz="-0.00010249"
+        izz="0.0055482" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="3.1415 0 3.1415" />
+      <geometry>
+        <mesh
+          filename="package://osracer_description/meshes/camera_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="3.1415 0 3.1415" />
+      <geometry>
+        <mesh
+          filename="package://osracer_description/meshes/camera_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="camera_joint"
+    type="fixed">
+    <origin
+      xyz="0.12323 -0.017229 -0.053395"
+      rpy="-1.5708 0 -1.5708" />
+    <parent
+      link="base_link" />
+    <child
+      link="camera_link" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="laser_link">
+    <inertial>
+      <origin
+        xyz="0.052553 0.0022846 -0.11893"
+        rpy="0 0 0" />
+      <mass
+        value="0.160" />
+      <inertia
+        ixx="0.00005"
+        ixy="-0.00"
+        ixz="-0.00"
+        iyy="0.00005"
+        iyz="0"
+        izz="0.000024139" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 3.1415" />
+      <geometry>
+        <mesh
+          filename="package://osracer_description/meshes/laser_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.79608 0.82353 0.93725 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://osracer_description/meshes/laser_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="laser_joint"
+    type="fixed">
+    <origin
+      xyz="-0.082558 -0.017229 0.034095"
+      rpy="-0.00028339 -0.031729 0.0057633" />
+    <parent
+      link="base_link" />
+    <child
+      link="laser_link" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="imu_link">
+    <inertial>
+      <origin
+        xyz="-0.068069 0.0031046 -0.019505"
+        rpy="0 0 0" />
+      <mass
+        value="0.01936" />
+      <inertia
+        ixx="0.000055482"
+        ixy="0"
+        ixz="0"
+        iyy="0.000021593"
+        iyz="0"
+        izz="0.00002422" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://osracer_description/meshes/imu_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.79608 0.82353 0.93725 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://osracer_description/meshes/imu_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="imu_joint"
+    type="fixed">
+    <origin
+      xyz="0.0417958953212156 -0.0177578126845364 -0.063598843109235"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="imu_link" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="left_steering_hinge_link">
+    <inertial>
+      <origin
+        xyz="-0.0046612 -0.0043454 -0.0038099"
+        rpy="0 0 0" />
+      <mass
+        value="0.0018372" />
+      <inertia
+        ixx="4.2E-05"
+        ixy="0"
+        ixz="0"
+        iyy="4.2E-05"
+        iyz="0"
+        izz="4.2E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://osracer_description/meshes/left_steering_hinge_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.79608 0.82353 0.93725 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://osracer_description/meshes/left_steering_hinge_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="left_steering_hinge_joint"
+    type="continuous">
+    <origin
+      xyz="0.11108 0.088168 -0.10247"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="left_steering_hinge_link" />
+    <axis
+      xyz="0.061804 0 -0.99809" />
+  </joint>
+  <link
+    name="Left_front_wheel_link">
+    <inertial>
+      <origin
+        xyz="-1.613E-06 -0.0060175 1.03E-06"
+        rpy="0 0 0" />
+      <mass
+        value="0.0573" />
+      <inertia
+        ixx="0.00005"
+        ixy="0"
+        ixz="0"
+        iyy="0.00005"
+        iyz="0"
+        izz="0.00005" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://osracer_description/meshes/Left_front_wheel_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://osracer_description/meshes/Left_front_wheel_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="Left_front_wheel_joint"
+    type="continuous">
+    <origin
+      xyz="-0.0041187 0.012103 0.0020651"
+      rpy="0 0 0" />
+    <parent
+      link="left_steering_hinge_link" />
+    <child
+      link="Left_front_wheel_link" />
+    <axis
+      xyz="0 1 0" />
+  </joint>
+  <link
+    name="right_steering_hinge_link">
+    <inertial>
+      <origin
+        xyz="0.00090885 -0.010014 0.0061136"
+        rpy="0 0 0" />
+      <mass
+        value="0.039629" />
+      <inertia
+        ixx="4.2E-05"
+        ixy="0"
+        ixz="0"
+        iyy="4.2E-05"
+        iyz="0"
+        izz="4.2E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://osracer_description/meshes/right_steering_hinge_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://osracer_description/meshes/right_steering_hinge_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="right_steering_hinge_joint"
+    type="continuous">
+    <origin
+      xyz="0.10643 -0.1187 -0.10656"
+      rpy="0 -0.061844 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="right_steering_hinge_link" />
+    <axis
+      xyz="0 0 -1" />
+  </joint>
+  <link
+    name="right_front_wheel_link">
+    <inertial>
+      <origin
+        xyz="1.5464E-06 0.0060175 1.1275E-06"
+        rpy="0 0 0" />
+      <mass
+        value="0.0587" />
+      <inertia
+        ixx="0.00005"
+        ixy="0"
+        ixz="0"
+        iyy="0.00005"
+        iyz="0"
+        izz="0.00005" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://osracer_description/meshes/right_front_wheel_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://osracer_description/meshes/right_front_wheel_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="right_front_wheel_joint"
+    type="continuous">
+    <origin
+      xyz="0.00090723 -0.016032 0.0061126"
+      rpy="0 0.061844 0" />
+    <parent
+      link="right_steering_hinge_link" />
+    <child
+      link="right_front_wheel_link" />
+    <axis
+      xyz="0 -1 0" />
+  </joint>
+  <link
+    name="left_rear_wheel_link">
+    <inertial>
+      <origin
+        xyz="-4.918E-08 -0.0054416 1.8276E-07"
+        rpy="0 0 0" />
+      <mass
+        value="0.0587" />
+      <inertia
+        ixx="0.00005"
+        ixy="0"
+        ixz="0"
+        iyy="0.00005"
+        iyz="0"
+        izz="0.00005" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://osracer_description/meshes/left_rear_wheel_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://osracer_description/meshes/left_rear_wheel_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="left_rear_wheel_joint"
+    type="continuous">
+    <origin
+      xyz="-0.18068 0.10027 -0.10041"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="left_rear_wheel_link" />
+    <axis
+      xyz="0 -1 0" />
+  </joint>
+  <link
+    name="right_rear_wheel_link">
+    <inertial>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <mass
+        value="0.0587" />
+      <inertia
+        ixx="0.00005"
+        ixy="0"
+        ixz="0"
+        iyy="0.00005"
+        iyz="0"
+        izz="0.00005" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://osracer_description/meshes/right_rear_wheel_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://osracer_description/meshes/right_rear_wheel_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="right_rear_wheel_joint"
+    type="continuous">
+    <origin
+      xyz="-0.180681048799559 -0.134728618898254 -0.100407328161273"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="right_rear_wheel_link" />
+    <axis
+      xyz="0 1 0" />
+  </joint>
+</robot>
