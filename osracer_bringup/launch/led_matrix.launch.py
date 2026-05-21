@@ -26,7 +26,8 @@ def generate_launch_description():
         output='screen',
         parameters=[{'serial_port': LaunchConfiguration('serial_port'),
                     'serial_baudrate': LaunchConfiguration('serial_baudrate'),
-                    }]
+                    }],
+        emulate_tty=True,
     )
 
 

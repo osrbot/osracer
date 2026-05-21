@@ -13,9 +13,10 @@ from ackermann_msgs.msg import AckermannDrive
 from std_msgs.msg import Int32MultiArray  # Add RC data message type
 
 import serial
+import termios
 import math
 import threading
-import time
+import os
 
 class OsrbotCore(Node):
     def __init__(self):
@@ -30,6 +31,7 @@ class OsrbotCore(Node):
         self.declare_parameter('wheelbase', 0.285)  # Wheelbase, unit: meters
         self.declare_parameter('max_steering_angle_deg', 30.0) # Maximum steering angle, unit: degrees
         self.declare_parameter('cmd_watchdog_timeout_s', 0.5) # Command watchdog timeout
+        self.declare_parameter('reconnect_interval_s', 2.0) # Serial reconnect interval
         
         # TF publishing toggle parameters
         self.declare_parameter('publish_tf', True)  # Whether to publish TF transforms
@@ -51,6 +53,7 @@ class OsrbotCore(Node):
         self.wheelbase = self.get_parameter('wheelbase').value
         self.max_steering_angle_deg = self.get_parameter('max_steering_angle_deg').value
         self.cmd_watchdog_timeout = self.get_parameter('cmd_watchdog_timeout_s').value
+        self.reconnect_interval_s = self.get_parameter('reconnect_interval_s').value
         
         # TF publication toggle
         self.publish_tf = self.get_parameter('publish_tf').value
@@ -64,14 +67,10 @@ class OsrbotCore(Node):
         self.mag_topic = self.get_parameter('mag_topic').value
         self.mag_frame = self.get_parameter('mag_frame').value
 
-        # --- Initialize Serial Port ---
-        try:
-            self.serial = serial.Serial(self.port_name, self.baud_rate, timeout=0.1)
-            self.get_logger().info(f"Successfully opened serial port: {self.port_name}")
-        except serial.SerialException as e:
-            self.get_logger().fatal(f"Could not open serial port '{self.port_name}': {e}")
-            rclpy.shutdown()
-            return
+        # --- Serial state ---
+        self.serial = None
+        self.serial_lock = threading.Lock()
+        self.read_thread = None
 
         # --- Initialize ROS2 Publishers, Subscribers and TF Broadcaster ---
         self.cmd_vel_sub = self.create_subscription(
@@ -123,13 +122,112 @@ class OsrbotCore(Node):
 
         # --- State Variables ---
         self.last_cmd_time = self.get_clock().now()
-        self.serial_lock = threading.Lock()
+        self.reconnect_timer = self.create_timer(self.reconnect_interval_s, self.reconnect_serial)
+        self.open_serial()
 
-        # --- Start Serial Reading Thread ---
+        self.get_logger().info("Vehicle bridge node started.")
+
+    def open_serial(self):
+        """Open the serial port and start the read thread when available."""
+        stale_conn = None
+        with self.serial_lock:
+            if self.serial and self.serial.is_open and self.port_available():
+                return True
+            if self.serial and not self.port_available():
+                stale_conn = self.serial
+                self.serial = None
+
+        try:
+            if stale_conn and stale_conn.is_open:
+                stale_conn.close()
+        except Exception:
+            pass
+
+        with self.serial_lock:
+            try:
+                self.serial = serial.Serial(
+                    self.port_name,
+                    self.baud_rate,
+                    timeout=0.1,
+                    write_timeout=0.1
+                )
+                self.serial.reset_input_buffer()
+                self.serial.reset_output_buffer()
+            except (serial.SerialException, OSError, ValueError) as e:
+                self.serial = None
+                self.get_logger().warning(
+                    f"Could not open serial port '{self.port_name}': {e}; "
+                    f"retrying in {self.reconnect_interval_s:.1f}s"
+                )
+                return False
+
+        self.get_logger().info(f"Successfully opened serial port: {self.port_name}")
+        self.start_read_thread()
+        return True
+
+    def port_available(self):
+        if not self.port_name.startswith('/'):
+            return True
+        return os.path.exists(self.port_name)
+
+    def start_read_thread(self):
+        if self.read_thread and self.read_thread.is_alive():
+            return
         self.read_thread = threading.Thread(target=self.read_serial_loop, daemon=True)
         self.read_thread.start()
-        
-        self.get_logger().info("Vehicle bridge node started.")
+
+    def close_serial(self, expected_conn=None):
+        with self.serial_lock:
+            if expected_conn is not None and self.serial is not expected_conn:
+                serial_conn = expected_conn
+            else:
+                serial_conn = self.serial
+                self.serial = None
+
+        try:
+            if serial_conn and serial_conn.is_open:
+                serial_conn.close()
+        except Exception:
+            pass
+
+    def mark_serial_failed(self, failed_conn):
+        with self.serial_lock:
+            if self.serial is failed_conn:
+                self.serial = None
+
+        try:
+            if failed_conn and failed_conn.is_open:
+                failed_conn.close()
+        except Exception:
+            pass
+
+    def reconnect_serial(self):
+        with self.serial_lock:
+            current_serial = self.serial
+            connected = current_serial is not None and current_serial.is_open and self.port_available()
+        if current_serial and not self.port_available():
+            self.close_serial(current_serial)
+            connected = False
+        if connected:
+            self.start_read_thread()
+        else:
+            self.open_serial()
+
+    def write_serial(self, command: str):
+        failed_conn = None
+        with self.serial_lock:
+            if not self.serial or not self.serial.is_open:
+                return False
+            try:
+                self.serial.write(command.encode('utf-8'))
+                self.serial.flush()
+                return True
+            except (serial.SerialException, OSError, ValueError, TypeError, termios.error) as e:
+                failed_conn = self.serial
+                self.get_logger().error(f"Failed to write to serial: {e}")
+
+        self.mark_serial_failed(failed_conn)
+        return False
 
     def cmd_vel_callback(self, msg: Twist):
         """Convert Twist message from /cmd_vel to serial command"""
@@ -140,7 +238,7 @@ class OsrbotCore(Node):
         # Formula: steering_angle = atan(wheelbase * angular_z / linear_x)
         # When linear velocity is near zero, set steering to max based on angular velocity (for tight turns)
         if abs(linear_x) < 0.01:
-            steering_angle_rad = math.copysign(self.max_steering_angle_deg * math.pi / 180.0, angular_z)
+            steering_angle_rad = 0.0 if angular_z == 0.0 else math.copysign(self.max_steering_angle_deg * math.pi / 180.0, angular_z)
         else:
             steering_angle_rad = math.atan(self.wheelbase * angular_z / linear_x)
 
@@ -154,13 +252,8 @@ class OsrbotCore(Node):
         # Format and send command string
         command = f"v {linear_x:.3f} {steering_angle_deg:.2f}\n"
         
-        with self.serial_lock:
-            try:
-                self.serial.write(command.encode('utf-8'))
-            except serial.SerialException as e:
-                self.get_logger().error(f"Failed to write to serial: {e}")
-
-        self.last_cmd_time = self.get_clock().now()
+        if self.write_serial(command):
+            self.last_cmd_time = self.get_clock().now()
 
     def ackermann_cmd_callback(self, msg: AckermannDrive):
         """Convert AckermannDrive message from /ackermann_cmd to serial command"""
@@ -177,31 +270,32 @@ class OsrbotCore(Node):
         # Format and send command string
         command = f"v {speed:.3f} {steering_angle_deg:.2f}\n"
         
-        with self.serial_lock:
-            try:
-                self.serial.write(command.encode('utf-8'))
-            except serial.SerialException as e:
-                self.get_logger().error(f"Failed to write to serial: {e}")
-                
-        self.last_cmd_time = self.get_clock().now()
+        if self.write_serial(command):
+            self.last_cmd_time = self.get_clock().now()
 
     def read_serial_loop(self):
         """Continuously read serial data in a separate thread"""
-        buffer = ""
-        while rclpy.ok():
-            if self.serial.in_waiting > 0:
+        current_thread = threading.current_thread()
+        try:
+            while rclpy.ok():
+                with self.serial_lock:
+                    serial_conn = self.serial
+
+                if not serial_conn or not serial_conn.is_open:
+                    break
+
                 try:
-                    # Read a line of data
-                    line = self.serial.readline().decode('utf-8').strip()
+                    line = serial_conn.readline().decode('utf-8', errors='ignore').strip()
                     if line:
                         self.parse_serial_data(line)
-                except serial.SerialException:
-                    self.get_logger().error("Serial read error, connection might be lost.")
+                except (serial.SerialException, OSError, ValueError, TypeError, termios.error) as e:
+                    self.get_logger().error(f"Serial read error, connection might be lost: {e}")
+                    self.close_serial(serial_conn)
                     break
-                except UnicodeDecodeError:
-                    self.get_logger().warning("Unable to decode serial data.")
-            else:
-                time.sleep(0.001) # Short sleep to maintain responsiveness
+        finally:
+            with self.serial_lock:
+                if self.read_thread is current_thread:
+                    self.read_thread = None
 
     def parse_serial_data(self, line: str):
         """Parse a single line of data from ESP32"""
@@ -346,11 +440,7 @@ class OsrbotCore(Node):
         if time_since_last_cmd > self.cmd_watchdog_timeout:
             # Send stop command
             command = "v 0.00 0.00\n"
-            with self.serial_lock:
-                try:
-                    self.serial.write(command.encode('utf-8'))
-                except serial.SerialException:
-                    pass
+            self.write_serial(command)
 
 
 def main(args=None):
@@ -365,6 +455,7 @@ def main(args=None):
     except KeyboardInterrupt:
         pass
     finally:
+        node.close_serial()
         node.destroy_node()
         rclpy.shutdown()
 
