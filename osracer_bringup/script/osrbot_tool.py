@@ -8,20 +8,20 @@ class SimpleSerialFilter:
     def __init__(self):
         self.ser = None
         self.running = False
-        self.filter_prefixes = ['i', 'r', 'o', 'm']  # Filter lines starting with i, r, o
-        
+        self.filter_prefixes = ['i', 'r', 'o', 'm']  # Filter lines starting with i, r, o, m
+
     def list_ports(self):
         """List all available serial ports"""
         ports = serial.tools.list_ports.comports()
         if not ports:
             print("No serial ports found")
             return []
-        
+
         print("\nAvailable serial ports:")
         for i, port in enumerate(ports, 1):
             print(f"{i}. {port.device} - {port.description}")
         return ports
-    
+
     def connect(self, port, baudrate=115200):
         """Connect to serial port"""
         try:
@@ -34,28 +34,28 @@ class SimpleSerialFilter:
                 timeout=1
             )
             print(f"Connected to: {port}, Baudrate: {baudrate}")
-            print(f"Filter rules: Filter lines starting with i, r, o.")
+            print(f"Filter rules: Filter lines starting with i, r, o, m.")
             return True
         except Exception as e:
             print(f"Connection failed: {e}")
             return False
-    
+
     def start_reading(self):
         """Start reading serial data"""
         if not self.ser or not self.ser.is_open:
             print("Serial port not connected")
             return
-        
+
         self.running = True
         thread = threading.Thread(target=self._read_serial)
         thread.daemon = True
         thread.start()
         print("Started reading serial data... (Press Ctrl+C to stop)")
-    
+
     def _read_serial(self):
         """Internal method for reading serial data"""
         buffer = ""
-        
+
         while self.running and self.ser and self.ser.is_open:
             try:
                 if self.ser.in_waiting > 0:
@@ -67,7 +67,7 @@ class SimpleSerialFilter:
                         data = raw_data.decode('utf-8')
                     except:
                         data = raw_data.hex()
-                    
+
                     buffer += data
                     
                     # Split by lines for processing
@@ -79,14 +79,14 @@ class SimpleSerialFilter:
                         line = line.strip('\r').strip()
                         if line:
                             self._process_line(line)
-                
+
                 time.sleep(0.01)
-                
+
             except Exception as e:
                 if self.running:
                     print(f"Read error: {e}")
                 time.sleep(0.1)
-    
+
     def _process_line(self, line):
         """Process a single line of data"""
         # Check if filtering is needed
@@ -99,13 +99,13 @@ class SimpleSerialFilter:
         # Display if not filtered
         if not should_filter:
             print(line)
-    
+
     def send_data(self, data):
         """Send data to serial port"""
         if not self.ser or not self.ser.is_open:
             print("Serial port not connected")
             return False
-        
+
         try:
             if isinstance(data, str):
                 if not data.endswith('\n'):
@@ -113,25 +113,25 @@ class SimpleSerialFilter:
                 self.ser.write(data.encode())
             else:
                 self.ser.write(data)
-            
+
             print(f"Sent: {data.strip()}")
             return True
         except Exception as e:
             print(f"Send failed: {e}")
             return False
-    
+
     def disconnect(self):
         """Disconnect serial port"""
         self.running = False
         time.sleep(0.1)
-        
+
         if self.ser and self.ser.is_open:
             self.ser.close()
             print("Serial port disconnected")
 
 def main():
     debugger = SimpleSerialFilter()
-    
+
     print("=" * 40)
     print("OSRBOT Debug Assistant")
     print("Baudrate: 115200")
@@ -146,7 +146,7 @@ def main():
     while True:
         try:
             choice = input("\nSelect serial port number (1, 2, 3... or enter port name): ").strip()
-            
+
             if choice.isdigit():
                 index = int(choice) - 1
                 if 0 <= index < len(ports):
@@ -159,7 +159,7 @@ def main():
                 break
             else:
                 print("Please enter port number or name")
-                
+
         except ValueError:
             print("Please enter a valid number")
             continue
@@ -167,15 +167,20 @@ def main():
     # Connect to serial port, baudrate fixed at 115200
     if not debugger.connect(port, 115200):
         return
-    
+
     print("\n" + "=" * 40)
-    print("v vx steering    : Set linear velocity (m/s) and steering angle (deg)")
-    print("kp value         : Set proportional coefficient")
-    print("ki value         : Set integral coefficient")
-    print("kd value         : Set derivative coefficient")
-    print("pid              : Query PID parameters")
-    print("status           : Query status")
-    print("help             : Display help")
+    print("v vx steering         : Set linear velocity (m/s) and steering angle (deg)")
+    print("kp value              : Set proportional coefficient")
+    print("ki value              : Set integral coefficient")
+    print("kd value              : Set derivative coefficient")
+    print("pid                   : Query PID parameters")
+    print("status                : Query status")
+    print("mc set <12 floats>    : Set mag calibration and save to NVS")
+    print("  hard-iron in Tesla (from /mag_bias), soft-iron dimensionless")
+    print("  format: mc set hx hy hz s00 s01 s02 s10 s11 s12 s20 s21 s22")
+    print("mc get                : Query current mag calibration")
+    print("mc reset              : Reset mag calibration to identity")
+    print("help                  : Display help")
     print("=" * 40)
     print("Instructions:")
     print("  Enter text and press Enter - Send data to serial port")
@@ -198,13 +203,13 @@ def main():
                 # Send data if not exit command
                 if user_input:
                     debugger.send_data(user_input)
-                    
+
             except KeyboardInterrupt:
                 print("\nInterrupt received, enter 'exit' to quit")
                 continue
             except Exception as e:
                 print(f"Error: {e}")
-                
+
     finally:
         debugger.disconnect()
         print("Program exited")
