@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>osracer_calib</name>
+  <version>0.1.0</version>
+  <description>
+    Magnetometer hard-iron and soft-iron calibration using ellipsoid fitting.
+    Subscribes to raw MagneticField data, fits an ellipsoid via algebraic
+    least-squares, and publishes the calibration result in a format compatible
+    with magnetometer_pipeline/bias_remover.
+  </description>
+
+  <maintainer email="kitso666@example.com">kitso666</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_python</buildtool_depend>
+
+  <depend>rclpy</depend>
+  <depend>ament_index_python</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>python3-numpy</depend>
+  <depend>python3-yaml</depend>
+
+  <exec_depend>ros2launch</exec_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

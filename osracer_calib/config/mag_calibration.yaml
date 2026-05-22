@@ -1,0 +1,26 @@
+mag_calibration_node:
+  ros__parameters:
+    # Raw magnetometer topic published by chassis_ackermann.py
+    mag_topic: magnetometer_data
+
+    # Calibration result topic (consumed by magnetometer_pipeline/bias_remover)
+    mag_bias_topic: mag_bias
+
+    # Frame ID used when no frame is present in incoming messages
+    mag_frame: imu_link
+
+    # Minimum samples before ellipsoid fitting is attempted.
+    # More samples → better fit; aim for 300–500 with full 3-D rotation.
+    min_samples: 200
+
+    # Where to persist the calibration result.
+    # Empty string → node resolves to <package_source>/config/result.yaml
+    # at runtime by following the symlink that colcon creates in the install tree.
+    # Set an absolute path here to override.
+    calibration_file: ''
+
+    # Re-publish a previously saved calibration on node startup
+    load_calib_on_start: true
+
+    # Persist the new result after ~/stop_calibration succeeds
+    save_calib_on_stop: true
