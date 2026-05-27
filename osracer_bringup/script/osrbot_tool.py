@@ -8,7 +8,8 @@ class SimpleSerialFilter:
     def __init__(self):
         self.ser = None
         self.running = False
-        self.filter_prefixes = ['i', 'r', 'o', 'm']  # Filter lines starting with i, r, o, m
+        # Filter high-frequency telemetry frames; keep MC:/CH:/OK:/INFO:/WARN:/ERROR: replies
+        self.filter_prefixes = ['i ', 'r ', 'o', 'm']
 
     def list_ports(self):
         """List all available serial ports"""
@@ -34,7 +35,7 @@ class SimpleSerialFilter:
                 timeout=1
             )
             print(f"Connected to: {port}, Baudrate: {baudrate}")
-            print(f"Filter rules: Filter lines starting with i, r, o, m.")
+            print(f"Filter rules: Filter high-frequency telemetry (i/r/o/m frames); MC/CH/status replies are shown.")
             return True
         except Exception as e:
             print(f"Connection failed: {e}")
@@ -175,11 +176,13 @@ def main():
     print("kd value              : Set derivative coefficient")
     print("pid                   : Query PID parameters")
     print("status                : Query status")
+    print("mc cal [sec]          : Hard+soft-iron calibration (default 30s, rotate 360)")
     print("mc set <12 floats>    : Set mag calibration and save to NVS")
     print("  hard-iron in Tesla (from /mag_bias), soft-iron dimensionless")
     print("  format: mc set hx hy hz s00 s01 s02 s10 s11 s12 s20 s21 s22")
     print("mc get                : Query current mag calibration")
     print("mc reset              : Reset mag calibration to identity")
+    print("ch                    : Compass heading diagnostic")
     print("help                  : Display help")
     print("=" * 40)
     print("Instructions:")
