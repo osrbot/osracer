@@ -165,6 +165,10 @@ ros2 launch osracer_bringup usb_cam.launch.py
 ros2 run camera_calibration cameracalibrator --size 8x6 --square 0.03 image:=/rgb/image_raw camera:=/rgb
 ```
 
+```bash
+
+```
+
 ### 3.3 Debugging & Visualization
 View sensor data individually:
 
@@ -184,9 +188,108 @@ ros2 launch osracer_debug debug_image.launch.py
 
 ---
 
-## 4. SLAM & Mapping
+## 4. Magnetometer Soft-Iron / Hard-Iron Calibration
 
-### 4.1 GMapping
+The OSRacer uses a two-layer magnetometer calibration system. The **ROS layer** (`osracer_calib`) fits an ellipsoid to raw sensor data and publishes the result as a latched topic. The **MCU layer** (`osrbot_tool.py`) stores the same calibration in the microcontroller's non-volatile flash so the firmware can apply corrections at the hardware level.
+
+### 4.1 Calibration Concept
+
+Raw magnetometer readings form an ellipsoid in 3D space due to:
+- **Hard-iron distortion** — constant offset caused by permanent magnets and DC currents on the chassis.
+- **Soft-iron distortion** — axis-dependent scaling caused by ferromagnetic materials near the sensor.
+
+The calibration computes:
+- `b` (hard-iron vector, 3 values, unit: Tesla) — the ellipsoid center offset.
+- `A` (soft-iron matrix, 3×3 = 9 values, dimensionless) — rescales the ellipsoid back to a sphere.
+
+Corrected reading: `B_cal = A × (B_raw − b)`
+
+### 4.2 ROS-Side Calibration (`osracer_calib`)
+
+**Step 1 — Launch the chassis and calibration nodes:**
+```bash
+# Terminal 1: chassis driver (must be running to publish magnetometer_data)
+ros2 launch osracer_bringup chassis_ackermann.launch.py
+
+# Terminal 2: calibration node
+ros2 launch osracer_calib mag_calibration.launch.py
+```
+
+**Step 2 — Start data collection:**
+```bash
+ros2 service call /mag_calibration_node/start_calibration std_srvs/srv/Trigger {}
+```
+
+**Step 3 — Rotate the robot** through all orientations (roll, pitch, yaw) until at least 200 samples are collected. Watch the status topic for progress:
+```bash
+ros2 topic echo /mag_calibration_node/status
+```
+
+**Step 4 — Stop and fit:**
+```bash
+ros2 service call /mag_calibration_node/stop_calibration std_srvs/srv/Trigger {}
+```
+
+The node fits an ellipsoid to the samples, publishes the result to `/mag_bias` (latched, `sensor_msgs/MagneticField`), and saves it to `osracer_calib/config/result.yaml`. On the next launch, the saved calibration is automatically re-published.
+
+**Topic encoding of `/mag_bias`:**
+
+| Field | Content |
+|---|---|
+| `magnetic_field` | Hard-iron vector `b` [T] |
+| `magnetic_field_covariance[0..8]` | Soft-iron matrix `A` (3×3, row-major) |
+
+**Key parameters** (`osracer_calib/config/mag_calibration.yaml`):
+
+| Parameter | Default | Description |
+|---|---|---|
+| `mag_topic` | `magnetometer_data` | Raw input topic from chassis driver |
+| `mag_bias_topic` | `mag_bias` | Output topic for calibration result |
+| `min_samples` | `200` | Minimum samples required before fitting |
+| `load_calib_on_start` | `true` | Re-publish saved calibration on startup |
+| `save_calib_on_stop` | `true` | Auto-save result after successful calibration |
+
+### 4.3 Pushing Calibration to the MCU (`osrbot_tool.py`)
+
+After the ROS-side calibration is complete, push the 12 values (3 hard-iron + 9 soft-iron) to the MCU's NVS flash so the firmware also applies the correction.
+
+**Launch the serial debug tool:**
+```bash
+python3 osracer_bringup/script/osrbot_tool.py
+```
+
+**Read the calibration result** from `result.yaml` or the `/mag_bias` topic, then send it to the MCU:
+```bash
+# mc set hx hy hz  s00 s01 s02  s10 s11 s12  s20 s21 s22
+mc set 0.000008 -0.000020 0.000015  0.998 0.002 -0.001  0.002 1.001 0.000  -0.001 0.000 0.999
+```
+
+**Other MCU mag commands:**
+
+| Command | Description |
+|---|---|
+| `mc get` | Query current MCU calibration values |
+| `mc reset` | Reset MCU calibration to identity (no correction) |
+| `mc cal [sec]` | Run onboard timed calibration (default 30 s, rotate 360°) |
+| `ch` | Print compass heading diagnostic |
+
+### 4.4 Full Calibration Workflow Summary
+
+```
+1. ros2 launch osracer_bringup chassis_ackermann.launch.py
+2. ros2 launch osracer_calib mag_calibration.launch.py
+3. ros2 service call .../start_calibration  →  rotate robot  →  .../stop_calibration
+4. Read 12 values from result.yaml or /mag_bias
+5. python3 osrbot_tool.py  →  mc set <hx hy hz s00..s22>
+```
+
+After step 3, the ROS EKF/heading pipeline uses the calibration automatically (latched topic). After step 5, the MCU firmware also applies the correction at the hardware level.
+
+---
+
+## 5. SLAM & Mapping
+
+### 5.1 GMapping
 Launch GMapping SLAM:
 ```bash
 ros2 launch osracer_slam gmapping.launch.py
@@ -196,7 +299,7 @@ Visualize GMapping:
 ros2 launch osracer_debug debug_mapping.launch.py 
 ```
 
-### 4.2 Cartographer
+### 5.2 Cartographer
 Launch Cartographer SLAM:
 ```bash
 ros2 launch osracer_slam cartographer.launch.py
@@ -206,7 +309,7 @@ Visualize Cartographer:
 ros2 launch osracer_debug debug_cartographer.launch.py 
 ```
 
-### 4.3 Save Map
+### 5.3 Save Map
 Save the generated map to disk:
 
 **For GMapping / Default:**
@@ -221,15 +324,15 @@ ros2 launch osracer_slam map_save_cartographer.launch.xml
 
 ---
 
-## 5. Navigation
+## 6. Navigation
 
-### 5.1 Navigation with SLAM (Recommended)
+### 6.1 Navigation with SLAM (Recommended)
 Launch navigation while building a map simultaneously. Default planner: **TEB** (optimized for Ackermann steering).
 ```bash
 ros2 launch osracer_navigation bringup_launch.py slam:=True
 ```
 
-### 5.2 Navigation with Existing Map
+### 6.2 Navigation with Existing Map
 Navigate within a pre-built map using localization (AMCL).
 ```bash
 ros2 launch osracer_navigation bringup_launch.py map:=/path/to/your/map.yaml
@@ -239,7 +342,7 @@ Or use the default map:
 ros2 launch osracer_navigation bringup_launch.py
 ```
 
-### 5.3 Switch Local Planner
+### 6.3 Switch Local Planner
 **Use DWB Planner:**
 ```bash
 ros2 launch osracer_navigation bringup_launch.py slam:=True planner:=dwb
@@ -259,12 +362,12 @@ ros2 launch osracer_navigation bringup_launch.py slam:=True params_file:=/path/t
 
 ---
 
-## 6. Authors
+## 7. Authors
 
 - **Zhihao ZHANG** - [zhangzhihao0618@gmail.com](mailto:zhangzhihao0618@gmail.com)
 - **Kit So**
 - **Jintai WANG**
 
-## 7. License
+## 8. License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
