@@ -106,7 +106,7 @@
       xyz="0 0 0" />
   </joint>
   <link
-    name="laser_link">
+    name="laser">
     <inertial>
       <origin
         xyz="0.052553 0.0022846 -0.11893"
@@ -127,7 +127,7 @@
         rpy="0 0 3.1415" />
       <geometry>
         <mesh
-          filename="package://osracer_description/meshes/laser_link.STL" />
+          filename="package://osracer_description/meshes/laser.STL" />
       </geometry>
       <material
         name="">
@@ -141,7 +141,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://osracer_description/meshes/laser_link.STL" />
+          filename="package://osracer_description/meshes/laser.STL" />
       </geometry>
     </collision>
   </link>
@@ -154,7 +154,7 @@
     <parent
       link="base_link" />
     <child
-      link="laser_link" />
+      link="laser" />
     <axis
       xyz="0 0 0" />
   </joint>
