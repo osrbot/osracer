@@ -19,7 +19,7 @@ class LedMatrixNode(Node):
         self.topic = self.declare_parameter('input_topic', 'led_matrix/command').value
         self.columns_topic = self.declare_parameter('columns_topic', 'led_matrix/columns').value
         self.append_newline = self.declare_parameter('append_newline', True).value
-        self.num_matrices = self.declare_parameter('num_matrices', 2).value
+        self.num_matrices = self.declare_parameter('num_matrices', 1).value
         self.auto_newline = self.declare_parameter('auto_newline', True).value
         self.debug = self.declare_parameter('debug', False).value
         self.reconnect_interval_s = self.declare_parameter('reconnect_interval_s', 2.0).value
