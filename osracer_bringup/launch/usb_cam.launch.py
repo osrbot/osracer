@@ -20,11 +20,11 @@ remappings = [
 def generate_launch_description():
     pkg_share = get_package_share_directory("osracer_bringup")
 
-    frame_id = LaunchConfiguration('frame_id')
+    frame_id = LaunchConfiguration('cam_frame_id')
     ld = LaunchDescription()
 
     declare_frame_id_cmd = DeclareLaunchArgument(
-        'frame_id',
+        'cam_frame_id',
         default_value="camera_link",
         description='Frame ID for the camera'
     )
