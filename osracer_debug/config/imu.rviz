@@ -9,7 +9,7 @@ Panels:
         - /Imu1
         - /Imu1/Box properties1
         - /Imu1/Axes properties1
-        - /Imu2
+        - /Mag1
       Splitter Ratio: 0.5
     Tree Height: 710
   - Class: rviz_common/Selection
@@ -79,34 +79,21 @@ Visualization Manager:
         Value: /imu_filter
       Value: true
       fixed_frame_orientation: true
-    - Acceleration properties:
-        Acc. vector alpha: 1
-        Acc. vector color: 255; 0; 0
-        Acc. vector scale: 1
-        Derotate acceleration: true
-        Enable acceleration: false
-      Axes properties:
-        Axes scale: 1
-        Enable axes: true
-      Box properties:
-        Box alpha: 1
-        Box color: 255; 0; 0
-        Enable box: false
-        x_scale: 1
-        y_scale: 1
-        z_scale: 1
-      Class: rviz_imu_plugin/Imu
+    - 2D-visual: true
+      Alpha: 1
+      Class: rviz_imu_plugin/Mag
+      Color: 255; 0; 0
       Enabled: true
-      Name: Imu
+      Name: Mag
+      Scale: 1
       Topic:
         Depth: 5
         Durability Policy: Volatile
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /imu_filter
+        Value: /magnetometer_data
       Value: true
-      fixed_frame_orientation: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -153,25 +140,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 16.698389053344727
+      Distance: 9.04711627960205
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.5613370537757874
-        Y: 0.13677510619163513
-        Z: -1.368791103363037
+        X: 0.8621893525123596
+        Y: 0.561582624912262
+        Z: -1.3312469720840454
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.469796061515808
+      Pitch: 1.5597963333129883
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz_default_plugins)
-      Yaw: 3.3172311782836914
+      Yaw: 1.9472326040267944
     Saved: ~
 Window Geometry:
   Displays:
