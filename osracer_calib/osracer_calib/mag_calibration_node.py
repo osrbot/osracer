@@ -249,13 +249,22 @@ class MagCalibrationNode(Node):
 
     def _log_result(self, n: int):
         b, A = self._hard_iron, self._soft_iron
+        mc_cmd = (
+            f'mc set '
+            f'{b[0]:.6f} {b[1]:.6f} {b[2]:.6f}  '
+            f'{A[0, 0]:.6f} {A[0, 1]:.6f} {A[0, 2]:.6f}  '
+            f'{A[1, 0]:.6f} {A[1, 1]:.6f} {A[1, 2]:.6f}  '
+            f'{A[2, 0]:.6f} {A[2, 1]:.6f} {A[2, 2]:.6f}'
+        )
         self.get_logger().info(
             f'Calibration result ({n} samples)\n'
-            f'  hard-iron [T]: [{b[0]:.6f}, {b[1]:.6f}, {b[2]:.6f}]\n'
-            f'  soft-iron matrix:\n'
-            f'    {A[0, 0]:.6f}  {A[0, 1]:.6f}  {A[0, 2]:.6f}\n'
-            f'    {A[1, 0]:.6f}  {A[1, 1]:.6f}  {A[1, 2]:.6f}\n'
-            f'    {A[2, 0]:.6f}  {A[2, 1]:.6f}  {A[2, 2]:.6f}'
+            f' hard-iron [T]: [{b[0]:.6f}, {b[1]:.6f}, {b[2]:.6f}]\n'
+            f' soft-iron matrix:\n'
+            f' {A[0, 0]:.6f} {A[0, 1]:.6f} {A[0, 2]:.6f}\n'
+            f' {A[1, 0]:.6f} {A[1, 1]:.6f} {A[1, 2]:.6f}\n'
+            f' {A[2, 0]:.6f} {A[2, 1]:.6f} {A[2, 2]:.6f}\n'
+            f' copy-paste command:\n'
+            f' {mc_cmd}'
         )
         self._pub_status(f'Done. hard-iron={b.tolist()}')
 
