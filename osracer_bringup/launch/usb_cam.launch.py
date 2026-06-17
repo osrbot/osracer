@@ -39,7 +39,8 @@ def generate_launch_description():
         'framerate': 120.0, 
         'pixel_format': 'mjpeg2rgb',
         'io_method': 'mmap',
-        'camera_name': camera_name, 
+        'camera_name': camera_name,
+        'camera_info_url': "package://osracer_bringup/param/camera_info/rgb.yaml",
         'buffersize': 3,
         'num_image_buffers': 4,
     })

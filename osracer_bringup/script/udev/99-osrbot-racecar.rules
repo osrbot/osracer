@@ -3,3 +3,5 @@ KERNEL=="tty*", SUBSYSTEM=="tty", SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", AT
 KERNEL=="tty*", SUBSYSTEM=="tty", SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374b",MODE:="0666", GROUP:="dialout",  SYMLINK+="osrbot_base"
 
 KERNEL=="tty*", SUBSYSTEM=="tty", SUBSYSTEMS=="usb", ATTRS{idVendor}=="303a", ATTRS{idProduct}=="1001",MODE:="0666", GROUP:="dialout",  SYMLINK+="osrbot_base"
+
+KERNEL=="tty*", SUBSYSTEM=="tty", SUBSYSTEMS=="usb", ATTRS{idVendor}=="303a", ATTRS{idProduct}=="4001", ATTRS{manufacturer}=="Seeed Studio & OSRBOT", MODE:="0666", GROUP:="dialout",  SYMLINK+="osrbot_base"

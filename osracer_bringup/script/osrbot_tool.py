@@ -8,8 +8,8 @@ class SimpleSerialFilter:
     def __init__(self):
         self.ser = None
         self.running = False
-        # Filter high-frequency telemetry frames; keep MC:/CH:/OK:/INFO:/WARN:/ERROR: replies
-        self.filter_prefixes = ['i ', 'r ', 'o', 'm']
+        # Filter all high-frequency telemetry frames (i/r/o/m/b/s), only show command responses and status messages
+        self.filter_prefixes = ['i ', 'r ', 'm', 'o', 'b', 's ']
 
     def list_ports(self):
         """List all available serial ports"""
@@ -23,8 +23,8 @@ class SimpleSerialFilter:
             print(f"{i}. {port.device} - {port.description}")
         return ports
 
-    def connect(self, port, baudrate=115200):
-        """Connect to serial port"""
+    def connect(self, port, baudrate=460800):
+        """Connect to serial port, default baudrate is 460800 (recommended by protocol)"""
         try:
             self.ser = serial.Serial(
                 port=port,
@@ -34,17 +34,17 @@ class SimpleSerialFilter:
                 stopbits=serial.STOPBITS_ONE,
                 timeout=1
             )
-            print(f"Connected to: {port}, Baudrate: {baudrate}")
-            print(f"Filter rules: Filter high-frequency telemetry (i/r/o/m frames); MC/CH/status replies are shown.")
+            print(f"Connected to: {port}, baudrate: {baudrate}")
+            print("Filter rule: filter high-frequency telemetry frames (i/r/o/m/b/s), show command responses and status messages")
             return True
         except Exception as e:
             print(f"Connection failed: {e}")
             return False
 
     def start_reading(self):
-        """Start reading serial data"""
+        """Start serial reading thread"""
         if not self.ser or not self.ser.is_open:
-            print("Serial port not connected")
+            print("Serial port is not connected")
             return
 
         self.running = True
@@ -54,28 +54,22 @@ class SimpleSerialFilter:
         print("Started reading serial data... (Press Ctrl+C to stop)")
 
     def _read_serial(self):
-        """Internal method for reading serial data"""
+        """Internal reading thread"""
         buffer = ""
 
         while self.running and self.ser and self.ser.is_open:
             try:
                 if self.ser.in_waiting > 0:
-                    # Read data
                     raw_data = self.ser.read(self.ser.in_waiting)
-                    
-                    # Try UTF-8 decoding, fallback to hex
                     try:
                         data = raw_data.decode('utf-8')
                     except:
                         data = raw_data.hex()
 
                     buffer += data
-                    
-                    # Split by lines for processing
                     lines = buffer.split('\n')
-                    buffer = lines[-1]  # Keep incomplete line
-                    
-                    # Process each line
+                    buffer = lines[-1]
+
                     for line in lines[:-1]:
                         line = line.strip('\r').strip()
                         if line:
@@ -89,22 +83,20 @@ class SimpleSerialFilter:
                 time.sleep(0.1)
 
     def _process_line(self, line):
-        """Process a single line of data"""
-        # Check if filtering is needed
+        """Process one line of data and decide whether to display it based on prefix"""
         should_filter = False
         for prefix in self.filter_prefixes:
             if line.startswith(prefix):
                 should_filter = True
                 break
-        
-        # Display if not filtered
+
         if not should_filter:
             print(line)
 
     def send_data(self, data):
-        """Send data to serial port"""
+        """Send data to serial port, automatically appending newline"""
         if not self.ser or not self.ser.is_open:
-            print("Serial port not connected")
+            print("Serial port is not connected")
             return False
 
         try:
@@ -134,19 +126,18 @@ def main():
     debugger = SimpleSerialFilter()
 
     print("=" * 40)
-    print("OSRBOT Debug Assistant")
-    print("Baudrate: 115200")
+    print("OSRACER Debug Assistant")
+    print("Default baudrate: 460800 (recommended by protocol)")
     print("=" * 40)
-    
-    # Show available ports
+
     ports = debugger.list_ports()
     if not ports:
         return
-    
+
     # Select port
     while True:
         try:
-            choice = input("\nSelect serial port number (1, 2, 3... or enter port name): ").strip()
+            choice = input("\nSelect serial port number (1,2,3...) or enter port name directly: ").strip()
 
             if choice.isdigit():
                 index = int(choice) - 1
@@ -154,61 +145,80 @@ def main():
                     port = ports[index].device
                     break
                 else:
-                    print(f"Invalid selection, please enter a number between 1-{len(ports)}")
-            elif choice:  # User directly entered port name
+                    print(f"Invalid selection, please enter a number between 1 and {len(ports)}")
+            elif choice:
                 port = choice
                 break
             else:
-                print("Please enter port number or name")
+                print("Please enter a port number or name")
 
         except ValueError:
             print("Please enter a valid number")
             continue
-    
-    # Connect to serial port, baudrate fixed at 115200
-    if not debugger.connect(port, 115200):
+
+    # Connect with fixed baudrate 460800
+    if not debugger.connect(port, 460800):
         return
 
     print("\n" + "=" * 40)
-    print("v vx steering         : Set linear velocity (m/s) and steering angle (deg)")
-    print("kp value              : Set proportional coefficient")
-    print("ki value              : Set integral coefficient")
-    print("kd value              : Set derivative coefficient")
-    print("pid                   : Query PID parameters")
-    print("status                : Query status")
-    print("mc cal [sec]          : Hard+soft-iron calibration (default 30s, rotate 360)")
-    print("mc set <12 floats>    : Set mag calibration and save to NVS")
-    print("  hard-iron in Tesla (from /mag_bias), soft-iron dimensionless")
-    print("  format: mc set hx hy hz s00 s01 s02 s10 s11 s12 s20 s21 s22")
-    print("mc get                : Query current mag calibration")
-    print("mc reset              : Reset mag calibration to identity")
-    print("ch                    : Compass heading diagnostic")
-    print("help                  : Display help")
+    print("Command list:")
+    print("  v <vx_m/s> <steer_deg>       Set linear velocity (m/s) and steering angle (deg)")
+    print("  i                            Query single IMU frame")
+    print("  b                            Query single battery voltage frame")
+    print("  o                            Query single odometry frame")
+    print("  m                            Query single magnetometer frame")
+    print("  s                            Query single synchronized snapshot")
+    print("  stream sync                  Enable default periodic telemetry (s/m/r/b)")
+    print("  stream off                   Disable periodic telemetry")
+    print("  stream legacy                Enable legacy periodic telemetry (i/o/m/r/b)")
+    print("  status                       Query speed, voltage, control source, IMU, heater, diagnostics and chassis calibration status")
+    print("  mc cal [sec]                 Magnetometer calibration (default 30s, rotate 360 deg)")
+    print("  mc set <12 floats>           Set magnetometer calibration parameters and save to NVS")
+    print("  mc get                       Query current magnetometer calibration")
+    print("  mc reset                     Reset magnetometer calibration to identity matrix")
+    print("  level cal                    Trigger accelerometer level calibration")
+    print("  level get                    Query level offset")
+    print("  level reset                  Reset level calibration and run automatic calibration again")
+    print("  odom get                     Query odometry status")
+    print("  odom reset                   Reset odometry position and yaw zero point")
+    print("  odom scale get               Query odometry scale")
+    print("  odom scale set <value>       Set odometry scale (0.50~1.50) and save to NVS")
+    print("  odom scale reset             Reset odometry scale to 1.0")
+    print("  trim get                     Query steering center trim")
+    print("  trim set <deg>               Set steering trim (-5.0~5.0 deg) and save to NVS")
+    print("  trim reset                   Reset steering trim to 0 deg")
+    print("  pid get                      Query PID parameters")
+    print("  pid set <kp> <ki> <kd>       Set PID parameters and save to NVS")
+    print("  pid reset                    Reset PID to firmware default values")
+    print("  fw begin <size> <sha256>     Start serial OTA update")
+    print("  fw data <seq> <hex>          Send one OTA data packet")
+    print("  fw end                       Verify and switch OTA partition, then reboot")
+    print("  fw abort                     Abort OTA update")
+    print("  fw status                    Query OTA status")
+    print("  reset                        Restart controller")
+    print("  help                         Show this help message")
     print("=" * 40)
-    print("Instructions:")
-    print("  Enter text and press Enter - Send data to serial port")
-    print("  Enter 'exit' or 'quit' - Exit program")
+    print("Usage:")
+    print("  Enter a command and press Enter - send it to serial port")
+    print("  Enter 'exit' or 'quit' - exit program")
+    print("  All high-frequency telemetry frames (i/r/o/m/b/s) are automatically filtered and hidden")
     print("=" * 40 + "\n")
-    
-    # Start reading data
+
     debugger.start_reading()
-    
-    # Command processing loop
+
     try:
         while True:
             try:
-                # Read user input
                 user_input = input()
-                
+
                 if user_input.lower() in ['exit', 'quit']:
                     break
-                
-                # Send data if not exit command
+
                 if user_input:
                     debugger.send_data(user_input)
 
             except KeyboardInterrupt:
-                print("\nInterrupt received, enter 'exit' to quit")
+                print("\nInterrupt caught, enter 'exit' to quit")
                 continue
             except Exception as e:
                 print(f"Error: {e}")
