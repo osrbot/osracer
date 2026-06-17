@@ -1,3 +1,4 @@
+from glob import glob
 from setuptools import find_packages, setup
 
 package_name = 'osracer_calib'
@@ -9,8 +10,8 @@ setup(
     data_files=[
         ('share/ament_index/resource_index/packages', [f'resource/{package_name}']),
         (f'share/{package_name}', ['package.xml']),
-        (f'share/{package_name}/launch', ['launch/mag_calibration.launch.py']),
-        (f'share/{package_name}/config', ['config/mag_calibration.yaml']),
+        (f'share/{package_name}/launch', glob('launch/*.launch.py')),
+        (f'share/{package_name}/config', glob('config/*.yaml')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
