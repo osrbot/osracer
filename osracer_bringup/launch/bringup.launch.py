@@ -28,6 +28,7 @@ def generate_launch_description():
                 'launch', 'osracer_description.launch.py')),
             launch_arguments={
                 'start_jsp': 'false',
+                'publish_frequency': '100.0',
             }.items()
         ),
 

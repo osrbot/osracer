@@ -5,6 +5,7 @@ from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.conditions import IfCondition
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
 
 
@@ -12,6 +13,7 @@ def launch_setup(context, *args, **kwargs):
     urdf_model = LaunchConfiguration("urdf_model").perform(context)
     rviz_config_file = LaunchConfiguration("rviz_config_file").perform(context)
     use_sim_time = LaunchConfiguration("use_sim_time")
+    publish_frequency = LaunchConfiguration("publish_frequency")
     jsp_gui = LaunchConfiguration("jsp_gui").perform(context).lower() == "true"
     start_jsp = LaunchConfiguration("start_jsp").perform(context).lower() == "true"
     use_rviz = LaunchConfiguration("use_rviz")
@@ -29,6 +31,7 @@ def launch_setup(context, *args, **kwargs):
                 {
                     "robot_description": robot_description,
                     "use_sim_time": use_sim_time,
+                    "publish_frequency": ParameterValue(publish_frequency, value_type=float),
                 }
             ],
         ),
@@ -114,6 +117,11 @@ def generate_launch_description():
                 default_value="false",
                 choices=["true", "false"],
                 description="Use simulation time",
+            ),
+            DeclareLaunchArgument(
+                "publish_frequency",
+                default_value="100.0",
+                description="Dynamic TF publish frequency for robot_state_publisher",
             ),
             OpaqueFunction(function=launch_setup),
         ]
