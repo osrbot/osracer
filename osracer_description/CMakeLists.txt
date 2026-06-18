@@ -8,4 +8,9 @@ install(
   DESTINATION share/${PROJECT_NAME}
 )
 
+install(PROGRAMS
+  scripts/osracer_joint_state_publisher.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 ament_package()

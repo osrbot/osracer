@@ -64,7 +64,7 @@ Visualization Manager:
           Value: true
         imu_link:
           Value: true
-        laser_link:
+        laser:
           Value: true
         left_rear_wheel_link:
           Value: true
@@ -88,7 +88,7 @@ Visualization Manager:
               {}
             imu_link:
               {}
-            laser_link:
+            laser:
               {}
             left_rear_wheel_link:
               {}
@@ -144,7 +144,7 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        laser_link:
+        laser:
           Alpha: 1
           Show Axes: false
           Show Trail: false

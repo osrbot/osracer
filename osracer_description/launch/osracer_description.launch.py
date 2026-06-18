@@ -14,6 +14,12 @@ def launch_setup(context, *args, **kwargs):
     rviz_config_file = LaunchConfiguration("rviz_config_file").perform(context)
     use_sim_time = LaunchConfiguration("use_sim_time")
     publish_frequency = LaunchConfiguration("publish_frequency")
+    wheel_radius = LaunchConfiguration("wheel_radius")
+    wheelbase = LaunchConfiguration("wheelbase")
+    track_width = LaunchConfiguration("track_width")
+    max_steering_angle_deg = LaunchConfiguration("max_steering_angle_deg")
+    steering_joint_sign = LaunchConfiguration("steering_joint_sign")
+    odom_topic = LaunchConfiguration("odom_topic")
     jsp_gui = LaunchConfiguration("jsp_gui").perform(context).lower() == "true"
     start_jsp = LaunchConfiguration("start_jsp").perform(context).lower() == "true"
     use_rviz = LaunchConfiguration("use_rviz")
@@ -70,6 +76,29 @@ def launch_setup(context, *args, **kwargs):
                 ),
             )
 
+    if not start_jsp:
+        nodes.insert(
+            1,
+            Node(
+                package="osracer_description",
+                executable="osracer_joint_state_publisher.py",
+                name="osracer_joint_state_publisher",
+                output="screen",
+                parameters=[
+                    {
+                        "urdf_model": urdf_model,
+                        "use_sim_time": use_sim_time,
+                        "wheel_radius": ParameterValue(wheel_radius, value_type=float),
+                        "wheelbase": ParameterValue(wheelbase, value_type=float),
+                        "track_width": ParameterValue(track_width, value_type=float),
+                        "max_steering_angle_deg": ParameterValue(max_steering_angle_deg, value_type=float),
+                        "steering_joint_sign": ParameterValue(steering_joint_sign, value_type=float),
+                        "odom_topic": odom_topic,
+                    }
+                ],
+            ),
+        )
+
     return nodes
 
 
@@ -122,6 +151,36 @@ def generate_launch_description():
                 "publish_frequency",
                 default_value="100.0",
                 description="Dynamic TF publish frequency for robot_state_publisher",
+            ),
+            DeclareLaunchArgument(
+                "wheel_radius",
+                default_value="0.0425",
+                description="Wheel radius for model joint animation (meters)",
+            ),
+            DeclareLaunchArgument(
+                "wheelbase",
+                default_value="0.285",
+                description="Vehicle wheelbase for Ackermann model joint animation (meters)",
+            ),
+            DeclareLaunchArgument(
+                "track_width",
+                default_value="0.215",
+                description="Vehicle track width for Ackermann model joint animation (meters)",
+            ),
+            DeclareLaunchArgument(
+                "max_steering_angle_deg",
+                default_value="30.0",
+                description="Maximum steering angle for model joint animation (degrees)",
+            ),
+            DeclareLaunchArgument(
+                "steering_joint_sign",
+                default_value="-1.0",
+                description="Sign applied to steering angles for URDF steering joints",
+            ),
+            DeclareLaunchArgument(
+                "odom_topic",
+                default_value="odom",
+                description="Odometry topic used by model joint animation",
             ),
             OpaqueFunction(function=launch_setup),
         ]

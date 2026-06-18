@@ -154,11 +154,11 @@ Visualization Manager:
           Value: true
         laser:
           Value: true
-        left_front_wheel:
+        Left_front_wheel_link:
           Value: true
-        left_rear_wheel:
+        left_rear_wheel_link:
           Value: true
-        left_steering_hinge:
+        left_steering_hinge_link:
           Value: true
         map:
           Value: true
@@ -166,11 +166,11 @@ Visualization Manager:
           Value: true
         real_sense:
           Value: true
-        right_front_wheel:
+        right_front_wheel_link:
           Value: true
-        right_rear_wheel:
+        right_rear_wheel_link:
           Value: true
-        right_steering_hinge:
+        right_steering_hinge_link:
           Value: true
       Marker Scale: 1
       Name: TF
@@ -188,17 +188,17 @@ Visualization Manager:
                   {}
                 laser:
                   {}
-                left_rear_wheel:
+                left_rear_wheel_link:
                   {}
-                left_steering_hinge:
-                  left_front_wheel:
+                left_steering_hinge_link:
+                  Left_front_wheel_link:
                     {}
                 real_sense:
                   {}
-                right_rear_wheel:
+                right_rear_wheel_link:
                   {}
-                right_steering_hinge:
-                  right_front_wheel:
+                right_steering_hinge_link:
+                  right_front_wheel_link:
                     {}
       Update Interval: 0
       Value: true

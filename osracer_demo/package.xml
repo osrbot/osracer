@@ -18,6 +18,9 @@
 
   <exec_depend>ros2launch</exec_depend>
   <exec_depend>osracer_bringup</exec_depend>
+  <exec_depend>osracer_debug</exec_depend>
+  <exec_depend>osracer_navigation</exec_depend>
+  <exec_depend>osracer_slam</exec_depend>
 
   <export>
     <build_type>ament_python</build_type>

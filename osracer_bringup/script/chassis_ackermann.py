@@ -5,7 +5,7 @@ from rclpy.node import Node
 from rclpy.qos import QoSProfile
 
 from geometry_msgs.msg import Twist
-from sensor_msgs.msg import Imu, MagneticField, BatteryState, JointState
+from sensor_msgs.msg import Imu, MagneticField, BatteryState
 from nav_msgs.msg import Odometry
 from tf2_ros import TransformBroadcaster
 from geometry_msgs.msg import TransformStamped
@@ -44,12 +44,6 @@ class OsrbotCore(Node):
         self.declare_parameter('battery_topic', 'battery_state')
         self.declare_parameter('battery_voltage_min', 10.8)  # 3S LiPo cutoff
         self.declare_parameter('battery_voltage_max', 12.6)  # 3S LiPo full
-        self.declare_parameter('publish_joint_states', True)
-        self.declare_parameter('joint_state_topic', 'joint_states')
-        self.declare_parameter('joint_state_rate', 100.0)
-        self.declare_parameter('wheel_radius', 0.0325)
-        self.declare_parameter('track_width', 0.235)
-        self.declare_parameter('steering_joint_sign', -1.0)
 
         # --- Get Parameters ---
         self.port_name = self.get_parameter('port_name').value
@@ -73,12 +67,6 @@ class OsrbotCore(Node):
         self.battery_topic = self.get_parameter('battery_topic').value
         self.battery_voltage_min = self.get_parameter('battery_voltage_min').value
         self.battery_voltage_max = self.get_parameter('battery_voltage_max').value
-        self.publish_joint_states = self.get_parameter('publish_joint_states').value
-        self.joint_state_topic = self.get_parameter('joint_state_topic').value
-        self.joint_state_rate = self.get_parameter('joint_state_rate').value
-        self.wheel_radius = self.get_parameter('wheel_radius').value
-        self.track_width = self.get_parameter('track_width').value
-        self.steering_joint_sign = self.get_parameter('steering_joint_sign').value
 
         # --- Serial state ---
         self.serial = None
@@ -125,30 +113,8 @@ class OsrbotCore(Node):
         else:
             self.battery_pub = None
 
-        if self.publish_joint_states:
-            self.joint_state_pub = self.create_publisher(JointState, self.joint_state_topic, qos_profile=rt_qos)
-            self.get_logger().info(f"Joint state publication enabled, topic: {self.joint_state_topic}")
-        else:
-            self.joint_state_pub = None
-
         # --- State Variables ---
         self.last_cmd_time = self.get_clock().now()
-        self.last_command_steering_angle_rad = 0.0
-        self.latest_linear_velocity = 0.0
-        self.wheel_positions_rad = {
-            'Left_front_wheel_joint': 0.0,
-            'right_front_wheel_joint': 0.0,
-            'left_rear_wheel_joint': 0.0,
-            'right_rear_wheel_joint': 0.0,
-        }
-        self.last_joint_state_time = None
-        if self.joint_state_pub and self.joint_state_rate > 0.0:
-            self.joint_state_timer = self.create_timer(
-                1.0 / self.joint_state_rate,
-                self.publish_wheel_joint_states,
-            )
-        else:
-            self.joint_state_timer = None
         self.reconnect_timer = self.create_timer(self.reconnect_interval_s, self.reconnect_serial)
         self.open_serial()
 
@@ -275,7 +241,6 @@ class OsrbotCore(Node):
         command = f"v {linear_x:.3f} {steering_angle_deg:.2f}\n"
         if self.write_serial(command):
             self.last_cmd_time = self.get_clock().now()
-            self.last_command_steering_angle_rad = steering_angle_rad
 
     def ackermann_cmd_callback(self, msg: AckermannDrive):
         speed = msg.speed
@@ -288,7 +253,6 @@ class OsrbotCore(Node):
         command = f"v {speed:.3f} {steering_angle_deg:.2f}\n"
         if self.write_serial(command):
             self.last_cmd_time = self.get_clock().now()
-            self.last_command_steering_angle_rad = steering_angle_rad
 
     # ========== Serial Read Loop ==========
     def read_serial_loop(self):
@@ -351,7 +315,6 @@ class OsrbotCore(Node):
                 odom_msg.twist.twist.linear.y = vy
                 odom_msg.twist.twist.linear.z = vz
                 self.odom_pub.publish(odom_msg)
-                self.latest_linear_velocity = vx
 
                 # --- TF ---
                 if self.publish_tf and self.tf_broadcaster:
@@ -422,90 +385,6 @@ class OsrbotCore(Node):
             self.get_logger().warn(f"Error parsing serial data: '{line}', error: {e}")
 
     # ========== Helpers ==========
-    def publish_wheel_joint_states(self):
-        if not self.joint_state_pub:
-            return
-
-        current_time = self.get_clock().now()
-        dt = 0.0
-        if self.last_joint_state_time is not None:
-            dt = (current_time - self.last_joint_state_time).nanoseconds / 1e9
-        self.last_joint_state_time = current_time
-
-        wheel_speeds, steering_positions = self.calculate_ackermann_joint_targets()
-        if dt > 0.0 and self.wheel_radius > 0.0:
-            for joint_name, linear_speed in wheel_speeds.items():
-                self.wheel_positions_rad[joint_name] += (linear_speed / self.wheel_radius) * dt
-
-        msg = JointState()
-        msg.header.stamp = current_time.to_msg()
-        msg.name = [
-            'left_steering_hinge_joint',
-            'right_steering_hinge_joint',
-            'Left_front_wheel_joint',
-            'right_front_wheel_joint',
-            'left_rear_wheel_joint',
-            'right_rear_wheel_joint',
-        ]
-        msg.position = [
-            steering_positions['left_steering_hinge_joint'],
-            steering_positions['right_steering_hinge_joint'],
-            self.wheel_positions_rad['Left_front_wheel_joint'],
-            -self.wheel_positions_rad['right_front_wheel_joint'],
-            -self.wheel_positions_rad['left_rear_wheel_joint'],
-            self.wheel_positions_rad['right_rear_wheel_joint'],
-        ]
-        self.joint_state_pub.publish(msg)
-
-    def calculate_ackermann_joint_targets(self):
-        speed = self.latest_linear_velocity
-        steering_angle = self.last_command_steering_angle_rad
-        half_track = self.track_width / 2.0
-
-        wheel_speeds = {
-            'Left_front_wheel_joint': speed,
-            'right_front_wheel_joint': speed,
-            'left_rear_wheel_joint': speed,
-            'right_rear_wheel_joint': speed,
-        }
-        steering_positions = {
-            'left_steering_hinge_joint': steering_angle * self.steering_joint_sign,
-            'right_steering_hinge_joint': steering_angle * self.steering_joint_sign,
-        }
-
-        if abs(steering_angle) < 1e-4 or self.wheelbase <= 0.0 or self.track_width <= 0.0:
-            return wheel_speeds, steering_positions
-
-        turn_sign = math.copysign(1.0, steering_angle)
-        center_radius = abs(self.wheelbase / math.tan(steering_angle))
-        inner_radius = max(center_radius - half_track, 1e-3)
-        outer_radius = center_radius + half_track
-        angular_speed = speed / center_radius
-
-        inner_front_speed = angular_speed * math.hypot(self.wheelbase, inner_radius)
-        outer_front_speed = angular_speed * math.hypot(self.wheelbase, outer_radius)
-        inner_rear_speed = angular_speed * inner_radius
-        outer_rear_speed = angular_speed * outer_radius
-        inner_steering = math.atan2(self.wheelbase, inner_radius) * turn_sign
-        outer_steering = math.atan2(self.wheelbase, outer_radius) * turn_sign
-
-        if turn_sign > 0.0:
-            wheel_speeds['Left_front_wheel_joint'] = inner_front_speed
-            wheel_speeds['right_front_wheel_joint'] = outer_front_speed
-            wheel_speeds['left_rear_wheel_joint'] = inner_rear_speed
-            wheel_speeds['right_rear_wheel_joint'] = outer_rear_speed
-            steering_positions['left_steering_hinge_joint'] = inner_steering * self.steering_joint_sign
-            steering_positions['right_steering_hinge_joint'] = outer_steering * self.steering_joint_sign
-        else:
-            wheel_speeds['Left_front_wheel_joint'] = outer_front_speed
-            wheel_speeds['right_front_wheel_joint'] = inner_front_speed
-            wheel_speeds['left_rear_wheel_joint'] = outer_rear_speed
-            wheel_speeds['right_rear_wheel_joint'] = inner_rear_speed
-            steering_positions['left_steering_hinge_joint'] = outer_steering * self.steering_joint_sign
-            steering_positions['right_steering_hinge_joint'] = inner_steering * self.steering_joint_sign
-
-        return wheel_speeds, steering_positions
-
     def quaternion_from_euler(self, roll, pitch, yaw):
         cy = math.cos(yaw * 0.5)
         sy = math.sin(yaw * 0.5)
@@ -523,8 +402,7 @@ class OsrbotCore(Node):
     def watchdog_check(self):
         time_since_last_cmd = (self.get_clock().now() - self.last_cmd_time).nanoseconds / 1e9
         if time_since_last_cmd > self.cmd_watchdog_timeout:
-            if self.write_serial("v 0.00 0.00\n"):
-                self.last_command_steering_angle_rad = 0.0
+            self.write_serial("v 0.00 0.00\n")
 
 def main(args=None):
     rclpy.init(args=args)

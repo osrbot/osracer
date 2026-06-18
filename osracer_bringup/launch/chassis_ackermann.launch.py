@@ -51,42 +51,6 @@ def generate_launch_description():
         description='Maximum steering angle (degrees)'
     )
 
-    publish_joint_states_arg = DeclareLaunchArgument(
-        'publish_joint_states',
-        default_value='True',
-        description='Whether the chassis node publishes wheel and steering joint states'
-    )
-
-    joint_state_topic_arg = DeclareLaunchArgument(
-        'joint_state_topic',
-        default_value='joint_states',
-        description='JointState topic name'
-    )
-
-    joint_state_rate_arg = DeclareLaunchArgument(
-        'joint_state_rate',
-        default_value='100.0',
-        description='JointState publish rate for wheel animation and TF (Hz)'
-    )
-
-    wheel_radius_arg = DeclareLaunchArgument(
-        'wheel_radius',
-        default_value='0.0325',
-        description='Wheel radius for visual joint integration (meters)'
-    )
-
-    track_width_arg = DeclareLaunchArgument(
-        'track_width',
-        default_value='0.235',
-        description='Left-right wheel track width for Ackermann joint animation (meters)'
-    )
-
-    steering_joint_sign_arg = DeclareLaunchArgument(
-        'steering_joint_sign',
-        default_value='-1.0',
-        description='Sign applied to command steering angle for URDF steering joints'
-    )
-    
     cmd_timeout_arg = DeclareLaunchArgument(
         'cmd_watchdog_timeout_s',
         default_value='0.5',
@@ -146,12 +110,6 @@ def generate_launch_description():
             'imu_frame': LaunchConfiguration('imu_frame'),
             'wheelbase': LaunchConfiguration('wheelbase'),
             'max_steering_angle_deg': LaunchConfiguration('max_steering_angle_deg'),
-            'publish_joint_states': LaunchConfiguration('publish_joint_states'),
-            'joint_state_topic': LaunchConfiguration('joint_state_topic'),
-            'joint_state_rate': LaunchConfiguration('joint_state_rate'),
-            'wheel_radius': LaunchConfiguration('wheel_radius'),
-            'track_width': LaunchConfiguration('track_width'),
-            'steering_joint_sign': LaunchConfiguration('steering_joint_sign'),
             'cmd_watchdog_timeout_s': LaunchConfiguration('cmd_watchdog_timeout_s'),
             'publish_tf': LaunchConfiguration('publish_tf'),
         }],
@@ -221,12 +179,6 @@ def generate_launch_description():
         imu_frame_arg,
         wheelbase_arg,
         max_steering_angle_arg,
-        publish_joint_states_arg,
-        joint_state_topic_arg,
-        joint_state_rate_arg,
-        wheel_radius_arg,
-        track_width_arg,
-        steering_joint_sign_arg,
         cmd_timeout_arg,
         use_ekf_arg,
         publish_tf_arg,

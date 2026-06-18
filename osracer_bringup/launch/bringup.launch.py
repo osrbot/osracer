@@ -29,6 +29,7 @@ def generate_launch_description():
             launch_arguments={
                 'start_jsp': 'false',
                 'publish_frequency': '100.0',
+                'odom_topic': '/odometry/filtered',
             }.items()
         ),
 
