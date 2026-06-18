@@ -7,6 +7,9 @@
 - No firmware serial protocol changes. The chassis node still consumes the
   current osrcore `stream sync` telemetry:
   `s px py pz vx vy vz yaw qx qy qz qw ax ay az gx gy gz`.
+- The `s` frame quaternion is treated as the current osrcore yaw-zero-relative
+  Madgwick full attitude, preserving roll/pitch while keeping yaw relative to
+  the latest firmware `odom reset`.
 - Moved wheel and steering joint state animation out of
   `osracer_bringup/chassis_ackermann.py` and into `osracer_description`, keeping
   the chassis driver focused on serial protocol, odometry, IMU, battery, RC, and

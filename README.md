@@ -151,7 +151,10 @@ graph TD
 
 Current osrcore firmware uses `stream sync` by default and publishes `s/m/r/b`
 frames. The chassis node parses the `s` snapshot for odometry and IMU, `m` for
-magnetometer, `r` for RC channels, and `b` for battery voltage.
+magnetometer, `r` for RC channels, and `b` for battery voltage. In the current
+`s` frame, `qx qy qz qw` is the Madgwick full attitude with the current odometry
+yaw-zero applied, so odometry pose/TF can consume the quaternion directly while
+preserving roll/pitch for slopes and 3D lidar use.
 
 ### 3.1.1 Field Demo Tools
 
