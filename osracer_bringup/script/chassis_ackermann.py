@@ -2,7 +2,7 @@
 
 import rclpy
 from rclpy.node import Node
-from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy
+from rclpy.qos import QoSProfile
 
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import Imu, MagneticField, BatteryState
@@ -24,7 +24,7 @@ class OsrbotCore(Node):
 
         # --- Declare Parameters ---
         self.declare_parameter('port_name', '/dev/ttyACM0')
-        self.declare_parameter('baud_rate', 115200)
+        self.declare_parameter('baud_rate', 460800)
         self.declare_parameter('odom_frame', 'odom')
         self.declare_parameter('base_frame', 'base_footprint')
         self.declare_parameter('imu_frame', 'imu_link')
@@ -75,11 +75,7 @@ class OsrbotCore(Node):
 
         # --- QoS Profiles ---
         # Real-time for high frequency topics (odom, imu, mag)
-        rt_qos = QoSProfile(
-            depth=1,
-            # reliability=ReliabilityPolicy.BEST_EFFORT,
-            # durability=DurabilityPolicy.VOLATILE
-        )
+        rt_qos = QoSProfile(depth=1)
         # Normal QoS for low frequency topics
         normal_qos = QoSProfile(depth=5)
 
@@ -107,7 +103,7 @@ class OsrbotCore(Node):
 
         if self.publish_mag:
             self.mag_pub = self.create_publisher(MagneticField, self.mag_topic, qos_profile=rt_qos)
-            self.get_logger().info(f"Magnetometer publication enabled, topic: {self.mag_topic}, QoS: depth=1 BEST_EFFORT")
+            self.get_logger().info(f"Magnetometer publication enabled, topic: {self.mag_topic}, QoS: depth=1")
         else:
             self.mag_pub = None
 
@@ -376,8 +372,8 @@ class OsrbotCore(Node):
             elif cmd_type == 'b' and self.publish_battery and self.battery_pub:
                 if len(parts) == 2:
                     voltage = float(parts[1])
-                    percentage = (voltage - self.battery_voltage_min) / (self.battery_voltage_max - self.battery_voltage_min) * 100.0
-                    percentage = max(0.0, min(100.0, percentage))
+                    percentage = (voltage - self.battery_voltage_min) / (self.battery_voltage_max - self.battery_voltage_min)
+                    percentage = max(0.0, min(1.0, percentage))
                     battery_msg = BatteryState()
                     battery_msg.header.stamp = self.get_clock().now().to_msg()
                     battery_msg.voltage = voltage

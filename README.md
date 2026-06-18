@@ -146,7 +146,24 @@ graph TD
 | `use_ekf` | `false` | Enable/Disable Robot Localization (EKF) |
 | `publish_tf` | `auto` | Auto-set to `true` if EKF is off, `false` if EKF is on |
 | `port_name` | `/dev/osrbot_base` | Serial device port |
+| `baud_rate` | `460800` | Serial baud rate for current osrcore firmware |
 | `wheelbase` | `0.285` | Distance between front and rear axles (m) |
+
+Current osrcore firmware uses `stream sync` by default and publishes `s/m/r/b`
+frames. The chassis node parses the `s` snapshot for odometry and IMU, `m` for
+magnetometer, `r` for RC channels, and `b` for battery voltage.
+
+### 3.1.1 Field Demo Tools
+
+This workspace includes `osracer_demo` for field checks and low-speed demos.
+It is a ROS-side package only; firmware source, flashing assets, and hardware
+PDFs stay in the firmware/hardware repositories.
+
+```bash
+ros2 run osracer_demo leader_demo
+ros2 run osracer_demo drive_demo warmup
+ros2 run osracer_demo odom_watch
+```
 
 ### 3.2 Sensors
 **Lidar:**
@@ -271,7 +288,6 @@ mc set 0.000008 -0.000020 0.000015  0.998 0.002 -0.001  0.002 1.001 0.000  -0.00
 | `mc get` | Query current MCU calibration values |
 | `mc reset` | Reset MCU calibration to identity (no correction) |
 | `mc cal [sec]` | Run onboard timed calibration (default 30 s, rotate 360°) |
-| `ch` | Print compass heading diagnostic |
 
 ### 4.4 Full Calibration Workflow Summary
 
