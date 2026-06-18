@@ -5,7 +5,7 @@ from rclpy.node import Node
 from rclpy.qos import QoSProfile
 
 from geometry_msgs.msg import Twist
-from sensor_msgs.msg import Imu, MagneticField, BatteryState
+from sensor_msgs.msg import Imu, MagneticField, BatteryState, JointState
 from nav_msgs.msg import Odometry
 from tf2_ros import TransformBroadcaster
 from geometry_msgs.msg import TransformStamped
@@ -44,6 +44,10 @@ class OsrbotCore(Node):
         self.declare_parameter('battery_topic', 'battery_state')
         self.declare_parameter('battery_voltage_min', 10.8)  # 3S LiPo cutoff
         self.declare_parameter('battery_voltage_max', 12.6)  # 3S LiPo full
+        self.declare_parameter('publish_joint_states', True)
+        self.declare_parameter('joint_state_topic', 'joint_states')
+        self.declare_parameter('wheel_radius', 0.0325)
+        self.declare_parameter('steering_joint_sign', -1.0)
 
         # --- Get Parameters ---
         self.port_name = self.get_parameter('port_name').value
@@ -67,6 +71,10 @@ class OsrbotCore(Node):
         self.battery_topic = self.get_parameter('battery_topic').value
         self.battery_voltage_min = self.get_parameter('battery_voltage_min').value
         self.battery_voltage_max = self.get_parameter('battery_voltage_max').value
+        self.publish_joint_states = self.get_parameter('publish_joint_states').value
+        self.joint_state_topic = self.get_parameter('joint_state_topic').value
+        self.wheel_radius = self.get_parameter('wheel_radius').value
+        self.steering_joint_sign = self.get_parameter('steering_joint_sign').value
 
         # --- Serial state ---
         self.serial = None
@@ -113,8 +121,17 @@ class OsrbotCore(Node):
         else:
             self.battery_pub = None
 
+        if self.publish_joint_states:
+            self.joint_state_pub = self.create_publisher(JointState, self.joint_state_topic, qos_profile=rt_qos)
+            self.get_logger().info(f"Joint state publication enabled, topic: {self.joint_state_topic}")
+        else:
+            self.joint_state_pub = None
+
         # --- State Variables ---
         self.last_cmd_time = self.get_clock().now()
+        self.last_command_steering_angle_rad = 0.0
+        self.wheel_position_rad = 0.0
+        self.last_joint_state_time = None
         self.reconnect_timer = self.create_timer(self.reconnect_interval_s, self.reconnect_serial)
         self.open_serial()
 
@@ -241,6 +258,7 @@ class OsrbotCore(Node):
         command = f"v {linear_x:.3f} {steering_angle_deg:.2f}\n"
         if self.write_serial(command):
             self.last_cmd_time = self.get_clock().now()
+            self.last_command_steering_angle_rad = steering_angle_rad
 
     def ackermann_cmd_callback(self, msg: AckermannDrive):
         speed = msg.speed
@@ -253,6 +271,7 @@ class OsrbotCore(Node):
         command = f"v {speed:.3f} {steering_angle_deg:.2f}\n"
         if self.write_serial(command):
             self.last_cmd_time = self.get_clock().now()
+            self.last_command_steering_angle_rad = steering_angle_rad
 
     # ========== Serial Read Loop ==========
     def read_serial_loop(self):
@@ -296,7 +315,8 @@ class OsrbotCore(Node):
                 ax, ay, az = float(parts[12]), float(parts[13]), float(parts[14])
                 gx, gy, gz = float(parts[15]), float(parts[16]), float(parts[17])
 
-                current_stamp = self.get_clock().now().to_msg()
+                current_time = self.get_clock().now()
+                current_stamp = current_time.to_msg()
 
                 # --- Odometry ---
                 odom_msg = Odometry()
@@ -314,6 +334,8 @@ class OsrbotCore(Node):
                 odom_msg.twist.twist.linear.y = vy
                 odom_msg.twist.twist.linear.z = vz
                 self.odom_pub.publish(odom_msg)
+
+                self.publish_wheel_joint_states(current_time, current_stamp, vx)
 
                 # --- TF ---
                 if self.publish_tf and self.tf_broadcaster:
@@ -384,6 +406,40 @@ class OsrbotCore(Node):
             self.get_logger().warn(f"Error parsing serial data: '{line}', error: {e}")
 
     # ========== Helpers ==========
+    def publish_wheel_joint_states(self, current_time, current_stamp, linear_velocity):
+        if not self.joint_state_pub:
+            return
+
+        dt = 0.0
+        if self.last_joint_state_time is not None:
+            dt = (current_time - self.last_joint_state_time).nanoseconds / 1e9
+        self.last_joint_state_time = current_time
+
+        if dt > 0.0 and self.wheel_radius > 0.0:
+            self.wheel_position_rad += (linear_velocity / self.wheel_radius) * dt
+
+        steering_position = self.last_command_steering_angle_rad * self.steering_joint_sign
+
+        msg = JointState()
+        msg.header.stamp = current_stamp
+        msg.name = [
+            'left_steering_hinge_joint',
+            'right_steering_hinge_joint',
+            'Left_front_wheel_joint',
+            'right_front_wheel_joint',
+            'left_rear_wheel_joint',
+            'right_rear_wheel_joint',
+        ]
+        msg.position = [
+            steering_position,
+            steering_position,
+            self.wheel_position_rad,
+            -self.wheel_position_rad,
+            -self.wheel_position_rad,
+            self.wheel_position_rad,
+        ]
+        self.joint_state_pub.publish(msg)
+
     def quaternion_from_euler(self, roll, pitch, yaw):
         cy = math.cos(yaw * 0.5)
         sy = math.sin(yaw * 0.5)
@@ -401,7 +457,8 @@ class OsrbotCore(Node):
     def watchdog_check(self):
         time_since_last_cmd = (self.get_clock().now() - self.last_cmd_time).nanoseconds / 1e9
         if time_since_last_cmd > self.cmd_watchdog_timeout:
-            self.write_serial("v 0.00 0.00\n")
+            if self.write_serial("v 0.00 0.00\n"):
+                self.last_command_steering_angle_rad = 0.0
 
 def main(args=None):
     rclpy.init(args=args)

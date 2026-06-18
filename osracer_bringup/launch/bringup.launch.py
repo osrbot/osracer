@@ -25,7 +25,10 @@ def generate_launch_description():
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(
                 get_package_share_directory("osracer_description"),
-                'launch', 'osracer_description.launch.py'))
+                'launch', 'osracer_description.launch.py')),
+            launch_arguments={
+                'start_jsp': 'false',
+            }.items()
         ),
 
         # lidar driver (2D/3D)
