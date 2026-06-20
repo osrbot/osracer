@@ -26,7 +26,7 @@ amcl:
     recovery_alpha_fast: 0.0
     recovery_alpha_slow: 0.0
     resample_interval: 1
-    robot_model_type: "nav2_amcl::OmniMotionModel"
+    robot_model_type: "nav2_amcl::DifferentialMotionModel"
     save_pose_rate: 0.5
     sigma_hit: 0.2
     tf_broadcast: true
@@ -134,15 +134,15 @@ controller_server:
       acc_lim_x: 5.0
       acc_lim_theta: 3.0
 
-      min_turning_radius: 0.8
-      wheelbase: 0.4
+      min_turning_radius: 0.50
+      wheelbase: 0.285
       cmd_angle_instead_rotvel: false
 
       footprint_model: # types: "point", "circular", "two_circles", "line", "polygon"
         type: "line"
         radius: 0.2 # for type "circular"
         line_start: [0.0, 0.0] # for type "line"
-        line_end: [0.4, 0.0] # for type "line"
+        line_end: [0.285, 0.0] # for type "line"
 
       # GoalTolerance
       xy_goal_tolerance: 0.35
@@ -271,10 +271,10 @@ local_costmap:
       always_send_full_costmap: True
   local_costmap_client:
     ros__parameters:
-      use_sim_time: True
+      use_sim_time: False
   local_costmap_rclcpp_node:
     ros__parameters:
-      use_sim_time: True
+      use_sim_time: False
    
 
 global_costmap:
@@ -361,7 +361,7 @@ recoveries_server:
     global_frame: odom
     robot_base_frame: base_link
     transform_timeout: 0.1
-    use_sim_time: true
+    use_sim_time: False
     simulate_ahead_time: 2.0
     max_rotational_vel: 1.0
     min_rotational_vel: 0.4

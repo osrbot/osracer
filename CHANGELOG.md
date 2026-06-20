@@ -7,6 +7,8 @@
 - No firmware serial protocol changes. The chassis node still consumes the
   current osrcore `stream sync` telemetry:
   `s px py pz vx vy vz yaw qx qy qz qw ax ay az gx gy gz`.
+- Limited OSRacer front steering joints in the URDF to the measured steering
+  range (`±0.5236 rad`) while keeping wheel rotation joints continuous.
 - Added non-zero default covariance values to the ROS IMU messages published by
   `osracer_bringup/chassis_ackermann.py` so EKF consumers do not interpret IMU
   orientation, angular velocity, or linear acceleration as perfect readings.
@@ -36,6 +38,18 @@
 - Removed stale RViz TF frame names from older robot configs and aligned them
   with the current OSRacer URDF frame names, including `laser` and wheel link
   frames.
+
+### Navigation and SLAM
+
+- Changed AMCL from the omnidirectional motion model to the differential motion
+  model in both Nav2 parameter sets, matching the non-holonomic OSRacer chassis
+  more closely for localization.
+- Updated TEB car-like model parameters to the measured OSRacer wheelbase
+  (`0.285 m`) and a steering-limited minimum turning radius (`0.50 m`).
+- Normalized Nav2 parameter files to use real-time clocks by default
+  (`use_sim_time: False`) for true robot navigation.
+- Fixed the standalone `osracer_slam` SLAM Toolbox launch file so it loads the
+  installed mapper parameters from `param/mapper_params_online_async.yaml`.
 
 ### Package metadata
 

@@ -253,7 +253,7 @@
   </link>
   <joint
     name="left_steering_hinge_joint"
-    type="continuous">
+    type="revolute">
     <origin
       xyz="0.11108 0.088168 -0.10247"
       rpy="0 0 0" />
@@ -263,6 +263,11 @@
       link="left_steering_hinge_link" />
     <axis
       xyz="0.061804 0 -0.99809" />
+    <limit
+      lower="-0.5236"
+      upper="0.5236"
+      effort="5"
+      velocity="2.0" />
   </joint>
   <link
     name="Left_front_wheel_link">
@@ -359,7 +364,7 @@
   </link>
   <joint
     name="right_steering_hinge_joint"
-    type="continuous">
+    type="revolute">
     <origin
       xyz="0.10643 -0.1187 -0.10656"
       rpy="0 -0.061844 0" />
@@ -369,6 +374,11 @@
       link="right_steering_hinge_link" />
     <axis
       xyz="0 0 -1" />
+    <limit
+      lower="-0.5236"
+      upper="0.5236"
+      effort="5"
+      velocity="2.0" />
   </joint>
   <link
     name="right_front_wheel_link">
