@@ -39,6 +39,9 @@ class OsrbotCore(Node):
         self.declare_parameter('publish_mag', True)
         self.declare_parameter('mag_topic', 'magnetometer_data')
         self.declare_parameter('mag_frame', 'imu_link')
+        self.declare_parameter('imu_orientation_covariance', [0.02, 0.02, 0.05])
+        self.declare_parameter('imu_angular_velocity_covariance', [0.01, 0.01, 0.01])
+        self.declare_parameter('imu_linear_acceleration_covariance', [0.10, 0.10, 0.10])
 
         self.declare_parameter('publish_battery', True)
         self.declare_parameter('battery_topic', 'battery_state')
@@ -62,6 +65,12 @@ class OsrbotCore(Node):
         self.publish_mag = self.get_parameter('publish_mag').value
         self.mag_topic = self.get_parameter('mag_topic').value
         self.mag_frame = self.get_parameter('mag_frame').value
+        self.imu_orientation_covariance = self.diagonal_covariance(
+            self.get_parameter('imu_orientation_covariance').value)
+        self.imu_angular_velocity_covariance = self.diagonal_covariance(
+            self.get_parameter('imu_angular_velocity_covariance').value)
+        self.imu_linear_acceleration_covariance = self.diagonal_covariance(
+            self.get_parameter('imu_linear_acceleration_covariance').value)
 
         self.publish_battery = self.get_parameter('publish_battery').value
         self.battery_topic = self.get_parameter('battery_topic').value
@@ -342,6 +351,9 @@ class OsrbotCore(Node):
                 imu_msg.angular_velocity.x = gx
                 imu_msg.angular_velocity.y = gy
                 imu_msg.angular_velocity.z = gz
+                imu_msg.orientation_covariance = self.imu_orientation_covariance
+                imu_msg.angular_velocity_covariance = self.imu_angular_velocity_covariance
+                imu_msg.linear_acceleration_covariance = self.imu_linear_acceleration_covariance
                 self.imu_pub.publish(imu_msg)
 
             # --- r-frame: RC ---
@@ -385,6 +397,15 @@ class OsrbotCore(Node):
             self.get_logger().warn(f"Error parsing serial data: '{line}', error: {e}")
 
     # ========== Helpers ==========
+    def diagonal_covariance(self, diagonal):
+        if len(diagonal) != 3:
+            raise ValueError("IMU covariance parameters must contain exactly 3 diagonal values")
+        return [
+            float(diagonal[0]), 0.0, 0.0,
+            0.0, float(diagonal[1]), 0.0,
+            0.0, 0.0, float(diagonal[2]),
+        ]
+
     def quaternion_from_euler(self, roll, pitch, yaw):
         cy = math.cos(yaw * 0.5)
         sy = math.sin(yaw * 0.5)

@@ -17,7 +17,7 @@ setup(
     maintainer='kitso666',
     maintainer_email='kitso666@example.com',
     description='Field demo tools for OSRacer ROS 2 bringup and low-speed motion checks.',
-    license='Apache-2.0',
+    license='MIT',
     entry_points={
         'console_scripts': [
             'drive_demo = osracer_demo.drive_demo:main',

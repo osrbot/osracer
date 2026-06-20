@@ -6,7 +6,7 @@
   <description>Field demo tools for OSRacer ROS 2 bringup and low-speed motion checks.</description>
 
   <maintainer email="kitso666@example.com">kitso666</maintainer>
-  <license>Apache-2.0</license>
+  <license>MIT</license>
 
   <buildtool_depend>ament_python</buildtool_depend>
 

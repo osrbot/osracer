@@ -4,7 +4,8 @@
   <version>0.0.0</version>
   <description>The osracer_navigation package</description>
   <maintainer email="osb03@hotmail.com">osrbot Robotics</maintainer>
-  <license>GPLv3</license>
+  <license>MIT</license>
+  <license>Apache-2.0</license>
   <url type="website">https://www.osrbot.com/</url>
   <buildtool_depend>ament_cmake</buildtool_depend>
   <build_depend>geometry_msgs</build_depend>

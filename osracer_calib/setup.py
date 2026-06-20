@@ -18,7 +18,7 @@ setup(
     maintainer='kitso666',
     maintainer_email='kitso666@example.com',
     description='Magnetometer hard-iron and soft-iron calibration using ellipsoid fitting.',
-    license='Apache-2.0',
+    license='MIT',
     entry_points={
         'console_scripts': [
             'mag_calibration_node = osracer_calib.mag_calibration_node:main',

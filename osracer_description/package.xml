@@ -6,7 +6,7 @@
 
   <maintainer email="osrbot@todo.todo">osrbot</maintainer>
 
-  <license>GPLv3</license>
+  <license>MIT</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 

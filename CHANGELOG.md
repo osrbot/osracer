@@ -7,6 +7,9 @@
 - No firmware serial protocol changes. The chassis node still consumes the
   current osrcore `stream sync` telemetry:
   `s px py pz vx vy vz yaw qx qy qz qw ax ay az gx gy gz`.
+- Added non-zero default covariance values to the ROS IMU messages published by
+  `osracer_bringup/chassis_ackermann.py` so EKF consumers do not interpret IMU
+  orientation, angular velocity, or linear acceleration as perfect readings.
 - The `s` frame quaternion is treated as the current osrcore yaw-zero-relative
   Madgwick full attitude, preserving roll/pitch while keeping yaw relative to
   the latest firmware `odom reset`.
@@ -33,3 +36,10 @@
 - Removed stale RViz TF frame names from older robot configs and aligned them
   with the current OSRacer URDF frame names, including `laser` and wheel link
   frames.
+
+### Package metadata
+
+- Aligned ROS package license metadata with the root MIT license and removed the
+  remaining `TODO` license marker. The `osracer_navigation` package also keeps
+  `Apache-2.0` in its metadata for the Nav2-derived launch files that retain
+  their upstream Apache-2.0 headers.

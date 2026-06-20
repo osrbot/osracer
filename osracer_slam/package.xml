@@ -4,7 +4,7 @@
   <version>0.0.0</version>
   <description>The osracer_slam package</description>
   <maintainer email="osrbot@todo.todo">osrbot</maintainer>
-  <license>TODO</license>
+  <license>MIT</license>
   <buildtool_depend>ament_cmake</buildtool_depend>
   <build_depend>rclcpp</build_depend>
   <build_depend>rclpy</build_depend>
