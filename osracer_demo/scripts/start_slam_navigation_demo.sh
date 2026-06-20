@@ -28,14 +28,17 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
+SCRIPTS_DIR="$(ros2 pkg prefix osracer_demo)/share/osracer_demo/scripts"
+PARAMS_FILE="$("${SCRIPTS_DIR}/make_slow_nav_params.sh")"
+
 echo "Starting SLAM navigation demo"
 ros2 launch osracer_bringup bringup.launch.py &
 sleep 5
 ros2 launch osracer_navigation bringup_launch.py \
   slam:=True \
   planner:=teb \
-  use_composition:=False \
-  use_rviz:=False &
+  params_file:="${PARAMS_FILE}" \
+  use_composition:=False &
 sleep 5
 ros2 launch osracer_navigation rviz_launch.py \
   rviz_config:="$(ros2 pkg prefix osracer_debug)/share/osracer_debug/config/navigation.rviz" &

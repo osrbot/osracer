@@ -28,18 +28,23 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
+SCRIPTS_DIR="$(ros2 pkg prefix osracer_demo)/share/osracer_demo/scripts"
+PARAMS_FILE="$("${SCRIPTS_DIR}/make_slow_nav_params.sh")"
+
 echo "Starting OSRacer bringup and Nav2"
 ros2 launch osracer_bringup bringup.launch.py &
 sleep 5
-ros2 launch osracer_navigation nav2.launch.py use_rviz:=true &
+ros2 launch osracer_navigation nav2.launch.py \
+  use_rviz:=true \
+  params_file:="${PARAMS_FILE}" &
 
 cat <<'EOF'
 
-Navigation demo started.
-In RViz:
-1. Use "2D Pose Estimate" to set the current pose.
-2. Use "Nav2 Goal" to choose a nearby safe goal.
-3. Keep targets short until direction and obstacle behavior are confirmed.
+导航演示已启动。
+在 RViz 中：
+1. 使用 "2D Pose Estimate" 设置当前位置。
+2. 使用 "Nav2 Goal" 选择近距离安全目标。
+3. 先用短距离目标确认方向和避障行为。
 
 EOF
 

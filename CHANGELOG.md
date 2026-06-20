@@ -31,6 +31,13 @@
 
 ### Demo and RViz
 
+- Merged the ROS-only parts of the local `osracer_demo` tree into the
+  `osracer_demo` package, excluding firmware sources, hardware PDFs, partition
+  tables, and local machine configuration.
+- Added installed helper scripts for workspace build, odometry RViz, and
+  demo-only low-speed Nav2 parameter generation.
+- Navigation demo scripts now use generated low-speed TEB parameters for field
+  demos without modifying the formal `osracer_navigation` parameter files.
 - Added missing runtime dependencies for `osracer_demo` advanced scripts:
   `osracer_debug`, `osracer_navigation`, and `osracer_slam`.
 - Enabled robot model display in odometry, mapping, and navigation RViz configs
