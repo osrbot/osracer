@@ -1,0 +1,18 @@
+/**:
+  ros__parameters:
+    wheel_radius: 0.0425
+    wheel_diameter: 0.085
+    wheelbase: 0.285
+    track_width: 0.215
+    max_steering_angle_deg: 30.0
+    gear_ratio: 10.55
+    differential_ring_teeth: 40
+    differential_pinion_teeth: 13
+    spur_gear_teeth: 48
+    motor_pinion_teeth: 14
+    motor_no_load_rpm: 11000.0
+    encoder_cpr_motor: 1024
+    encoder_multiplier: 1
+    mass_kg: 3.2
+    theoretical_max_speed_mps: 4.64
+    minimum_turning_radius_m: 0.50

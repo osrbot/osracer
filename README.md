@@ -89,7 +89,7 @@ sudo udevadm trigger
 ### 1.6 Update Source Code With Git
 
 ```bash
-cd ~/your_worksapce/src/osracer && git add . && git stash && git pull --recurse-submodules
+cd ~/your_workspace/src/osracer && git add . && git stash && git pull --recurse-submodules
 
 # git clone --recursive https://github.com/osrbot/osracer.git
 ```
@@ -166,6 +166,44 @@ PDFs stay in the firmware/hardware repositories.
 ros2 run osracer_demo leader_demo
 ros2 run osracer_demo drive_demo warmup
 ros2 run osracer_demo odom_watch
+```
+
+### 3.1.2 Race Mode
+
+This workspace also includes `osracer_race` for RoboRacer/F1TENTH-style
+Ackermann racing. It is separate from Nav2 and routes race controllers through a
+final limiter before publishing `/ackermann_cmd`.
+
+```bash
+ros2 launch osracer_race gap_follow.launch.py
+ros2 launch osracer_race pure_pursuit.launch.py
+ros2 launch osracer_race vehicle_id.launch.py
+```
+
+The race package keeps measured vehicle parameters in
+`osracer_race/config/vehicle.yaml` and provides staged algorithms for safety,
+Follow-the-Gap, Pure Pursuit, Stanley control, lap timing, and vehicle
+identification. It also includes raceline speed-profile tooling and a lightweight
+kinematic MPC entry point for early high-speed experiments. Race evaluation logs
+are written as CSV for teaching and research comparisons.
+
+See `osracer_race/README_zh.md` for usage, `osracer_race/PHASES_zh.md` for the
+four-stage race roadmap, and `osracer_race/ROS_VALIDATION_zh.md` for ROS/vehicle
+validation steps.
+
+Recommended first run sequence:
+
+1. Build and run the installed self-check.
+2. Start with `race_safe.yaml` and verify LiDAR safety stop, command timeout,
+   and the lower-level emergency stop path.
+3. Run Gap Follow at low speed before recording a raceline.
+4. Compare Pure Pursuit, Stanley, and MPC with the generated CSV reports.
+5. Switch to `race_fast.yaml` only after low-speed safety and tracking are stable.
+
+After building on the vehicle or a ROS development machine, run:
+
+```bash
+bash $(ros2 pkg prefix osracer_race)/share/osracer_race/scripts/validate_race_ros.sh
 ```
 
 ### 3.2 Sensors

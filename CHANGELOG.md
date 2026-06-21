@@ -2,6 +2,143 @@
 
 ## Unreleased
 
+### Race mode
+
+- Added `osracer_race` as a standalone ROS 2 race package for RoboRacer-style
+  Ackermann racing, separate from demo and Nav2 navigation flows.
+- Added measured 1/10 OSRacer vehicle parameters, safe/fast race parameter
+  presets, and an example raceline CSV.
+- Implemented first-stage race nodes for TTC safety stop, Follow-the-Gap
+  driving, and lap timing.
+- Added raceline speed-profile tooling, Pure Pursuit, Stanley, speed-profile,
+  vehicle-identification YAML export, and a lightweight kinematic MPC controller
+  for the staged race development roadmap.
+- Added race evaluation CSV logging and offline unit tests for the core raceline
+  and vehicle-geometry math.
+- Added a shared race-controller safety gate so Pure Pursuit, Stanley, and MPC
+  stop publishing motion commands when `/race/safety_stop` is active.
+- Routed race controllers through `/race/raw_ackermann_cmd` and upgraded
+  `speed_profile_node` into a final command limiter for speed, braking,
+  steering, lateral-acceleration, and safety-stop constraints.
+- Added `race_report_tools` to summarize race evaluation CSV logs for
+  teaching/research comparisons across controllers.
+- Added `race_bringup.launch.py` to start OSRacer bringup and the selected race
+  controller from one command.
+- Added `obstacle_overtake_node` as a raceline-controller middle layer for
+  low-speed side selection around close front obstacles before final command
+  limiting.
+- Added `PHASES_zh.md` to document the four-stage race development coverage and
+  current verification status.
+- Added `scripts/check_race_package.sh` as a repeatable local/ROS-machine
+  validation entry point for the race package.
+- Added `track_recorder_node` and `track_record.launch.py` to record odometry
+  paths as raceline CSV input for stage-two trajectory tracking.
+- Added `eval_output_csv` launch arguments across race controllers and enabled
+  CSV evaluation logging for `gap_follow.launch.py`.
+- Added `ROS_VALIDATION_zh.md` with ROS/vehicle validation steps for all four
+  race-development phases.
+- Updated `check_race_package.sh` to run `colcon build --packages-select
+  osracer_race` automatically when ROS 2 Humble and colcon are available.
+- Made raceline CSV loading accept plain `x,y,speed,curvature` headers in
+  addition to commented headers, matching the documented examples.
+- Extended race vehicle identification output with observed max yaw rate and
+  minimum turning radius for steering-limit calibration.
+- Hardened race evaluation summaries so empty, `nan`, and `inf` log fields do
+  not produce misleading zero or `nan` comparison metrics.
+- Added fail-safe race safety behavior for front-LiDAR dropout: when no valid
+  front scan points are available, `/race/safety_stop` defaults to active.
+- Added `scan_timeout_s` to `safety_node` so full `/scan` stream loss also
+  activates `/race/safety_stop` and publishes stop commands.
+- Added a command watchdog in `speed_profile_node` so stale upstream race
+  commands are converted to a stop command after `command_timeout_s`.
+- Trimmed unused `osracer_race` package dependencies and added metadata checks
+  for the race package install surface.
+- Made `vehicle_id.launch.py` accept the shared `race_config` argument and
+  documented the installed self-check command with an explicit `bash` wrapper.
+- Aligned race README self-check usage with the installed validation command
+  and added tests that documented launch/run commands match package entries.
+- Linked the top-level README race section to the dedicated race usage,
+  four-stage roadmap, and ROS/vehicle validation documents.
+- Expanded the race usage README into a detailed tutorial covering setup,
+  self-checks, topic flow, staged operation, vehicle-side validation, and
+  troubleshooting.
+- Added `PRE_PUSH_REVIEW_zh.md` to record verified static checks, cleanup scope,
+  package boundaries, and remaining ROS/vehicle validation items before pushing.
+- Reused signed-curvature-safe speed limiting in Pure Pursuit so externally
+  generated racelines with negative curvature still reduce corner speed.
+- Applied the same raceline curvature speed limiting to Stanley tracking
+  commands before obstacle handling and final command limiting.
+- Fixed obstacle overtake speed handling so zero or reverse tracking commands
+  are not converted into forward overtake motion.
+- Sanitized non-finite upstream race commands in `speed_profile_node` so `nan`
+  or `inf` speed/steering inputs become zero-speed, zero-steering requests
+  before final limiting.
+- Replaced temporary `osracer_race` maintainer metadata and fixed the top-level
+  workspace path typo in the git update example.
+- Removed an unused race helper function from `common.py` after the controller
+  implementations settled on direct scan handling.
+- Added a regression check that `race_bringup.launch.py` still includes the
+  existing `osracer_bringup/launch/bringup.launch.py` entry point.
+- Made `race_fast.yaml` explicitly declare the same key runtime topics, safety
+  stop topic, and lap-timer parameters as `race_safe.yaml`.
+- Documented `race_fast.yaml` as a full runtime parameter file rather than a
+  partial speed-only override.
+- Expanded `race_safe.yaml` and `race_fast.yaml` to explicitly include tracking,
+  MPC, overtake, recorder, evaluator, and watchdog runtime parameters.
+- Added ROS-side launch `--show-args` checks to the race validation checklist so
+  installed launch files are verified before vehicle tests.
+- Added package discovery checks for `osracer_race` resource marker and
+  console-script install paths.
+- Moved Gap Follow gap selection into an offline-tested helper and changed the
+  target from the gap edge to the gap center so clear scans do not induce
+  unnecessary steering and minimum-speed output.
+- Moved Pure Pursuit and Stanley tracking geometry into offline-tested helpers
+  covering straight-line steering, cross-track steering sign, and curvature
+  speed limiting.
+- Moved lightweight MPC rollout, cost, and command search math into
+  offline-tested helpers covering straight-line prediction, corner speed
+  limiting, and straight-path steering selection.
+- Moved obstacle-overtake scan summary, hysteresis, and side-selection logic into
+  offline-tested helpers covering trigger/clear behavior, stop-command passthrough,
+  and steering toward the wider side.
+- Moved race safety front-scan and TTC calculations into offline-tested helpers
+  covering front-FOV filtering, emergency-distance stop, TTC stop, and reversing
+  without false TTC triggers.
+- Moved final speed-profile limiting into an offline-tested helper covering
+  non-finite command sanitization, steering clamp, acceleration limiting,
+  braking limiting, and curvature speed limiting.
+- Moved race evaluation and track-recording formatting into offline-tested
+  helpers covering stable CSV headers, track-error sign, point spacing, and
+  default recorded speed handling.
+- Split vehicle-identification observation math into a pure helper with offline
+  tests for speed, acceleration, braking, yaw-rate, and turning-radius outputs.
+- Updated `check_race_package.sh` to support both source-tree checks and
+  installed `share/osracer_race` checks.
+- Added helper-module import smoke tests to `check_race_package.sh` so source
+  and installed layouts both verify the shared race math modules are importable.
+- Aligned raceline launch argument descriptions and validation documentation with
+  the supported `x,y,speed,curvature` CSV format and helper import smoke checks.
+- Added static checks that every source-tree `*_node.py` module defines `main()`
+  and has a matching `console_scripts` entry.
+- Added a race package license consistency check tying `package.xml` and
+  `setup.py` MIT metadata to the root MIT `LICENSE`.
+- Made race unit tests skip source-tree-only metadata checks when running from
+  an installed package layout.
+- Declared `python3-yaml` as an `osracer_race` runtime dependency because the
+  installed self-check validates YAML configuration files.
+- Documented and tested the supported `race_bringup.launch.py controller` values:
+  `gap_follow`, `pure_pursuit`, `stanley`, and `mpc`.
+- Added a shell syntax self-check to `check_race_package.sh`.
+- Added `ros2 launch ... --show-args` checks to the race self-check when ROS 2
+  is available.
+- Added `validate_race_ros.sh` as a vehicle-side non-motion validation helper
+  for installed resources, CLI tools, launch arguments, and optional topic
+  visibility.
+- Expanded ROS-side self-checks to cover every `osracer_race` launch file with
+  `--show-args`.
+- Restricted `race_bringup.launch.py controller` with launch choices and limited
+  obstacle-overtake startup to the raceline controllers.
+
 ### ROS interface and TF
 
 - No firmware serial protocol changes. The chassis node still consumes the
