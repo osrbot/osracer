@@ -13,7 +13,7 @@ import time
 from typing import Iterable
 
 import rclpy
-from ackermann_msgs.msg import AckermannDriveStamped
+from ackermann_msgs.msg import AckermannDrive, AckermannDriveStamped
 from geometry_msgs.msg import TransformStamped, Twist
 from nav_msgs.msg import Odometry
 from rclpy.node import Node
@@ -44,6 +44,7 @@ class AckermannKinematicSim(Node):
         self.declare_parameter('update_rate_hz', 100.0)
         self.declare_parameter('cmd_timeout_s', 0.5)
         self.declare_parameter('ackermann_topic', '/ackermann_cmd')
+        self.declare_parameter('ackermann_stamped_topic', '/ackermann_cmd_stamped')
         self.declare_parameter('cmd_vel_topic', '/cmd_vel')
         self.declare_parameter('odom_topic', '/odometry/filtered')
         self.declare_parameter('scan_topic', '/scan')
@@ -103,9 +104,15 @@ class AckermannKinematicSim(Node):
         self.tf_broadcaster = TransformBroadcaster(self) if self.publish_tf else None
 
         self.create_subscription(
-            AckermannDriveStamped,
+            AckermannDrive,
             self.get_parameter('ackermann_topic').value,
             self.on_ackermann,
+            10,
+        )
+        self.create_subscription(
+            AckermannDriveStamped,
+            self.get_parameter('ackermann_stamped_topic').value,
+            self.on_ackermann_stamped,
             10,
         )
         self.create_subscription(Twist, self.get_parameter('cmd_vel_topic').value, self.on_twist, 10)
@@ -117,9 +124,15 @@ class AckermannKinematicSim(Node):
             % (self.wheelbase, self.track_width, self.wheel_radius, self.scan_environment)
         )
 
-    def on_ackermann(self, msg: AckermannDriveStamped) -> None:
-        self.speed = clamp(float(msg.drive.speed), -self.max_speed, self.max_speed)
-        self.steering = clamp(float(msg.drive.steering_angle), -self.max_steering, self.max_steering)
+    def on_ackermann(self, msg: AckermannDrive) -> None:
+        self.apply_ackermann(float(msg.speed), float(msg.steering_angle))
+
+    def on_ackermann_stamped(self, msg: AckermannDriveStamped) -> None:
+        self.apply_ackermann(float(msg.drive.speed), float(msg.drive.steering_angle))
+
+    def apply_ackermann(self, speed: float, steering: float) -> None:
+        self.speed = clamp(speed, -self.max_speed, self.max_speed)
+        self.steering = clamp(steering, -self.max_steering, self.max_steering)
         self.last_cmd_time = time.monotonic()
 
     def on_twist(self, msg: Twist) -> None:

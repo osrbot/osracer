@@ -2,7 +2,7 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, ExecuteProcess, IncludeLaunchDescription, SetEnvironmentVariable
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import EnvironmentVariable, LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import EnvironmentVariable, LaunchConfiguration, PathJoinSubstitution, PythonExpression
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
@@ -44,8 +44,28 @@ def generate_launch_description():
             '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',
             '/gazebo/scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan',
             '/gazebo/imu@sensor_msgs/msg/Imu[gz.msgs.IMU',
+            '/gazebo/left_steering_position@std_msgs/msg/Float64]gz.msgs.Double',
+            '/gazebo/right_steering_position@std_msgs/msg/Float64]gz.msgs.Double',
+            '/model/osracer_simple/joint/Left_front_wheel_joint/cmd_vel@std_msgs/msg/Float64]gz.msgs.Double',
+            '/model/osracer_simple/joint/right_front_wheel_joint/cmd_vel@std_msgs/msg/Float64]gz.msgs.Double',
+            '/model/osracer_simple/joint/left_rear_wheel_joint/cmd_vel@std_msgs/msg/Float64]gz.msgs.Double',
+            '/model/osracer_simple/joint/right_rear_wheel_joint/cmd_vel@std_msgs/msg/Float64]gz.msgs.Double',
         ],
-        condition=IfCondition(LaunchConfiguration('use_gz_bridge')),
+        condition=IfCondition(PythonExpression([
+            "'", LaunchConfiguration('use_gz_bridge'), "' == 'true' or '",
+            LaunchConfiguration('use_gz_control'), "' == 'true'",
+        ])),
+    )
+
+    gazebo_ackermann_bridge = Node(
+        package='osracer_sim',
+        executable='gazebo_ackermann_bridge_node',
+        name='osracer_gazebo_ackermann_bridge',
+        output='screen',
+        parameters=[{
+            'ackermann_topic': LaunchConfiguration('ackermann_topic'),
+        }],
+        condition=IfCondition(LaunchConfiguration('use_gz_control')),
     )
 
     return LaunchDescription([
@@ -67,9 +87,12 @@ def generate_launch_description():
         DeclareLaunchArgument('use_rviz', default_value='false', choices=['true', 'false']),
         DeclareLaunchArgument('include_model', default_value='true', choices=['true', 'false']),
         DeclareLaunchArgument('use_gz_bridge', default_value='false', choices=['true', 'false']),
+        DeclareLaunchArgument('use_gz_control', default_value='false', choices=['true', 'false']),
+        DeclareLaunchArgument('ackermann_topic', default_value='/ackermann_cmd'),
         DeclareLaunchArgument('publish_kinematic_clock', default_value='true', choices=['true', 'false']),
         gazebo,
         gazebo_without_model,
         gz_bridge,
+        gazebo_ackermann_bridge,
         base_sim,
     ])

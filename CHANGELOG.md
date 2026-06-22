@@ -15,6 +15,8 @@
   next step toward Gazebo control-plugin integration.
 - Added Gazebo-native LiDAR/IMU sensors on the simplified model and an optional
   `ros_gz_bridge` launch path for `/gazebo/scan`, `/gazebo/imu`, and `/clock`.
+- Added `gazebo_ackermann_bridge_node` to translate `/ackermann_cmd` into
+  Gazebo steering-position and wheel-velocity joint controller topics.
 
 ### Navigation
 

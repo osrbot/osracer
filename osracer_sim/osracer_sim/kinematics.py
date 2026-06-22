@@ -30,6 +30,20 @@ def ackermann_front_angles(center_steering: float, wheelbase: float, track_width
     return left, right
 
 
+def ackermann_gazebo_commands(
+    speed: float,
+    steering: float,
+    wheelbase: float,
+    track_width: float,
+    wheel_radius: float,
+) -> tuple[float, float, float]:
+    left_steering, right_steering = ackermann_front_angles(steering, wheelbase, track_width)
+    wheel_velocity = 0.0
+    if wheel_radius > 1e-5:
+        wheel_velocity = speed / wheel_radius
+    return left_steering, right_steering, wheel_velocity
+
+
 def synthetic_scan(points: int, angle_min: float, angle_increment: float, max_range: float) -> list[float]:
     ranges = []
     for index in range(points):

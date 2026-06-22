@@ -288,13 +288,19 @@ The first simulation stage publishes `/odometry/filtered`, `/tf`,
 default `/scan` is a rectangular-track raycast suitable for Gap Follow, TTC
 safety, and raceline recording smoke tests. The Gazebo entry starts the matching
 rectangular track world, a simplified OSRacer model, and the kinematic
-simulator; Gazebo control plugins, tire slip, drivetrain, and sensor noise model
-calibration are intentionally left for later validation work.
+simulator; tire slip, drivetrain, and sensor noise model calibration are
+intentionally left for later validation work.
 
 Gazebo-native LiDAR and IMU topics can be bridged separately when needed:
 
 ```bash
 ros2 launch osracer_sim gazebo.launch.py use_gz_bridge:=true publish_kinematic_clock:=false
+```
+
+Gazebo joint controllers can also receive `/ackermann_cmd`:
+
+```bash
+ros2 launch osracer_sim gazebo.launch.py use_gz_bridge:=true use_gz_control:=true publish_kinematic_clock:=false
 ```
 
 ### 3.2 Sensors

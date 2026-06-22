@@ -53,6 +53,7 @@ if setup_path.exists():
     setup = setup_path.read_text(encoding='utf-8')
 for token in (
     'ackermann_kinematic_sim_node',
+    'gazebo_ackermann_bridge_node',
     'base_sim.launch.py',
     'gazebo.launch.py',
     'slam_sim.launch.py',
@@ -63,6 +64,8 @@ for token in (
     'ros_gz_bridge',
     '/gazebo/scan',
     '/gazebo/imu',
+    '/gazebo/left_steering_position',
+    '/model/osracer_simple/joint',
 ):
     if token not in setup and token not in readme:
         raise SystemExit(f'missing package documentation for {token}')

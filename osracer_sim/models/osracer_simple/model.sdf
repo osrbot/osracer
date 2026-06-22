@@ -327,5 +327,53 @@
         <xyz>0 1 0</xyz>
       </axis>
     </joint>
+
+    <plugin
+      filename="ignition-gazebo-joint-position-controller-system"
+      name="gz::sim::systems::JointPositionController">
+      <joint_name>left_steering_hinge_joint</joint_name>
+      <topic>/gazebo/left_steering_position</topic>
+      <p_gain>8.0</p_gain>
+      <i_gain>0.0</i_gain>
+      <d_gain>0.2</d_gain>
+      <cmd_max>80.0</cmd_max>
+      <cmd_min>-80.0</cmd_min>
+    </plugin>
+
+    <plugin
+      filename="ignition-gazebo-joint-position-controller-system"
+      name="gz::sim::systems::JointPositionController">
+      <joint_name>right_steering_hinge_joint</joint_name>
+      <topic>/gazebo/right_steering_position</topic>
+      <p_gain>8.0</p_gain>
+      <i_gain>0.0</i_gain>
+      <d_gain>0.2</d_gain>
+      <cmd_max>80.0</cmd_max>
+      <cmd_min>-80.0</cmd_min>
+    </plugin>
+
+    <plugin
+      filename="ignition-gazebo-joint-controller-system"
+      name="gz::sim::systems::JointController">
+      <joint_name>Left_front_wheel_joint</joint_name>
+    </plugin>
+
+    <plugin
+      filename="ignition-gazebo-joint-controller-system"
+      name="gz::sim::systems::JointController">
+      <joint_name>right_front_wheel_joint</joint_name>
+    </plugin>
+
+    <plugin
+      filename="ignition-gazebo-joint-controller-system"
+      name="gz::sim::systems::JointController">
+      <joint_name>left_rear_wheel_joint</joint_name>
+    </plugin>
+
+    <plugin
+      filename="ignition-gazebo-joint-controller-system"
+      name="gz::sim::systems::JointController">
+      <joint_name>right_rear_wheel_joint</joint_name>
+    </plugin>
   </model>
 </sdf>

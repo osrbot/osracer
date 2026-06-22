@@ -34,6 +34,7 @@ setup(
     entry_points={
         'console_scripts': [
             'ackermann_kinematic_sim_node = osracer_sim.ackermann_kinematic_sim_node:main',
+            'gazebo_ackermann_bridge_node = osracer_sim.gazebo_ackermann_bridge_node:main',
         ],
     },
 )

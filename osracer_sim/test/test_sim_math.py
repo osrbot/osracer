@@ -3,6 +3,7 @@ import unittest
 
 from osracer_sim.kinematics import (
     ackermann_front_angles,
+    ackermann_gazebo_commands,
     clamp,
     ray_segment_distance,
     rectangular_track_segments,
@@ -28,6 +29,11 @@ class SimMathTest(unittest.TestCase):
         self.assertGreater(left, right)
         self.assertGreater(left, 0.0)
         self.assertGreater(right, 0.0)
+
+    def test_ackermann_gazebo_commands_convert_speed_to_wheel_velocity(self):
+        left, right, velocity = ackermann_gazebo_commands(1.0, 0.3, 0.285, 0.215, 0.0425)
+        self.assertGreater(left, right)
+        self.assertAlmostEqual(velocity, 1.0 / 0.0425)
 
     def test_yaw_to_quat_is_normalized(self):
         quat = yaw_to_quat(0.7)

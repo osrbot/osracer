@@ -31,8 +31,8 @@ ros2 launch osracer_sim base_sim.launch.py use_rviz:=true
 手动发 Ackermann 命令：
 
 ```bash
-ros2 topic pub /ackermann_cmd ackermann_msgs/msg/AckermannDriveStamped \
-  "{drive: {speed: 0.5, steering_angle: 0.2}}"
+ros2 topic pub /ackermann_cmd ackermann_msgs/msg/AckermannDrive \
+  "{speed: 0.5, steering_angle: 0.2}"
 ```
 
 切换简单走廊扫描：
@@ -72,6 +72,25 @@ ros2 launch osracer_sim gazebo.launch.py \
 - Gazebo LiDAR：`/gazebo/scan` -> `sensor_msgs/msg/LaserScan`
 - Gazebo IMU：`/gazebo/imu` -> `sensor_msgs/msg/Imu`
 - Gazebo clock：`/clock` -> `rosgraph_msgs/msg/Clock`
+
+需要让 `/ackermann_cmd` 同时驱动 Gazebo 简化车模的转向和轮速 joint controller：
+
+```bash
+ros2 launch osracer_sim gazebo.launch.py \
+  use_gz_bridge:=true \
+  use_gz_control:=true \
+  publish_kinematic_clock:=false
+```
+
+`gazebo_ackermann_bridge_node` 会订阅 `ackermann_msgs/msg/AckermannDrive`
+格式的 `/ackermann_cmd`，并发布：
+
+- `/gazebo/left_steering_position`
+- `/gazebo/right_steering_position`
+- `/model/osracer_simple/joint/*_wheel_joint/cmd_vel`
+
+这条链路用于检查 Gazebo joint controller、转向方向和轮速方向。Gazebo 车体的物理
+运动仍取决于简化碰撞、摩擦和 joint controller 参数，不等价于实车高速动力学。
 
 如果只需要空地面：
 
@@ -134,9 +153,9 @@ ros2 launch osracer_sim race_sim.launch.py stage:=mpc
 
 - `/scan` 是基于矩形赛道墙体的 2D raycast，不代表真实 LiDAR 噪声和材质反射。
 - 没有高保真轮胎侧偏、打滑、差速器、电机电流和电池模型。
-- Gazebo world 当前包含场地、墙体和简化 OSRacer 模型；还没有接入
-  Ackermann 控制插件或轮胎侧偏模型；Gazebo LiDAR/IMU 已提供可选
-  `ros_gz_bridge` 入口，但默认 race/SLAM 仿真仍使用 kinematic 节点发布的
+- Gazebo world 当前包含场地、墙体和简化 OSRacer 模型；还没有接入轮胎侧偏模型。
+  Gazebo LiDAR/IMU 和 joint controller 已提供可选 `ros_gz_bridge` 入口，
+  但默认 race/SLAM 仿真仍使用 kinematic 节点发布的
   `/scan`、`/odometry/filtered` 和 `/joint_states`。
 - 高速能力、MPC 稳定性和安全边界必须以真实车辆低速逐步验证为准。
 

@@ -20,6 +20,7 @@
   <depend>robot_state_publisher</depend>
   <depend>rosgraph_msgs</depend>
   <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
   <depend>tf2_ros</depend>
 
   <exec_depend>osracer_description</exec_depend>
