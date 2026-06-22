@@ -96,6 +96,35 @@ bash $(ros2 pkg prefix osracer_race)/share/osracer_race/scripts/validate_race_ro
 bash osracer_race/scripts/check_race_package.sh
 ```
 
+macOS 开发机推荐用 Docker 做推送前 ROS 编译检查：
+
+```bash
+bash tools/docker/run_ros_humble_check.sh
+```
+
+运行前必须先初始化 `osracer_dependency` submodule：
+
+```bash
+git submodule update --init --recursive
+```
+
+默认会在 Ubuntu 22.04 + ROS 2 Humble 容器中复制源码到临时工作空间，并使用
+`OSRACER_BUILD_PROFILE=stable` 编译主包和稳定交付依赖。stable 包含 Lakibeam 雷达、
+gmapping、camera calibration 和 OSRacer 主功能包，不包含 TEB/costmap_converter
+全量链路。随后脚本会运行安装后的 race 包自检和非运动 ROS 入口验证。
+
+只想快速检查 race 包时：
+
+```bash
+OSRACER_BUILD_PACKAGES=osracer_race bash tools/docker/run_ros_humble_check.sh
+```
+
+推送前检查全部依赖链路时：
+
+```bash
+OSRACER_BUILD_PROFILE=full bash tools/docker/run_ros_humble_check.sh
+```
+
 ## Topic 链路和安全边界
 
 比赛包不直接修改底层串口驱动。普通底盘节点继续提供 `/odom` 或

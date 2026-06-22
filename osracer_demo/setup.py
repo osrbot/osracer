@@ -14,8 +14,8 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='kitso666',
-    maintainer_email='kitso666@example.com',
+    maintainer='osrbot',
+    maintainer_email='osrbot@osrbot.com',
     description='Field demo tools for OSRacer ROS 2 bringup and low-speed motion checks.',
     license='MIT',
     entry_points={

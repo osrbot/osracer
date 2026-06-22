@@ -3,25 +3,40 @@
   <name>osracer_navigation</name>
   <version>0.0.0</version>
   <description>The osracer_navigation package</description>
-  <maintainer email="osb03@hotmail.com">osrbot Robotics</maintainer>
+  <maintainer email="osrbot@osrbot.com">osrbot Robotics</maintainer>
   <license>MIT</license>
   <license>Apache-2.0</license>
   <url type="website">https://www.osrbot.com/</url>
   <buildtool_depend>ament_cmake</buildtool_depend>
   <build_depend>geometry_msgs</build_depend>
-  <build_depend>move_base</build_depend>
   <build_depend>rclcpp</build_depend>
   <build_depend>rclpy</build_depend>
   <build_depend>std_msgs</build_depend>
+  <build_depend>tf2</build_depend>
   <build_depend>visualization_msgs</build_depend>
-  <build_depend>tf</build_depend>
   <exec_depend>geometry_msgs</exec_depend>
-  <exec_depend>move_base</exec_depend>
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>nav2_amcl</exec_depend>
+  <exec_depend>nav2_behaviors</exec_depend>
+  <exec_depend>nav2_bt_navigator</exec_depend>
+  <exec_depend>nav2_common</exec_depend>
+  <exec_depend>nav2_controller</exec_depend>
+  <exec_depend>nav2_lifecycle_manager</exec_depend>
+  <exec_depend>nav2_map_server</exec_depend>
+  <exec_depend>nav2_planner</exec_depend>
+  <exec_depend>nav2_smoother</exec_depend>
+  <exec_depend>nav2_waypoint_follower</exec_depend>
+  <exec_depend>osracer_debug</exec_depend>
+  <exec_depend>osracer_slam</exec_depend>
   <exec_depend>rclcpp</exec_depend>
   <exec_depend>rclpy</exec_depend>
+  <exec_depend>rclcpp_components</exec_depend>
+  <exec_depend>rviz2</exec_depend>
   <exec_depend>std_msgs</exec_depend>
+  <exec_depend>teb_local_planner</exec_depend>
+  <exec_depend>tf2</exec_depend>
   <exec_depend>visualization_msgs</exec_depend>
-  <exec_depend>tf</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

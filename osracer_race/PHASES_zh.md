@@ -80,16 +80,19 @@
 - `scripts/check_race_package.sh` 自检脚本；在 ROS/colcon 存在时会自动构建 `osracer_race`。
 - `scripts/validate_race_ros.sh` 车端 ROS 验证脚本；构建后检查资源、CLI、launch 参数和可选 topic。
 - 安装布局模拟检查，覆盖安装后的 share 资源、文档、launch、脚本和测试。
+- Docker Ubuntu 22.04 + ROS 2 Humble full profile 编译检查，覆盖 stable 依赖、
+  TEB/costmap_converter full 链路和 OSRacer 主功能包。
 - `git diff --check`。
 - 缓存、PDF、固件、分区表、隐私关键词扫描。
 - `PRE_PUSH_REVIEW_zh.md` 推送前审查记录。
 
 本机未完成：
 
-- `colcon build --symlink-install`。
-- ROS 2 launch 实跑。
+- 原生 macOS 上的 `/opt/ros/humble/setup.bash` 和 `colcon` 检查。
+- 连接真实硬件后的 ROS topic 运行态检查。
 - 实车测试。
 
-未完成原因：当前机器没有 `/opt/ros/humble/setup.bash`，也没有 `colcon`。
+未完成原因：当前机器没有原生 ROS 2 Humble 环境；Docker 已覆盖编译和 launch
+参数验证，但不能替代串口、LiDAR、相机、RViz 和实车运动验证。
 
 ROS/实车验证步骤见 `ROS_VALIDATION_zh.md`。

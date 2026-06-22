@@ -3,7 +3,7 @@
   <name>osracer_slam</name>
   <version>0.0.0</version>
   <description>The osracer_slam package</description>
-  <maintainer email="osrbot@todo.todo">osrbot</maintainer>
+  <maintainer email="osrbot@osrbot.com">osrbot</maintainer>
   <license>MIT</license>
   <buildtool_depend>ament_cmake</buildtool_depend>
   <build_depend>rclcpp</build_depend>
@@ -15,7 +15,11 @@
   <exec_depend>rclcpp</exec_depend>
   <exec_depend>rclpy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
-  <exec_depend>gmapping</exec_depend>
+  <exec_depend>cartographer_ros</exec_depend>
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>slam_gmapping</exec_depend>
+  <exec_depend>slam_toolbox</exec_depend>
   
   <export>
     <build_type>ament_cmake</build_type>

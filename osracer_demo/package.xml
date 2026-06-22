@@ -5,7 +5,7 @@
   <version>0.1.0</version>
   <description>Field demo tools for OSRacer ROS 2 bringup and low-speed motion checks.</description>
 
-  <maintainer email="kitso666@example.com">kitso666</maintainer>
+  <maintainer email="osrbot@osrbot.com">osrbot</maintainer>
   <license>MIT</license>
 
   <buildtool_depend>ament_python</buildtool_depend>
@@ -16,6 +16,7 @@
   <depend>geometry_msgs</depend>
   <depend>nav_msgs</depend>
 
+  <exec_depend>python3-tk</exec_depend>
   <exec_depend>ros2launch</exec_depend>
   <exec_depend>osracer_bringup</exec_depend>
   <exec_depend>osracer_debug</exec_depend>

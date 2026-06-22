@@ -40,7 +40,7 @@ source ~/.bashrc
 Install necessary ROS 2 packages and tools:
 
 ```bash
-sudo apt install python3-pip
+sudo apt install python3-pip python3-serial python3-tk libsuitesparse-dev
 sudo apt install ros-humble-nav2-bringup \
                  ros-humble-libg2o \
                  ros-humble-imu-tools \
@@ -50,7 +50,9 @@ sudo apt install ros-humble-nav2-bringup \
                  ros-humble-usb-cam \
                  ros-humble-cartographer-ros \
                  ros-humble-cartographer-rviz \
+                 ros-humble-cv-bridge \
                  ros-humble-rqt-tf-tree \
+                 ros-humble-tf-transformations \
                  ros-humble-ackermann-msgs -y
 ```
 
@@ -93,6 +95,15 @@ cd ~/your_workspace/src/osracer && git add . && git stash && git pull --recurse-
 
 # git clone --recursive https://github.com/osrbot/osracer.git
 ```
+
+`osracer_dependency` is a pinned submodule for OSR-controlled third-party ROS 2
+dependencies, including Lakibeam lidar, gmapping, camera calibration, and TEB
+related packages. It is part of the reproducible deployment surface, not an
+empty folder to remove. If it is missing after cloning, run:
+
+```bash
+git submodule update --init --recursive
+```
 ---
 
 ## 2. Quick Start (Bringup)
@@ -102,6 +113,44 @@ Launch the complete robot system (Chassis, Sensors, TF):
 ```bash
 ros2 launch osracer_bringup bringup.launch.py
 ```
+
+---
+
+## 2.1 Docker ROS Check on macOS
+
+For macOS development, use Docker as the pre-push ROS 2 Humble compile-check
+environment. The container uses Ubuntu 22.04 + ROS 2 Humble, copies the mounted
+source into a temporary workspace, and runs `colcon build` without leaving
+root-owned `build/`, `install/`, or `log/` folders in the repository.
+
+```bash
+bash tools/docker/run_ros_humble_check.sh
+```
+
+By default the script uses `OSRACER_BUILD_PROFILE=stable`, which builds the
+main OSRacer packages plus the pinned dependencies needed by the stable
+deployment path: Lakibeam lidar, gmapping, and camera calibration. It then runs
+the installed `osracer_race` self-check and non-motion ROS entry validation.
+
+For a faster package-only check:
+
+```bash
+OSRACER_BUILD_PACKAGES=osracer_race bash tools/docker/run_ros_humble_check.sh
+```
+
+For full dependency development, including TEB and `costmap_converter`:
+
+```bash
+OSRACER_BUILD_PROFILE=full bash tools/docker/run_ros_humble_check.sh
+```
+
+Use the full profile before dependency or navigation changes are promoted. It
+validates the pinned TEB and `costmap_converter` chain in addition to the stable
+deployment path.
+
+This Docker check is for compilation and launch-argument validation only. USB
+serial devices, LiDAR, camera, RViz, and real vehicle motion still need an
+Ubuntu 22.04 ROS machine or the vehicle computer.
 
 ---
 

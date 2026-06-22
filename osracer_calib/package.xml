@@ -10,7 +10,7 @@
     with magnetometer_pipeline/bias_remover.
   </description>
 
-  <maintainer email="kitso666@example.com">kitso666</maintainer>
+  <maintainer email="osrbot@osrbot.com">osrbot</maintainer>
   <license>MIT</license>
 
   <buildtool_depend>ament_python</buildtool_depend>
@@ -23,6 +23,9 @@
   <depend>python3-numpy</depend>
   <depend>python3-yaml</depend>
 
+  <exec_depend>camera_calibration</exec_depend>
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
   <exec_depend>ros2launch</exec_depend>
 
   <export>

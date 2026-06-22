@@ -62,6 +62,17 @@
 - Expanded the race usage README into a detailed tutorial covering setup,
   self-checks, topic flow, staged operation, vehicle-side validation, and
   troubleshooting.
+- Added a Docker-based Ubuntu 22.04 + ROS 2 Humble compile-check environment
+  for macOS pre-push validation.
+- Added stable/full Docker build profiles so pinned third-party dependencies can
+  be checked separately from the stable deployment path.
+- Added ROS Humble Docker dependencies for serial, Tk demo GUI,
+  `tf_transformations`, `libg2o`, and suitesparse so the full TEB and
+  `costmap_converter` dependency chain builds in the macOS pre-push check.
+- Updated package manifests for bringup, navigation, SLAM, calibration, debug,
+  and demo packages to declare their actual ROS 2 runtime dependencies.
+- Replaced legacy placeholder and personal maintainer metadata with the OSRBot
+  maintainer address across package manifests.
 - Added `PRE_PUSH_REVIEW_zh.md` to record verified static checks, cleanup scope,
   package boundaries, and remaining ROS/vehicle validation items before pushing.
 - Reused signed-curvature-safe speed limiting in Pure Pursuit so externally

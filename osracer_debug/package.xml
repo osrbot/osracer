@@ -3,9 +3,15 @@
   <name>osracer_debug</name>
   <version>0.0.0</version>
   <description>The osracer_debug package</description>
-  <maintainer email="osrbot@todo.todo">osrbot</maintainer>
+  <maintainer email="osrbot@osrbot.com">osrbot</maintainer>
   <license>MIT</license>
   <buildtool_depend>ament_cmake</buildtool_depend>
+  <exec_depend>ament_index_python</exec_depend>
+  <exec_depend>image_transport</exec_depend>
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>rqt_image_view</exec_depend>
+  <exec_depend>rviz2</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

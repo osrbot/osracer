@@ -1,7 +1,19 @@
 # OSRacer Race ROS/实车验证清单
 
 本文档用于在 Ubuntu 22.04 + ROS 2 Humble 机器上验证 `osracer_race`。
-当前 macOS 工作机缺少 ROS/colcon，因此这些步骤需要在车端或 ROS 开发机执行。
+macOS 开发机可先用 Docker 完成编译和 launch 参数检查；串口、LiDAR、相机、
+RViz 和实车运动仍需要在车端或 ROS 开发机执行。
+
+macOS 推送前 Docker 检查：
+
+```bash
+git submodule update --init --recursive
+OSRACER_BUILD_PROFILE=full bash tools/docker/run_ros_humble_check.sh
+```
+
+该检查会在 Ubuntu 22.04 + ROS 2 Humble 容器内编译 stable 依赖、TEB/
+`costmap_converter` full 链路和 OSRacer 主功能包，并运行安装后的自检和
+非运动 launch 参数验证。
 
 ## 1. 构建验证
 

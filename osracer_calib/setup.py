@@ -15,8 +15,8 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='kitso666',
-    maintainer_email='kitso666@example.com',
+    maintainer='osrbot',
+    maintainer_email='osrbot@osrbot.com',
     description='Magnetometer hard-iron and soft-iron calibration using ellipsoid fitting.',
     license='MIT',
     entry_points={
