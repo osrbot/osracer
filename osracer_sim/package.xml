@@ -26,6 +26,7 @@
   <exec_depend>osracer_navigation</exec_depend>
   <exec_depend>osracer_race</exec_depend>
   <exec_depend>osracer_slam</exec_depend>
+  <exec_depend>ros_gz_bridge</exec_depend>
   <exec_depend>ros_gz_sim</exec_depend>
 
   <export>

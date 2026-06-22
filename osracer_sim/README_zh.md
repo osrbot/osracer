@@ -58,6 +58,21 @@ ros2 launch osracer_sim gazebo.launch.py
 ros2 launch osracer_sim gazebo.launch.py include_model:=false
 ```
 
+Gazebo 车辆模型内置 Gazebo LiDAR 和 IMU 传感器。默认不启动 `ros_gz_bridge`，
+避免和 kinematic 仿真节点同时发布 `/clock` 或 `/scan`。需要检查 Gazebo 原生传感器时：
+
+```bash
+ros2 launch osracer_sim gazebo.launch.py \
+  use_gz_bridge:=true \
+  publish_kinematic_clock:=false
+```
+
+桥接 topic：
+
+- Gazebo LiDAR：`/gazebo/scan` -> `sensor_msgs/msg/LaserScan`
+- Gazebo IMU：`/gazebo/imu` -> `sensor_msgs/msg/Imu`
+- Gazebo clock：`/clock` -> `rosgraph_msgs/msg/Clock`
+
 如果只需要空地面：
 
 ```bash
@@ -120,7 +135,9 @@ ros2 launch osracer_sim race_sim.launch.py stage:=mpc
 - `/scan` 是基于矩形赛道墙体的 2D raycast，不代表真实 LiDAR 噪声和材质反射。
 - 没有高保真轮胎侧偏、打滑、差速器、电机电流和电池模型。
 - Gazebo world 当前包含场地、墙体和简化 OSRacer 模型；还没有接入
-  ros_gz bridge、Ackermann 控制插件、Gazebo LiDAR 或轮胎侧偏模型。
+  Ackermann 控制插件或轮胎侧偏模型；Gazebo LiDAR/IMU 已提供可选
+  `ros_gz_bridge` 入口，但默认 race/SLAM 仿真仍使用 kinematic 节点发布的
+  `/scan`、`/odometry/filtered` 和 `/joint_states`。
 - 高速能力、MPC 稳定性和安全边界必须以真实车辆低速逐步验证为准。
 
 ## 自检

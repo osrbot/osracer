@@ -23,6 +23,8 @@ RUN apt-get update && \
       ros-humble-libg2o \
       ros-humble-nav2-bringup \
       ros-humble-robot-localization \
+      ros-humble-ros-gz-bridge \
+      ros-humble-ros-gz-sim \
       ros-humble-rqt-tf-tree \
       ros-humble-slam-toolbox \
       ros-humble-tf-transformations \

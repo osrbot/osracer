@@ -60,6 +60,9 @@ for token in (
     'race_sim.launch.py',
     'osracer_rect_track.sdf',
     'osracer_simple',
+    'ros_gz_bridge',
+    '/gazebo/scan',
+    '/gazebo/imu',
 ):
     if token not in setup and token not in readme:
         raise SystemExit(f'missing package documentation for {token}')
@@ -68,6 +71,7 @@ for path in (
     package_dir / 'launch' / 'base_sim.launch.py',
     package_dir / 'worlds' / 'osracer_empty.sdf',
     package_dir / 'worlds' / 'osracer_rect_track.sdf',
+    package_dir / 'worlds' / 'osracer_rect_track_nomodel.sdf',
     package_dir / 'models' / 'osracer_simple' / 'model.config',
     package_dir / 'models' / 'osracer_simple' / 'model.sdf',
     package_dir / 'scripts' / 'check_sim_package.sh',

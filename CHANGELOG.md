@@ -13,6 +13,8 @@
 - Added an installable `model://osracer_simple` Gazebo model with measured
   OSRacer wheelbase, track width, wheel radius, and Ackermann joint names as the
   next step toward Gazebo control-plugin integration.
+- Added Gazebo-native LiDAR/IMU sensors on the simplified model and an optional
+  `ros_gz_bridge` launch path for `/gazebo/scan`, `/gazebo/imu`, and `/clock`.
 
 ### Navigation
 
