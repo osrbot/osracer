@@ -12,6 +12,7 @@
     min_speed_mps: 0.8
     max_accel_mps2: 2.5
     max_brake_mps2: 3.5
+    speed_response_time_s: 0.30
     max_lateral_accel_mps2: 4.5
     max_steering_angle_deg: 30.0
     command_timeout_s: 0.30
@@ -35,6 +36,8 @@
     path_weight: 4.0
     heading_weight: 1.5
     steering_weight: 0.2
+    target_speed_weight: 0.35
+    progress_weight: 0.15
     lap_start_x: 0.0
     lap_start_y: 0.0
     lap_trigger_radius_m: 0.55

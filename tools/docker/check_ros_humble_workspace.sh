@@ -11,6 +11,10 @@ STABLE_PACKAGES=(
   openslam_gmapping
   slam_gmapping
   camera_calibration
+  costmap_converter_msgs
+  costmap_converter
+  teb_msgs
+  teb_local_planner
   osracer_bringup
   osracer_calib
   osracer_debug
@@ -23,10 +27,6 @@ STABLE_PACKAGES=(
 
 FULL_PACKAGES=(
   "${STABLE_PACKAGES[@]}"
-  costmap_converter_msgs
-  costmap_converter
-  teb_msgs
-  teb_local_planner
 )
 
 if [[ ! -d "${SOURCE_DIR}" ]]; then
@@ -51,7 +51,7 @@ cd "${WORKSPACE_DIR}"
 
 echo "[1/4] colcon build"
 if [[ -n "${BUILD_PACKAGES}" ]]; then
-  colcon build --symlink-install --packages-select ${BUILD_PACKAGES}
+  colcon build --symlink-install --packages-up-to ${BUILD_PACKAGES}
 else
   case "${BUILD_PROFILE}" in
     stable)
@@ -79,13 +79,17 @@ echo "[3/4] osracer_race ROS entry checks"
 bash "$(ros2 pkg prefix osracer_race)/share/osracer_race/scripts/validate_race_ros.sh"
 
 echo "[4/4] selected workspace launch arguments"
-ros2 launch osracer_bringup bringup.launch.py --show-args >/dev/null
-ros2 launch osracer_description osracer_description.launch.py --show-args >/dev/null
-ros2 launch osracer_bringup lidar.launch.py --show-args >/dev/null
-ros2 launch osracer_slam gmapping.launch.py --show-args >/dev/null
-ros2 launch osracer_calib rgb_camera_calibration.launch.py --show-args >/dev/null
+if [[ -z "${BUILD_PACKAGES}" ]]; then
+  ros2 launch osracer_bringup bringup.launch.py --show-args >/dev/null
+  ros2 launch osracer_description osracer_description.launch.py --show-args >/dev/null
+  ros2 launch osracer_bringup lidar.launch.py --show-args >/dev/null
+  ros2 launch osracer_slam gmapping.launch.py --show-args >/dev/null
+  ros2 launch osracer_calib rgb_camera_calibration.launch.py --show-args >/dev/null
+else
+  echo "Skipped workspace launch checks for package-limited build: ${BUILD_PACKAGES}"
+fi
 
-if [[ "${BUILD_PROFILE}" == "full" || -n "${BUILD_PACKAGES}" ]]; then
+if [[ -z "${BUILD_PACKAGES}" ]]; then
   ros2 pkg prefix teb_local_planner >/dev/null
 fi
 

@@ -41,8 +41,22 @@
   osracer_race` automatically when ROS 2 Humble and colcon are available.
 - Made raceline CSV loading accept plain `x,y,speed,curvature` headers in
   addition to commented headers, matching the documented examples.
-- Extended race vehicle identification output with observed max yaw rate and
-  minimum turning radius for steering-limit calibration.
+- Extended race vehicle identification output with observed max yaw rate,
+  maximum lateral acceleration, and minimum turning radius for steering-limit
+  calibration.
+- Added basic speed-step motor response time constant and steering-step response
+  delay observation to the race vehicle identification node.
+- Constrained MPC speed candidates with vehicle acceleration, braking, and
+  speed-response limits so the shooting controller stays within reachable speed
+  changes.
+- Added raceline target-speed tracking and path-progress reward terms to the
+  MPC shooting cost.
+- Fixed the Docker ROS Humble stable profile so it builds the TEB /
+  `costmap_converter` chain required by the default navigation planner.
+- Removed unused bringup demo/test scripts and old STM32/no-RC chassis variants
+  from the ROS package surface.
+- Removed duplicate `osracer_navigation/maps` files and pointed the navigation
+  default map to the retained `osracer_slam/maps` example map.
 - Hardened race evaluation summaries so empty, `nan`, and `inf` log fields do
   not produce misleading zero or `nan` comparison metrics.
 - Added fail-safe race safety behavior for front-LiDAR dropout: when no valid

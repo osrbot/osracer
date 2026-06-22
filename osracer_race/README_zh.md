@@ -110,14 +110,17 @@ git submodule update --init --recursive
 
 默认会在 Ubuntu 22.04 + ROS 2 Humble 容器中复制源码到临时工作空间，并使用
 `OSRACER_BUILD_PROFILE=stable` 编译主包和稳定交付依赖。stable 包含 Lakibeam 雷达、
-gmapping、camera calibration 和 OSRacer 主功能包，不包含 TEB/costmap_converter
-全量链路。随后脚本会运行安装后的 race 包自检和非运动 ROS 入口验证。
+gmapping、camera calibration、默认导航 planner 使用的 TEB/costmap_converter
+链路和 OSRacer 主功能包。随后脚本会运行安装后的 race 包自检和非运动 ROS 入口验证。
 
 只想快速检查 race 包时：
 
 ```bash
 OSRACER_BUILD_PACKAGES=osracer_race bash tools/docker/run_ros_humble_check.sh
 ```
+
+指定 `OSRACER_BUILD_PACKAGES` 时脚本使用 `colcon --packages-up-to` 构建目标包及其依赖，
+并跳过未构建包的 workspace 级 launch 检查。
 
 推送前检查全部依赖链路时：
 
@@ -169,6 +172,8 @@ OSRACER_BUILD_PROFILE=full bash tools/docker/run_ros_humble_check.sh
 - `min_speed_mps`：控制器允许的最低前进速度。
 - `max_lateral_accel_mps2`：弯道曲率限速的横向加速度上限。
 - `max_accel_mps2` / `max_brake_mps2`：加速和制动斜率限制。
+- `speed_response_time_s`：MPC 估算可达速度候选时使用的速度响应时间。
+- `target_speed_weight` / `progress_weight`：MPC 的 raceline 速度跟踪和路径前进奖励权重。
 - `max_steering_angle_deg`：上位机转角限幅，默认 30 deg。
 - `ttc_threshold_s` / `emergency_distance_m`：LiDAR 急停阈值。
 - `command_timeout_s` / `scan_timeout_s`：上游控制命令和 `/scan` 断流停车时间。
@@ -334,17 +339,19 @@ ros2 launch osracer_race vehicle_id.launch.py \
   output_file:=/tmp/osracer_vehicle_identified.yaml
 ```
 
-当前记录观测到的最高速度、最大加速度、最大制动减速度、最大 yaw rate
-和最小转弯半径，并持续写出 `vehicle_identified.yaml`。后续可把速度、制动、
-转向能力和转向延迟等参数从估计值替换为实测值。
+当前记录观测到的最高速度、最大加速度、最大制动减速度、最大 yaw rate、
+最大横向加速度、最小转弯半径、速度响应时间常数和转向响应延迟，并持续写出
+`vehicle_identified.yaml`。后续可把速度、制动、转向能力和转向延迟等参数从估计值
+替换为实测值。
 
 第三阶段建议在封闭场地执行：
 
 - 先保持低速直线，确认速度估计平稳。
 - 再做小幅加速和制动，观察 `observed_max_accel_mps2` 和
-  `observed_max_brake_mps2`。
-- 最后做固定转角低速转弯，观察 `observed_max_yaw_rate_rps` 和
-  `observed_min_turning_radius_m`。
+  `observed_max_brake_mps2`、`observed_motor_response_tau_s`。
+- 最后做固定转角低速转弯，观察 `observed_max_yaw_rate_rps`、
+  `observed_max_lateral_accel_mps2`、`observed_min_turning_radius_m` 和
+  `observed_steering_response_delay_s`。
 
 生成的 YAML 不会自动覆盖运行参数。建议人工审查后，再把可信结果同步到
 `vehicle.yaml` 或运行参数中。
@@ -367,6 +374,10 @@ ros2 launch osracer_race race_bringup.launch.py \
 
 当前 MPC 是轻量 kinematic shooting controller，不依赖外部优化库。它在候选速度
 和转角中滚动预测，按路径误差、航向误差和转向代价选择 `/ackermann_cmd`。
+速度候选会根据 `max_accel_mps2`、`max_brake_mps2` 和 `speed_response_time_s`
+裁剪到当前车速附近的可达范围，避免 MPC 输出超出实车响应能力的速度跳变。
+代价函数同时考虑 raceline 目标速度和沿路径前进距离，使直线段能主动提速，
+弯道仍由曲率、横向加速度和响应窗限制。
 后续可以替换为 LTV-MPC 或非线性 MPC。
 
 第四阶段调试顺序：
@@ -374,8 +385,9 @@ ros2 launch osracer_race race_bringup.launch.py \
 1. 使用和第二阶段相同的 raceline，先保持 `race_safe.yaml`。
 2. 跑 Pure Pursuit、Stanley、MPC 三组 CSV。
 3. 用 `race_report_tools` 比较平均速度、最大速度、横向误差和转角峰值。
-4. 如果 MPC 跟踪误差更大，先调低速度，再调整 `path_weight`、`heading_weight`
-   和 `steering_weight`。
+4. 如果 MPC 跟踪误差更大，先调低速度，再根据第三阶段辨识结果调整
+   `speed_response_time_s`、`path_weight`、`heading_weight` 和 `steering_weight`。
+   如果直线速度偏保守，再小幅提高 `target_speed_weight` 或 `progress_weight`。
 5. 只有低速对比稳定后，才逐步提高 `max_straight_speed_mps` 和横向加速度上限。
 
 ## 教学科研评测

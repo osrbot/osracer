@@ -39,15 +39,16 @@
 已实现：
 
 - `vehicle_id_node.py`：观测最高速度、最大加速度、最大制动减速度、
-  最大 yaw rate 和最小转弯半径。
+  最大 yaw rate、最大横向加速度、最小转弯半径、速度响应时间常数和
+  转向响应延迟。
 - `vehicle_id.launch.py`：启动车辆辨识节点。
 - 默认输出 `/tmp/osracer_vehicle_identified.yaml`。
 
 待实车继续增强：
 
-- 转向舵机延迟辨识。
-- 电机速度响应时间常数辨识。
-- 最大横向加速度和打滑阈值辨识。
+- 多组速度阶跃下的电机响应曲线拟合。
+- 多组转向阶跃下的舵机响应曲线拟合。
+- 打滑阈值辨识。
 
 ## 第四阶段：高级比赛/科研算法
 
@@ -55,7 +56,8 @@
 
 已实现：
 
-- `mpc_controller_node.py`：轻量 kinematic shooting controller。
+- `mpc_controller_node.py`：轻量 kinematic shooting controller，按实车加减速和
+  速度响应时间裁剪可达速度候选，并结合 raceline 目标速度和路径进度选择命令。
 - `mpc.launch.py`：启动安全、MPC、绕行、限幅、圈速和评测。
 - `race_evaluator_node.py`：记录速度、命令、横向误差和航向误差 CSV。
 - `race_report_tools.py`：汇总一个或多个评测 CSV，便于算法对比。

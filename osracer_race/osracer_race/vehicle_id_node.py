@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+from ackermann_msgs.msg import AckermannDrive
 import rclpy
 from nav_msgs.msg import Odometry
 from rclpy.node import Node
@@ -13,6 +14,7 @@ class VehicleIdNode(Node):
     def __init__(self):
         super().__init__('vehicle_id_node')
         self.declare_parameter('odom_topic', '/odometry/filtered')
+        self.declare_parameter('ackermann_topic', '/ackermann_cmd')
         self.declare_parameter('log_period_s', 1.0)
         self.declare_parameter('output_file', '/tmp/osracer_vehicle_identified.yaml')
         self.declare_parameter('wheel_radius', 0.0425)
@@ -24,6 +26,8 @@ class VehicleIdNode(Node):
         self.observation = VehicleObservation()
         self.create_subscription(
             Odometry, self.get_parameter('odom_topic').value, self.odom_callback, 10)
+        self.create_subscription(
+            AckermannDrive, self.get_parameter('ackermann_topic').value, self.command_callback, 10)
         self.create_timer(float(self.get_parameter('log_period_s').value), self.report)
 
     def odom_callback(self, msg):
@@ -32,12 +36,17 @@ class VehicleIdNode(Node):
         now = self.get_clock().now().nanoseconds * 1e-9
         self.observation.update(speed, yaw_rate, now)
 
+    def command_callback(self, msg):
+        now = self.get_clock().now().nanoseconds * 1e-9
+        self.observation.update_command(msg.speed, msg.steering_angle, now)
+
     def report(self):
         self.get_logger().info(
             f'observed max_speed={self.observation.max_speed:.2f}m/s '
             f'max_accel={self.observation.max_accel:.2f}m/s^2 '
             f'max_brake={self.observation.max_brake:.2f}m/s^2 '
-            f'max_yaw_rate={self.observation.max_yaw_rate:.2f}rad/s')
+            f'max_yaw_rate={self.observation.max_yaw_rate:.2f}rad/s '
+            f'max_lat_accel={self.observation.max_lateral_accel:.2f}m/s^2')
         self.write_result()
 
     def write_result(self):

@@ -18,12 +18,17 @@ class MpcControllerNode(RaceControllerMixin, Node):
         self.declare_parameter('max_steering_angle_deg', 30.0)
         self.declare_parameter('max_straight_speed_mps', 3.0)
         self.declare_parameter('min_speed_mps', 0.8)
+        self.declare_parameter('max_accel_mps2', 2.5)
+        self.declare_parameter('max_brake_mps2', 3.5)
+        self.declare_parameter('speed_response_time_s', 0.30)
         self.declare_parameter('max_lateral_accel_mps2', 4.5)
         self.declare_parameter('horizon_steps', 8)
         self.declare_parameter('dt_s', 0.08)
         self.declare_parameter('path_weight', 4.0)
         self.declare_parameter('heading_weight', 1.5)
         self.declare_parameter('steering_weight', 0.2)
+        self.declare_parameter('target_speed_weight', 0.35)
+        self.declare_parameter('progress_weight', 0.15)
 
         path = self.get_parameter('raceline_file').value
         self.raceline = load_raceline(path) if path else []
@@ -55,12 +60,17 @@ class MpcControllerNode(RaceControllerMixin, Node):
             'max_steering_angle_deg': float(self.get_parameter('max_steering_angle_deg').value),
             'max_straight_speed_mps': float(self.get_parameter('max_straight_speed_mps').value),
             'min_speed_mps': float(self.get_parameter('min_speed_mps').value),
+            'max_accel_mps2': float(self.get_parameter('max_accel_mps2').value),
+            'max_brake_mps2': float(self.get_parameter('max_brake_mps2').value),
+            'speed_response_time_s': float(self.get_parameter('speed_response_time_s').value),
             'max_lateral_accel_mps2': float(self.get_parameter('max_lateral_accel_mps2').value),
             'horizon_steps': int(self.get_parameter('horizon_steps').value),
             'dt_s': float(self.get_parameter('dt_s').value),
             'path_weight': float(self.get_parameter('path_weight').value),
             'heading_weight': float(self.get_parameter('heading_weight').value),
             'steering_weight': float(self.get_parameter('steering_weight').value),
+            'target_speed_weight': float(self.get_parameter('target_speed_weight').value),
+            'progress_weight': float(self.get_parameter('progress_weight').value),
         }
 
 def main(args=None):

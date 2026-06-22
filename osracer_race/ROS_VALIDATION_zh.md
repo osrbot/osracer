@@ -154,7 +154,8 @@ ros2 launch osracer_race vehicle_id.launch.py \
 - YAML 文件持续更新。
 - 包含 `observed_max_speed_mps`、`observed_max_accel_mps2`、
   `observed_max_brake_mps2`、`observed_max_yaw_rate_rps`、
-  `observed_min_turning_radius_m`。
+  `observed_max_lateral_accel_mps2`、`observed_min_turning_radius_m`、
+  `observed_motor_response_tau_s`、`observed_steering_response_delay_s`。
 - 数据来自保守安全场地，不在人员附近做加速/制动测试。
 
 ## 7. 第四阶段：MPC 和对比评测

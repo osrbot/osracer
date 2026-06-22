@@ -63,7 +63,12 @@ from osracer_race.eval_tools import (
     track_errors,
 )
 from osracer_race.gap_follow_tools import gap_follow_command, speed_for_steering
-from osracer_race.mpc_tools import curvature_limited_mpc_speed, mpc_command, rollout_pose
+from osracer_race.mpc_tools import (
+    curvature_limited_mpc_speed,
+    mpc_command,
+    reachable_speed_bounds,
+    rollout_pose,
+)
 from osracer_race.overtake_tools import overtake_command, scan_summary, update_overtake_active
 from osracer_race.raceline_tools import build_profile, load_points, triangle_curvature, write_profile
 from osracer_race.race_report_tools import summarize_csv
@@ -358,6 +363,47 @@ class RaceMathTest(unittest.TestCase):
         self.assertGreaterEqual(speed, self.mpc_params()['min_speed_mps'])
         self.assertAlmostEqual(steering, 0.0)
 
+    def test_mpc_speed_candidates_respect_vehicle_response_limits(self):
+        params = self.mpc_params()
+        lower, upper = reachable_speed_bounds(
+            speed_now=1.0,
+            min_speed=params['min_speed_mps'],
+            max_speed=params['max_straight_speed_mps'],
+            params=params,
+        )
+        self.assertAlmostEqual(lower, 0.8)
+        self.assertAlmostEqual(upper, 1.75)
+
+        raceline = [(0.0, 0.0, 3.0, 0.0), (1.0, 0.0, 3.0, 0.0), (2.0, 0.0, 3.0, 0.0)]
+        speed, _ = mpc_command(raceline, 0.0, 0.0, 0.0, 1.0, params)
+        self.assertLessEqual(speed, upper)
+
+    def test_mpc_speed_bounds_clamp_when_current_speed_exceeds_configured_limit(self):
+        params = self.mpc_params()
+        lower, upper = reachable_speed_bounds(
+            speed_now=4.0,
+            min_speed=params['min_speed_mps'],
+            max_speed=params['max_straight_speed_mps'],
+            params=params,
+        )
+        self.assertLessEqual(lower, params['max_straight_speed_mps'])
+        self.assertAlmostEqual(upper, params['max_straight_speed_mps'])
+
+    def test_mpc_uses_raceline_target_speed_and_progress_reward(self):
+        params = self.mpc_params()
+        params['target_speed_weight'] = 2.0
+        params['progress_weight'] = 2.0
+        raceline = [(0.0, 0.0, 3.0, 0.0), (1.0, 0.0, 3.0, 0.0), (2.0, 0.0, 3.0, 0.0)]
+        speed, steering = mpc_command(raceline, 0.0, 0.0, 0.0, 1.0, params)
+        _, upper = reachable_speed_bounds(
+            speed_now=1.0,
+            min_speed=params['min_speed_mps'],
+            max_speed=params['max_straight_speed_mps'],
+            params=params,
+        )
+        self.assertAlmostEqual(speed, upper)
+        self.assertAlmostEqual(steering, 0.0)
+
     def pure_pursuit_params(self):
         return {
             'wheelbase': 0.285,
@@ -384,12 +430,17 @@ class RaceMathTest(unittest.TestCase):
             'max_steering_angle_deg': 30.0,
             'max_straight_speed_mps': 3.0,
             'min_speed_mps': 0.8,
+            'max_accel_mps2': 2.5,
+            'max_brake_mps2': 3.5,
+            'speed_response_time_s': 0.30,
             'max_lateral_accel_mps2': 4.5,
             'horizon_steps': 8,
             'dt_s': 0.08,
             'path_weight': 4.0,
             'heading_weight': 1.5,
             'steering_weight': 0.2,
+            'target_speed_weight': 0.35,
+            'progress_weight': 0.15,
         }
 
     def test_safety_gate_forces_stop(self):
@@ -564,6 +615,7 @@ class RaceMathTest(unittest.TestCase):
             'min_speed_mps',
             'max_accel_mps2',
             'max_brake_mps2',
+            'speed_response_time_s',
             'max_lateral_accel_mps2',
             'max_steering_angle_deg',
             'command_timeout_s',
@@ -588,6 +640,8 @@ class RaceMathTest(unittest.TestCase):
             'path_weight',
             'heading_weight',
             'steering_weight',
+            'target_speed_weight',
+            'progress_weight',
             'lap_trigger_radius_m',
             'eval_output_csv',
             'log_period_s',
@@ -683,12 +737,20 @@ class RaceMathTest(unittest.TestCase):
         observation.update(speed=0.0, yaw_rate=0.0, time_s=0.0)
         observation.update(speed=1.5, yaw_rate=0.3, time_s=0.5)
         observation.update(speed=0.5, yaw_rate=1.0, time_s=1.0)
+        observation.update_command(speed=0.0, steering=0.0, time_s=1.0)
+        observation.update_command(speed=2.0, steering=0.0, time_s=1.1)
+        observation.update(speed=1.45, yaw_rate=0.0, time_s=1.4)
+        observation.update_command(speed=2.0, steering=0.20, time_s=1.5)
+        observation.update(speed=1.45, yaw_rate=0.20, time_s=1.7)
 
         self.assertAlmostEqual(observation.max_speed, 1.5)
         self.assertAlmostEqual(observation.max_accel, 3.0)
         self.assertAlmostEqual(observation.max_brake, -2.0)
         self.assertAlmostEqual(observation.max_yaw_rate, 1.0)
+        self.assertAlmostEqual(observation.max_lateral_accel, 0.5)
         self.assertAlmostEqual(observation.min_turning_radius, 0.5)
+        self.assertAlmostEqual(observation.motor_response_tau_s, 0.3)
+        self.assertAlmostEqual(observation.steering_response_delay_s, 0.2)
 
         yaml_text = observation.to_ros_parameters_yaml({
             'wheel_radius': 0.0425,
@@ -701,7 +763,10 @@ class RaceMathTest(unittest.TestCase):
         self.assertIn('observed_max_speed_mps: 1.500', yaml_text)
         self.assertIn('observed_max_accel_mps2: 3.000', yaml_text)
         self.assertIn('observed_max_brake_mps2: 2.000', yaml_text)
+        self.assertIn('observed_max_lateral_accel_mps2: 0.500', yaml_text)
         self.assertIn('observed_min_turning_radius_m: 0.500', yaml_text)
+        self.assertIn('observed_motor_response_tau_s: 0.300', yaml_text)
+        self.assertIn('observed_steering_response_delay_s: 0.200', yaml_text)
 
     def test_race_launch_topic_chain_uses_final_limiter(self):
         launch_dir = Path(__file__).resolve().parents[1] / 'launch'

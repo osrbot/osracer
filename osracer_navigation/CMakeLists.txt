@@ -14,7 +14,7 @@ find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 
-install(DIRECTORY launch params maps
+install(DIRECTORY launch params
     DESTINATION share/${PROJECT_NAME}/
 )
 

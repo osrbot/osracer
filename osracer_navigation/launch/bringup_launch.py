@@ -31,6 +31,7 @@ from nav2_common.launch import ReplaceString, RewrittenYaml
 def generate_launch_description():
     # Get the launch directory
     bringup_dir = get_package_share_directory('osracer_navigation')
+    slam_dir = get_package_share_directory('osracer_slam')
     launch_dir = os.path.join(bringup_dir, 'launch')
 
     # Create the launch configuration variables
@@ -98,7 +99,7 @@ def generate_launch_description():
 
     declare_map_yaml_cmd = DeclareLaunchArgument(
         'map',
-        default_value=os.path.join(bringup_dir, 'maps', 'map.yaml'),
+        default_value=os.path.join(slam_dir, 'maps', 'map.yaml'),
         description='Full path to map yaml file to load')
 
     declare_use_sim_time_cmd = DeclareLaunchArgument(

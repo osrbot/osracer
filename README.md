@@ -129,7 +129,8 @@ bash tools/docker/run_ros_humble_check.sh
 
 By default the script uses `OSRACER_BUILD_PROFILE=stable`, which builds the
 main OSRacer packages plus the pinned dependencies needed by the stable
-deployment path: Lakibeam lidar, gmapping, and camera calibration. It then runs
+deployment path: Lakibeam lidar, gmapping, camera calibration, and the TEB /
+`costmap_converter` chain used by the default navigation planner. It then runs
 the installed `osracer_race` self-check and non-motion ROS entry validation.
 
 For a faster package-only check:
@@ -138,15 +139,18 @@ For a faster package-only check:
 OSRACER_BUILD_PACKAGES=osracer_race bash tools/docker/run_ros_humble_check.sh
 ```
 
-For full dependency development, including TEB and `costmap_converter`:
+Package-limited builds use `colcon --packages-up-to` for the requested package
+and skip workspace-wide launch checks for packages that were not built.
+
+For the explicit full dependency profile:
 
 ```bash
 OSRACER_BUILD_PROFILE=full bash tools/docker/run_ros_humble_check.sh
 ```
 
-Use the full profile before dependency or navigation changes are promoted. It
-validates the pinned TEB and `costmap_converter` chain in addition to the stable
-deployment path.
+Use this profile before dependency or navigation changes are promoted. It keeps
+the invocation explicit even though the default stable profile already validates
+the pinned TEB and `costmap_converter` chain required by navigation.
 
 This Docker check is for compilation and launch-argument validation only. USB
 serial devices, LiDAR, camera, RViz, and real vehicle motion still need an

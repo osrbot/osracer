@@ -45,6 +45,15 @@
 - `race_safe.yaml` 和 `race_fast.yaml` 都是完整运行参数文件。
 - `vehicle.yaml` 使用当前实车参数：轮半径 `0.0425m`、轴距 `0.285m`、轮距 `0.215m`、
   编码器 `1024` 单倍频、总减速比 `10.55:1`。
+- `vehicle_id_node.py` 已扩展第三阶段车辆辨识输出：最大横向加速度、速度阶跃响应时间常数、
+  转向响应延迟；未观测到时 YAML 字段保持 `null`，不自动覆盖运行参数。
+- `mpc_controller_node.py` 已扩展第四阶段 MPC：速度候选受实车加减速和速度响应时间约束，
+  代价函数包含 raceline 目标速度和路径前进奖励。
+- 已按清理范围删除未引用的 bringup 测试脚本、旧 STM32 底盘链路和 no-RC/no-mag
+  底盘变体；保留 `robot_description_tf.launch.py`、`osracer.csv`、磁力计
+  `result.yaml` 和 `osracer_slam/maps`。
+- 已删除重复的 `osracer_navigation/maps`，并将导航默认地图改为
+  `osracer_slam/maps/map.yaml`。
 - `twist_bridge.py` 默认轴距已对齐实车 `0.285m`；`chassis_ackermann.py`
   发布 odom twist covariance，供 EKF 融合使用，未修改下位机串口协议。
 - `package.xml` 与 `setup.py` 使用 MIT，和仓库根目录 `LICENSE` 一致。
@@ -58,23 +67,26 @@
 已在 macOS Docker 环境完成 Ubuntu 22.04 + ROS 2 Humble 检查：
 
 ```bash
-OSRACER_BUILD_PROFILE=full bash tools/docker/run_ros_humble_check.sh
+bash tools/docker/run_ros_humble_check.sh
+OSRACER_BUILD_PACKAGES=osracer_race bash tools/docker/run_ros_humble_check.sh
 ```
 
 验证覆盖：
 
 - `colcon build --symlink-install` 编译 16 个包通过。
 - stable 交付依赖：`lakibeam1`、`openslam_gmapping`、`slam_gmapping`、
-  `camera_calibration`。
+  `camera_calibration`、`costmap_converter_msgs`、`costmap_converter`、`teb_msgs`、
+  `teb_local_planner`。
 - OSRacer 主功能包：`osracer_bringup`、`osracer_calib`、`osracer_debug`、
   `osracer_demo`、`osracer_description`、`osracer_navigation`、`osracer_race`、
   `osracer_slam`。
-- full 高级依赖链：`costmap_converter_msgs`、`costmap_converter`、`teb_msgs`、
-  `teb_local_planner`。
+- full profile 保留为显式全依赖检查入口，当前与 stable 覆盖同一默认导航依赖链。
 - 安装后的 `osracer_race` 自检通过。
 - 安装后的 `validate_race_ros.sh` 入口验证通过。
 - `osracer_bringup`、`osracer_description`、`osracer_slam`、`osracer_calib`
   关键 launch `--show-args` 检查通过。
+- package-limited 快速检查已改为 `colcon build --packages-up-to osracer_race`，
+  可构建 race 包及其依赖，并跳过未构建包的 workspace 级 launch 检查。
 
 注意：`costmap_converter` 的 Humble/OpenCV 兼容修复位于 `osracer_dependency`
 子模块内，推送时必须先提交并推送子模块，再更新主仓库 submodule 指针。
