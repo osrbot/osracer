@@ -1,0 +1,73 @@
+/slam_gmapping:
+  ros__parameters:
+    # ===== Map size and resolution =====
+    delta: 0.04                     # 4 cm grid – fine details at low speed
+    xmin: -30.0
+    xmax: 30.0
+    ymin: -30.0
+    ymax: 30.0
+    map_update_interval: 1.5        # refresh global map every 1.5 s
+
+    # ===== Lidar range (use full capability) =====
+    maxRange: 25.0                  # full 25 m
+    maxUrange: 20.0                 # effective beam range, leave margin for outliers
+
+    # ===== Update triggers (aggressive for small wheelbase) =====
+    linearUpdate: 0.10              # update every 10 cm of movement (~1/3 wheelbase)
+    angularUpdate: 0.12             # update every ~7° heading change – sharp corners
+    temporalUpdate: 0.8             # force update if no trigger for 0.8 s
+
+    # ===== Particle filter (fewer particles because odometry is reliable) =====
+    particles: 35                   # 35 is enough for 1 m/s; saves CPU for 30 Hz lidar
+    resampleThreshold: 0.55         # resample only when effective ratio drops below 0.55
+    iterations: 5                   # scan‑matching iterations – convergence is fast with good odometry
+
+    # ===== Motion model noise (CRUCIAL – greatly reduced to trust odometry) =====
+    # 200 Hz odometry + low speed → negligible slip, so lower noise than default
+    srr: 0.05                       # forward‑forward noise (translation error)
+    srt: 0.08                       # forward‑turn noise (translation affects rotation)
+    str: 0.05                       # turn‑forward noise (rotation affects translation)
+    stt: 0.10                       # turn‑turn noise (rotation error)
+
+    # ===== Scan‑matching parameters (tighter search for precision) =====
+    lstep: 0.04
+    astep: 0.04
+    lsamplerange: 0.005             # smaller linear search range – odometry is already close
+    lsamplestep: 0.005
+    llsamplerange: 0.01
+    llsamplestep: 0.01
+
+    # ===== Lidar subsampling (critical for 30 Hz) =====
+    # lskip=1 uses only every other beam (half the points) → effective 15 Hz processing
+    # This halves CPU load with negligible impact on 4 cm map quality.
+    lskip: 1
+
+    # ===== Robustness & thresholds =====
+    minimum_score: 0.0              # keep 0 – never discard matches (odometry is reliable)
+    sigma: 0.05
+    lsigma: 0.075
+    ogain: 3.0
+    occ_thresh: 0.25
+    kernelSize: 1
+
+    # ===== TF publication =====
+    base_frame: base_footprint
+    map_frame: map
+    odom_frame: odom
+    transform_publish_period: 0.02  # 50 Hz – matches your 200 Hz odometry rhythm
+    use_sim_time: false
+
+    # ===== QoS (keep default) =====
+    qos_overrides:
+      /parameter_events:
+        publisher:
+          depth: 1000
+          durability: volatile
+          history: keep_last
+          reliability: reliable
+      /tf:
+        publisher:
+          depth: 100
+          durability: volatile
+          history: keep_last
+          reliability: reliable
