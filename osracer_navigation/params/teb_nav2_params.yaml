@@ -130,7 +130,7 @@ controller_server:
       max_vel_x: 3.0
       max_vel_x_backwards: 1.5
       max_vel_y: 0.0
-      max_vel_theta: 2.0  # the angular velocity is also bounded by min_turning_radius in case of a carlike robot (r = v / omega)
+      max_vel_theta: 6.0  # match max_vel_x / min_turning_radius for Ackermann turning
       acc_lim_x: 5.0
       acc_lim_theta: 3.0
 

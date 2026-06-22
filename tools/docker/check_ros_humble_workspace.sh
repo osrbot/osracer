@@ -73,10 +73,18 @@ source "${WORKSPACE_DIR}/install/setup.bash"
 set -u
 
 echo "[2/4] osracer_race installed self-check"
-bash "$(ros2 pkg prefix osracer_race)/share/osracer_race/scripts/check_race_package.sh"
+if RACE_PREFIX="$(ros2 pkg prefix osracer_race 2>/dev/null)"; then
+  bash "${RACE_PREFIX}/share/osracer_race/scripts/check_race_package.sh"
+else
+  echo "Skipped osracer_race self-check; package was not built in this profile."
+fi
 
 echo "[3/4] osracer_race ROS entry checks"
-bash "$(ros2 pkg prefix osracer_race)/share/osracer_race/scripts/validate_race_ros.sh"
+if [[ -n "${RACE_PREFIX:-}" ]]; then
+  bash "${RACE_PREFIX}/share/osracer_race/scripts/validate_race_ros.sh"
+else
+  echo "Skipped osracer_race ROS entry checks; package was not built in this profile."
+fi
 
 echo "[4/4] selected workspace launch arguments"
 if [[ -z "${BUILD_PACKAGES}" ]]; then

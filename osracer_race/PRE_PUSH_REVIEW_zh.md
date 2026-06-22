@@ -9,7 +9,7 @@
 
 - 不修改底层固件。
 - 不加入原理图、PDF、分区表或固件配置。
-- 不修改普通 Nav2 导航参数。
+- 仅同步与实车阿克曼几何直接相关的 Nav2/TEB 参数。
 - 通过 `/ackermann_cmd` 接入现有 OSRacer 底盘命令链路。
 
 ## 已完成静态验证
@@ -54,6 +54,8 @@
   `result.yaml` 和 `osracer_slam/maps`。
 - 已删除重复的 `osracer_navigation/maps`，并将导航默认地图改为
   `osracer_slam/maps/map.yaml`。
+- `teb_nav2_params.yaml` 的 `max_vel_theta` 已按 `max_vel_x / min_turning_radius`
+  对齐到 `6.0rad/s`，与当前 `3.0m/s` 最大速度和 `0.50m` 最小转弯半径一致。
 - `twist_bridge.py` 默认轴距已对齐实车 `0.285m`；`chassis_ackermann.py`
   发布 odom twist covariance，供 EKF 融合使用，未修改下位机串口协议。
 - `package.xml` 与 `setup.py` 使用 MIT，和仓库根目录 `LICENSE` 一致。

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Navigation
+
+- Aligned the TEB `max_vel_theta` limit with the measured OSRacer
+  `max_vel_x` and `min_turning_radius` so Ackermann navigation can plan turns
+  consistent with the configured `0.50m` minimum turning radius.
+
 ### Race mode
 
 - Added `osracer_race` as a standalone ROS 2 race package for RoboRacer-style
@@ -83,6 +89,8 @@
 - Added ROS Humble Docker dependencies for serial, Tk demo GUI,
   `tf_transformations`, `libg2o`, and suitesparse so the full TEB and
   `costmap_converter` dependency chain builds in the macOS pre-push check.
+- Made package-limited Docker checks skip `osracer_race` installed entry checks
+  when that package was not part of the selected build.
 - Updated package manifests for bringup, navigation, SLAM, calibration, debug,
   and demo packages to declare their actual ROS 2 runtime dependencies.
 - Replaced legacy placeholder and personal maintainer metadata with the OSRBot
