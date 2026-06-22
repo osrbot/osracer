@@ -73,6 +73,8 @@
   and demo packages to declare their actual ROS 2 runtime dependencies.
 - Replaced legacy placeholder and personal maintainer metadata with the OSRBot
   maintainer address across package manifests.
+- Aligned `twist_bridge.py` with the measured `0.285m` OSRacer wheelbase and
+  added configurable odometry twist covariance for EKF fusion.
 - Added `PRE_PUSH_REVIEW_zh.md` to record verified static checks, cleanup scope,
   package boundaries, and remaining ROS/vehicle validation items before pushing.
 - Reused signed-curvature-safe speed limiting in Pure Pursuit so externally
@@ -155,6 +157,8 @@
 - No firmware serial protocol changes. The chassis node still consumes the
   current osrcore `stream sync` telemetry:
   `s px py pz vx vy vz yaw qx qy qz qw ax ay az gx gy gz`.
+- Added configurable odometry twist covariance as ROS `nav_msgs/Odometry`
+  metadata only; this does not change the osrcore serial frame.
 - Limited OSRacer front steering joints in the URDF to the measured steering
   range (`±0.5236 rad`) while keeping wheel rotation joints continuous.
 - Added non-zero default covariance values to the ROS IMU messages published by

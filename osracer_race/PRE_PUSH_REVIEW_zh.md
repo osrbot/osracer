@@ -45,6 +45,8 @@
 - `race_safe.yaml` 和 `race_fast.yaml` 都是完整运行参数文件。
 - `vehicle.yaml` 使用当前实车参数：轮半径 `0.0425m`、轴距 `0.285m`、轮距 `0.215m`、
   编码器 `1024` 单倍频、总减速比 `10.55:1`。
+- `twist_bridge.py` 默认轴距已对齐实车 `0.285m`；`chassis_ackermann.py`
+  发布 odom twist covariance，供 EKF 融合使用，未修改下位机串口协议。
 - `package.xml` 与 `setup.py` 使用 MIT，和仓库根目录 `LICENSE` 一致。
 - `README_zh.md` 已补充详细使用教程，覆盖安装自检、topic 链路、四阶段运行、
   车端验证、推送前检查和常见问题；根 `README.md` 已链接比赛包文档并给出上手顺序。

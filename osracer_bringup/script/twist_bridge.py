@@ -38,7 +38,7 @@ if __name__ == '__main__':
 
         twist_cmd_topic = node.declare_parameter('twist_cmd_topic', '/cmd_vel').value
         ackermann_cmd_topic = node.declare_parameter('ackermann_cmd_topic', '/ackermann_cmd').value
-        wheelbase = node.declare_parameter('wheelbase', 0.21).value
+        wheelbase = node.declare_parameter('wheelbase', 0.285).value
 
         sub = node.create_subscription(Twist, twist_cmd_topic, cmd_callback, 1)
         pub = node.create_publisher(AckermannDrive, ackermann_cmd_topic, 1)

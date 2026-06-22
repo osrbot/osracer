@@ -197,13 +197,16 @@ graph TD
 | `port_name` | `/dev/osrbot_base` | Serial device port |
 | `baud_rate` | `460800` | Serial baud rate for current osrcore firmware |
 | `wheelbase` | `0.285` | Distance between front and rear axles (m) |
+| `odom_twist_covariance` | `[0.02, 0.20, 1.0, 1.0, 1.0, 0.30]` | Odometry twist covariance diagonal `[vx, vy, vz, vroll, vpitch, vyaw]` for EKF consumers |
 
 Current osrcore firmware uses `stream sync` by default and publishes `s/m/r/b`
 frames. The chassis node parses the `s` snapshot for odometry and IMU, `m` for
 magnetometer, `r` for RC channels, and `b` for battery voltage. In the current
 `s` frame, `qx qy qz qw` is the Madgwick full attitude with the current odometry
 yaw-zero applied, so odometry pose/TF can consume the quaternion directly while
-preserving roll/pitch for slopes and 3D lidar use.
+preserving roll/pitch for slopes and 3D lidar use. The odometry covariance
+settings are ROS-side `nav_msgs/Odometry` metadata only and do not change the
+firmware serial protocol.
 
 ### 3.1.1 Field Demo Tools
 

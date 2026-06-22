@@ -42,6 +42,7 @@ class OsrbotCore(Node):
         self.declare_parameter('imu_orientation_covariance', [0.02, 0.02, 0.05])
         self.declare_parameter('imu_angular_velocity_covariance', [0.01, 0.01, 0.01])
         self.declare_parameter('imu_linear_acceleration_covariance', [0.10, 0.10, 0.10])
+        self.declare_parameter('odom_twist_covariance', [0.02, 0.20, 1.0, 1.0, 1.0, 0.30])
 
         self.declare_parameter('publish_battery', True)
         self.declare_parameter('battery_topic', 'battery_state')
@@ -71,6 +72,8 @@ class OsrbotCore(Node):
             self.get_parameter('imu_angular_velocity_covariance').value)
         self.imu_linear_acceleration_covariance = self.diagonal_covariance(
             self.get_parameter('imu_linear_acceleration_covariance').value)
+        self.odom_twist_covariance = self.diagonal_covariance_6d(
+            self.get_parameter('odom_twist_covariance').value)
 
         self.publish_battery = self.get_parameter('publish_battery').value
         self.battery_topic = self.get_parameter('battery_topic').value
@@ -323,6 +326,7 @@ class OsrbotCore(Node):
                 odom_msg.twist.twist.linear.x = vx
                 odom_msg.twist.twist.linear.y = vy
                 odom_msg.twist.twist.linear.z = vz
+                odom_msg.twist.covariance = self.odom_twist_covariance
                 self.odom_pub.publish(odom_msg)
 
                 # --- TF ---
@@ -405,6 +409,14 @@ class OsrbotCore(Node):
             0.0, float(diagonal[1]), 0.0,
             0.0, 0.0, float(diagonal[2]),
         ]
+
+    def diagonal_covariance_6d(self, diagonal):
+        if len(diagonal) != 6:
+            raise ValueError("Odometry twist covariance parameter must contain exactly 6 diagonal values")
+        covariance = [0.0] * 36
+        for index, value in enumerate(diagonal):
+            covariance[index * 6 + index] = float(value)
+        return covariance
 
     def quaternion_from_euler(self, roll, pitch, yaw):
         cy = math.cos(yaw * 0.5)

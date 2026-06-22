@@ -663,6 +663,21 @@ class RaceMathTest(unittest.TestCase):
         self.assertIn(f"wheelbase: {expected['wheelbase']}", teb_text)
         self.assertIn(f"line_end: [{expected['wheelbase']}, 0.0]", teb_text)
 
+    def test_ackermann_bridge_and_chassis_publish_ekf_covariance(self):
+        package_root = self.source_package_root()
+        repo_root = package_root.parent
+        bridge_path = repo_root / 'osracer_bringup' / 'script' / 'twist_bridge.py'
+        chassis_path = repo_root / 'osracer_bringup' / 'script' / 'chassis_ackermann.py'
+        if not bridge_path.exists() or not chassis_path.exists():
+            self.skipTest('source-tree osracer_bringup package is not installed with osracer_race')
+
+        bridge_text = bridge_path.read_text(encoding='utf-8')
+        chassis_text = chassis_path.read_text(encoding='utf-8')
+        self.assertIn("declare_parameter('wheelbase', 0.285)", bridge_text)
+        self.assertIn("declare_parameter('odom_twist_covariance'", chassis_text)
+        self.assertIn('self.odom_twist_covariance = self.diagonal_covariance_6d', chassis_text)
+        self.assertIn('odom_msg.twist.covariance = self.odom_twist_covariance', chassis_text)
+
     def test_vehicle_observation_tracks_identified_limits(self):
         observation = VehicleObservation()
         observation.update(speed=0.0, yaw_rate=0.0, time_s=0.0)
