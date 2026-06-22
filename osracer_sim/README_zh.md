@@ -47,9 +47,16 @@ ros2 launch osracer_sim base_sim.launch.py scan_environment:=hallway
 ros2 launch osracer_sim gazebo.launch.py
 ```
 
-该入口默认启动 `osracer_rect_track.sdf` 矩形赛道 world，并同时启动轻量
-kinematic 仿真节点。车辆物理模型还没有 spawn 到 Gazebo 里；Gazebo 主要作为后续
-传感器、赛道和可视化扩展入口。
+该入口默认启动 `osracer_rect_track.sdf` 矩形赛道 world、`osracer_simple`
+简化车辆模型，并同时启动轻量 kinematic 仿真节点。Gazebo 里的车辆模型目前用于
+场景可视化和后续控制插件接入；ROS 侧里程计、TF、joint 动画和 `/scan` 仍由
+`ackermann_kinematic_sim_node` 发布。
+
+如果只想加载赛道和 ROS kinematic 仿真，不加载 Gazebo 车辆模型：
+
+```bash
+ros2 launch osracer_sim gazebo.launch.py include_model:=false
+```
 
 如果只需要空地面：
 
@@ -112,7 +119,8 @@ ros2 launch osracer_sim race_sim.launch.py stage:=mpc
 
 - `/scan` 是基于矩形赛道墙体的 2D raycast，不代表真实 LiDAR 噪声和材质反射。
 - 没有高保真轮胎侧偏、打滑、差速器、电机电流和电池模型。
-- Gazebo world 当前只有场地和墙体，不是完整物理车辆模型。
+- Gazebo world 当前包含场地、墙体和简化 OSRacer 模型；还没有接入
+  ros_gz bridge、Ackermann 控制插件、Gazebo LiDAR 或轮胎侧偏模型。
 - 高速能力、MPC 稳定性和安全边界必须以真实车辆低速逐步验证为准。
 
 ## 自检

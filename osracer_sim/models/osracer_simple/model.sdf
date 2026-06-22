@@ -1,0 +1,298 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <model name="osracer_simple">
+    <static>false</static>
+    <pose>0 0 0.09 0 0 0</pose>
+
+    <link name="base_link">
+      <inertial>
+        <mass>2.8</mass>
+        <inertia>
+          <ixx>0.030</ixx>
+          <iyy>0.045</iyy>
+          <izz>0.065</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <collision name="chassis_collision">
+        <pose>0 0 0.02 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.36 0.19 0.08</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="chassis_visual">
+        <pose>0 0 0.02 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.36 0.19 0.08</size>
+          </box>
+        </geometry>
+        <material>
+          <diffuse>0.08 0.12 0.16 1</diffuse>
+        </material>
+      </visual>
+      <visual name="deck_visual">
+        <pose>-0.02 0 0.085 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.28 0.16 0.025</size>
+          </box>
+        </geometry>
+        <material>
+          <diffuse>0.8 0.1 0.08 1</diffuse>
+        </material>
+      </visual>
+      <visual name="laser_visual">
+        <pose>-0.083 0 0.145 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.035</radius>
+            <length>0.025</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <diffuse>0.1 0.1 0.1 1</diffuse>
+        </material>
+      </visual>
+      <visual name="camera_visual">
+        <pose>0.12 0 0.13 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.04 0.045 0.035</size>
+          </box>
+        </geometry>
+        <material>
+          <diffuse>0.05 0.05 0.05 1</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <link name="left_steering_hinge_link">
+      <pose>0.1425 0.1075 0.0 0 0 0</pose>
+      <inertial>
+        <mass>0.05</mass>
+        <inertia>
+          <ixx>0.00004</ixx>
+          <iyy>0.00004</iyy>
+          <izz>0.00004</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+    </link>
+
+    <link name="right_steering_hinge_link">
+      <pose>0.1425 -0.1075 0.0 0 0 0</pose>
+      <inertial>
+        <mass>0.05</mass>
+        <inertia>
+          <ixx>0.00004</ixx>
+          <iyy>0.00004</iyy>
+          <izz>0.00004</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+    </link>
+
+    <link name="Left_front_wheel_link">
+      <pose>0.1425 0.1075 -0.0475 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.10</mass>
+        <inertia>
+          <ixx>0.00009</ixx>
+          <iyy>0.00009</iyy>
+          <izz>0.00009</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <collision name="collision">
+        <geometry>
+          <cylinder>
+            <radius>0.0425</radius>
+            <length>0.030</length>
+          </cylinder>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <geometry>
+          <cylinder>
+            <radius>0.0425</radius>
+            <length>0.030</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <diffuse>0.02 0.02 0.02 1</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <link name="right_front_wheel_link">
+      <pose>0.1425 -0.1075 -0.0475 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.10</mass>
+        <inertia>
+          <ixx>0.00009</ixx>
+          <iyy>0.00009</iyy>
+          <izz>0.00009</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <collision name="collision">
+        <geometry>
+          <cylinder>
+            <radius>0.0425</radius>
+            <length>0.030</length>
+          </cylinder>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <geometry>
+          <cylinder>
+            <radius>0.0425</radius>
+            <length>0.030</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <diffuse>0.02 0.02 0.02 1</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <link name="left_rear_wheel_link">
+      <pose>-0.1425 0.1075 -0.0475 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.10</mass>
+        <inertia>
+          <ixx>0.00009</ixx>
+          <iyy>0.00009</iyy>
+          <izz>0.00009</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <collision name="collision">
+        <geometry>
+          <cylinder>
+            <radius>0.0425</radius>
+            <length>0.030</length>
+          </cylinder>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <geometry>
+          <cylinder>
+            <radius>0.0425</radius>
+            <length>0.030</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <diffuse>0.02 0.02 0.02 1</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <link name="right_rear_wheel_link">
+      <pose>-0.1425 -0.1075 -0.0475 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.10</mass>
+        <inertia>
+          <ixx>0.00009</ixx>
+          <iyy>0.00009</iyy>
+          <izz>0.00009</izz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <collision name="collision">
+        <geometry>
+          <cylinder>
+            <radius>0.0425</radius>
+            <length>0.030</length>
+          </cylinder>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <geometry>
+          <cylinder>
+            <radius>0.0425</radius>
+            <length>0.030</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <diffuse>0.02 0.02 0.02 1</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <joint name="left_steering_hinge_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>left_steering_hinge_link</child>
+      <pose>0 0 0 0 0 0</pose>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-0.5236</lower>
+          <upper>0.5236</upper>
+        </limit>
+      </axis>
+    </joint>
+
+    <joint name="right_steering_hinge_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>right_steering_hinge_link</child>
+      <pose>0 0 0 0 0 0</pose>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-0.5236</lower>
+          <upper>0.5236</upper>
+        </limit>
+      </axis>
+    </joint>
+
+    <joint name="Left_front_wheel_joint" type="revolute">
+      <parent>left_steering_hinge_link</parent>
+      <child>Left_front_wheel_link</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+      </axis>
+    </joint>
+
+    <joint name="right_front_wheel_joint" type="revolute">
+      <parent>right_steering_hinge_link</parent>
+      <child>right_front_wheel_link</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+      </axis>
+    </joint>
+
+    <joint name="left_rear_wheel_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>left_rear_wheel_link</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+      </axis>
+    </joint>
+
+    <joint name="right_rear_wheel_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>right_rear_wheel_link</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+      </axis>
+    </joint>
+  </model>
+</sdf>

@@ -27,6 +27,9 @@ package_dir = Path(sys.argv[1])
 ET.parse(package_dir / 'package.xml')
 for world in (package_dir / 'worlds').glob('*.sdf'):
     ET.parse(world)
+for model_file in (package_dir / 'models').glob('*/*'):
+    if model_file.suffix in ('.sdf', '.config'):
+        ET.parse(model_file)
 PY
 
 echo "[3/5] Offline unit tests"
@@ -56,6 +59,7 @@ for token in (
     'navigation_sim.launch.py',
     'race_sim.launch.py',
     'osracer_rect_track.sdf',
+    'osracer_simple',
 ):
     if token not in setup and token not in readme:
         raise SystemExit(f'missing package documentation for {token}')
@@ -64,6 +68,8 @@ for path in (
     package_dir / 'launch' / 'base_sim.launch.py',
     package_dir / 'worlds' / 'osracer_empty.sdf',
     package_dir / 'worlds' / 'osracer_rect_track.sdf',
+    package_dir / 'models' / 'osracer_simple' / 'model.config',
+    package_dir / 'models' / 'osracer_simple' / 'model.sdf',
     package_dir / 'scripts' / 'check_sim_package.sh',
 ):
     if not path.exists():

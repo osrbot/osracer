@@ -10,6 +10,9 @@
 - Added a rectangular-track raycast `/scan` environment and matching Gazebo
   world so Gap Follow, TTC safety, raceline recording, and controller smoke
   tests are not limited to a static hallway scan.
+- Added an installable `model://osracer_simple` Gazebo model with measured
+  OSRacer wheelbase, track width, wheel radius, and Ackermann joint names as the
+  next step toward Gazebo control-plugin integration.
 
 ### Navigation
 

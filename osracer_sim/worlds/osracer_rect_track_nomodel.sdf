@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <sdf version="1.9">
-  <world name="osracer_rect_track">
+  <world name="osracer_rect_track_nomodel">
     <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
     <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
     <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
@@ -122,11 +122,5 @@
         </visual>
       </link>
     </model>
-
-    <include>
-      <uri>model://osracer_simple</uri>
-      <name>osracer_simple</name>
-      <pose>0 -1.7 0.09 0 0 0</pose>
-    </include>
   </world>
 </sdf>

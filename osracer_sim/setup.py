@@ -1,7 +1,17 @@
 from glob import glob
+from os import walk
+from os.path import join
 from setuptools import find_packages, setup
 
 package_name = 'osracer_sim'
+
+
+def model_data_files():
+    data = []
+    for root, _, files in walk('models'):
+        if files:
+            data.append((join('share', package_name, root), [join(root, name) for name in files]))
+    return data
 
 setup(
     name=package_name,
@@ -14,7 +24,7 @@ setup(
         (f'share/{package_name}/worlds', glob('worlds/*')),
         (f'share/{package_name}/scripts', glob('scripts/*')),
         (f'share/{package_name}/test', glob('test/*.py')),
-    ],
+    ] + model_data_files(),
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='osrbot',
