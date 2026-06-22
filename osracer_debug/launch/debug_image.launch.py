@@ -12,7 +12,7 @@ def generate_launch_description():
 
     declare_use_sim_time_argument = DeclareLaunchArgument(
         'image_topic',
-        default_value='/rgb/image_raw',
+        default_value='/rgb/image_raw/compressed',
         description='Topic of USB Camera image')
     
     return LaunchDescription([
