@@ -262,6 +262,33 @@ After building on the vehicle or a ROS development machine, run:
 bash $(ros2 pkg prefix osracer_race)/share/osracer_race/scripts/validate_race_ros.sh
 ```
 
+### 3.1.3 Simulation
+
+`osracer_sim` provides a lightweight kinematic Ackermann simulator for teaching,
+SLAM/Nav2 smoke tests, and race-controller development without real hardware. It
+does not replace vehicle testing or high-fidelity tire/motor dynamics.
+
+```bash
+ros2 launch osracer_sim base_sim.launch.py use_rviz:=true
+ros2 launch osracer_sim gazebo.launch.py
+ros2 launch osracer_sim slam_sim.launch.py use_rviz:=true
+ros2 launch osracer_sim navigation_sim.launch.py use_rviz:=true
+```
+
+Race-stage simulation examples:
+
+```bash
+ros2 launch osracer_sim race_sim.launch.py stage:=gap_follow
+ros2 launch osracer_sim race_sim.launch.py stage:=pure_pursuit
+ros2 launch osracer_sim race_sim.launch.py stage:=mpc
+```
+
+The first simulation stage publishes `/odometry/filtered`, `/tf`,
+`/joint_states`, `/scan`, and `/clock` from the measured OSRacer geometry. The
+Gazebo entry currently starts a modern Gazebo Sim empty world plus the
+kinematic simulator; full physical spawning, tire slip, drivetrain, and sensor
+noise models are intentionally left for later validation work.
+
 ### 3.2 Sensors
 **Lidar:**
 ```bash

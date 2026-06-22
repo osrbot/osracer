@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>osracer_sim</name>
+  <version>0.1.0</version>
+  <description>Lightweight OSRacer simulation launch files and kinematic Ackermann simulator.</description>
+
+  <maintainer email="osrbot@osrbot.com">osrbot</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_python</buildtool_depend>
+
+  <depend>ackermann_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>joint_state_publisher</depend>
+  <depend>launch</depend>
+  <depend>launch_ros</depend>
+  <depend>nav_msgs</depend>
+  <depend>rclpy</depend>
+  <depend>robot_state_publisher</depend>
+  <depend>rosgraph_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>tf2_ros</depend>
+
+  <exec_depend>osracer_description</exec_depend>
+  <exec_depend>osracer_navigation</exec_depend>
+  <exec_depend>osracer_race</exec_depend>
+  <exec_depend>osracer_slam</exec_depend>
+  <exec_depend>ros_gz_sim</exec_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

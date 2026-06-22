@@ -22,6 +22,7 @@ STABLE_PACKAGES=(
   osracer_description
   osracer_navigation
   osracer_race
+  osracer_sim
   osracer_slam
 )
 
@@ -84,6 +85,13 @@ if [[ -n "${RACE_PREFIX:-}" ]]; then
   bash "${RACE_PREFIX}/share/osracer_race/scripts/validate_race_ros.sh"
 else
   echo "Skipped osracer_race ROS entry checks; package was not built in this profile."
+fi
+
+echo "[3b/4] osracer_sim installed self-check"
+if SIM_PREFIX="$(ros2 pkg prefix osracer_sim 2>/dev/null)"; then
+  bash "${SIM_PREFIX}/share/osracer_sim/scripts/check_sim_package.sh"
+else
+  echo "Skipped osracer_sim self-check; package was not built in this profile."
 fi
 
 echo "[4/4] selected workspace launch arguments"
