@@ -4,8 +4,11 @@ import unittest
 from osracer_sim.kinematics import (
     ackermann_front_angles,
     clamp,
+    ray_segment_distance,
+    rectangular_track_segments,
     steering_from_twist,
     synthetic_scan,
+    synthetic_track_scan,
     yaw_to_quat,
 )
 
@@ -35,6 +38,23 @@ class SimMathTest(unittest.TestCase):
         ranges = synthetic_scan(11, -1.0, 0.2, 8.0)
         self.assertEqual(len(ranges), 11)
         self.assertTrue(all(0.0 < value <= 8.0 for value in ranges))
+
+    def test_ray_segment_distance_hits_wall(self):
+        distance = ray_segment_distance(0.0, 0.0, 0.0, ((2.0, -1.0), (2.0, 1.0)), 8.0)
+        self.assertAlmostEqual(distance, 2.0)
+
+    def test_rectangular_track_segments_include_inner_and_outer_walls(self):
+        segments = rectangular_track_segments(7.0, 4.5, 1.1)
+        self.assertEqual(len(segments), 8)
+        self.assertIn(((-3.5, -2.25), (3.5, -2.25)), segments)
+        self.assertIn(((-2.4, -1.15), (2.4, -1.15)), segments)
+
+    def test_track_scan_uses_vehicle_pose(self):
+        segments = rectangular_track_segments(7.0, 4.5, 1.1)
+        ranges = synthetic_track_scan(0.0, -1.7, 0.0, 5, -0.4, 0.2, 8.0, segments)
+        self.assertEqual(len(ranges), 5)
+        self.assertTrue(all(0.0 < value <= 8.0 for value in ranges))
+        self.assertLess(ranges[2], 3.6)
 
 
 if __name__ == '__main__':

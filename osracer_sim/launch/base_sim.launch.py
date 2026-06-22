@@ -40,6 +40,16 @@ def generate_launch_description():
             'publish_tf': ParameterValue(LaunchConfiguration('publish_tf'), value_type=bool),
             'publish_scan': ParameterValue(LaunchConfiguration('publish_scan'), value_type=bool),
             'publish_clock': ParameterValue(LaunchConfiguration('publish_clock'), value_type=bool),
+            'scan_environment': LaunchConfiguration('scan_environment'),
+            'track_outer_length_m': ParameterValue(
+                LaunchConfiguration('track_outer_length_m'), value_type=float),
+            'track_outer_width_m': ParameterValue(
+                LaunchConfiguration('track_outer_width_m'), value_type=float),
+            'track_lane_width_m': ParameterValue(
+                LaunchConfiguration('track_lane_width_m'), value_type=float),
+            'initial_x': ParameterValue(LaunchConfiguration('initial_x'), value_type=float),
+            'initial_y': ParameterValue(LaunchConfiguration('initial_y'), value_type=float),
+            'initial_yaw_deg': ParameterValue(LaunchConfiguration('initial_yaw_deg'), value_type=float),
         }],
     )
 
@@ -55,6 +65,13 @@ def generate_launch_description():
         DeclareLaunchArgument('publish_tf', default_value='true', choices=['true', 'false']),
         DeclareLaunchArgument('publish_scan', default_value='true', choices=['true', 'false']),
         DeclareLaunchArgument('publish_clock', default_value='true', choices=['true', 'false']),
+        DeclareLaunchArgument('scan_environment', default_value='track', choices=['track', 'hallway']),
+        DeclareLaunchArgument('track_outer_length_m', default_value='7.0'),
+        DeclareLaunchArgument('track_outer_width_m', default_value='4.5'),
+        DeclareLaunchArgument('track_lane_width_m', default_value='1.1'),
+        DeclareLaunchArgument('initial_x', default_value='0.0'),
+        DeclareLaunchArgument('initial_y', default_value='-1.7'),
+        DeclareLaunchArgument('initial_yaw_deg', default_value='0.0'),
         description_launch,
         sim_node,
     ])

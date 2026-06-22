@@ -7,6 +7,9 @@
 - Added `osracer_sim` with a lightweight kinematic Ackermann simulator, modern
   Gazebo Sim world entry, SLAM/Nav2 simulation launch files, and race-stage
   simulation launch coverage for the four-stage OSRacer race workflow.
+- Added a rectangular-track raycast `/scan` environment and matching Gazebo
+  world so Gap Follow, TTC safety, raceline recording, and controller smoke
+  tests are not limited to a static hallway scan.
 
 ### Navigation
 

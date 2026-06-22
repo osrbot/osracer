@@ -285,9 +285,11 @@ ros2 launch osracer_sim race_sim.launch.py stage:=mpc
 
 The first simulation stage publishes `/odometry/filtered`, `/tf`,
 `/joint_states`, `/scan`, and `/clock` from the measured OSRacer geometry. The
-Gazebo entry currently starts a modern Gazebo Sim empty world plus the
-kinematic simulator; full physical spawning, tire slip, drivetrain, and sensor
-noise models are intentionally left for later validation work.
+default `/scan` is a rectangular-track raycast suitable for Gap Follow, TTC
+safety, and raceline recording smoke tests. The Gazebo entry starts the matching
+rectangular track world plus the kinematic simulator; full physical spawning,
+tire slip, drivetrain, and sensor noise models are intentionally left for later
+validation work.
 
 ### 3.2 Sensors
 **Lidar:**

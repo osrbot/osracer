@@ -1,0 +1,126 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <world name="osracer_rect_track">
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
+
+    <gravity>0 0 -9.8</gravity>
+    <magnetic_field>0 0 0</magnetic_field>
+    <atmosphere type="adiabatic"/>
+
+    <light name="sun" type="directional">
+      <pose>0 0 8 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground">
+      <static>true</static>
+      <link name="ground_link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>9 6 0.02</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>9 6 0.02</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>0.18 0.18 0.18 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="outer_walls">
+      <static>true</static>
+      <link name="outer_walls_link">
+        <pose>0 0 0.16 0 0 0</pose>
+        <collision name="south_collision">
+          <pose>0 -2.25 0 0 0 0</pose>
+          <geometry><box><size>7.0 0.08 0.30</size></box></geometry>
+        </collision>
+        <visual name="south_visual">
+          <pose>0 -2.25 0 0 0 0</pose>
+          <geometry><box><size>7.0 0.08 0.30</size></box></geometry>
+          <material><diffuse>0.9 0.9 0.9 1</diffuse></material>
+        </visual>
+        <collision name="north_collision">
+          <pose>0 2.25 0 0 0 0</pose>
+          <geometry><box><size>7.0 0.08 0.30</size></box></geometry>
+        </collision>
+        <visual name="north_visual">
+          <pose>0 2.25 0 0 0 0</pose>
+          <geometry><box><size>7.0 0.08 0.30</size></box></geometry>
+          <material><diffuse>0.9 0.9 0.9 1</diffuse></material>
+        </visual>
+        <collision name="west_collision">
+          <pose>-3.5 0 0 0 0 0</pose>
+          <geometry><box><size>0.08 4.5 0.30</size></box></geometry>
+        </collision>
+        <visual name="west_visual">
+          <pose>-3.5 0 0 0 0 0</pose>
+          <geometry><box><size>0.08 4.5 0.30</size></box></geometry>
+          <material><diffuse>0.9 0.9 0.9 1</diffuse></material>
+        </visual>
+        <collision name="east_collision">
+          <pose>3.5 0 0 0 0 0</pose>
+          <geometry><box><size>0.08 4.5 0.30</size></box></geometry>
+        </collision>
+        <visual name="east_visual">
+          <pose>3.5 0 0 0 0 0</pose>
+          <geometry><box><size>0.08 4.5 0.30</size></box></geometry>
+          <material><diffuse>0.9 0.9 0.9 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="inner_island">
+      <static>true</static>
+      <link name="inner_island_link">
+        <pose>0 0 0.16 0 0 0</pose>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>4.8 2.3 0.30</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>4.8 2.3 0.30</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>0.35 0.35 0.35 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="start_marker">
+      <static>true</static>
+      <link name="start_marker_link">
+        <pose>0 -1.7 0.03 0 0 0</pose>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.6 0.04 0.02</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>0.1 0.7 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>

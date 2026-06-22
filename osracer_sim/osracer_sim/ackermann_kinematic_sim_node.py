@@ -24,8 +24,10 @@ from tf2_ros import TransformBroadcaster
 from osracer_sim.kinematics import (
     ackermann_front_angles,
     clamp,
+    rectangular_track_segments,
     steering_from_twist,
     synthetic_scan,
+    synthetic_track_scan,
     yaw_to_quat,
 )
 
@@ -55,6 +57,13 @@ class AckermannKinematicSim(Node):
         self.declare_parameter('scan_range_m', 8.0)
         self.declare_parameter('scan_fov_deg', 270.0)
         self.declare_parameter('scan_points', 541)
+        self.declare_parameter('scan_environment', 'track')
+        self.declare_parameter('track_outer_length_m', 7.0)
+        self.declare_parameter('track_outer_width_m', 4.5)
+        self.declare_parameter('track_lane_width_m', 1.1)
+        self.declare_parameter('initial_x', 0.0)
+        self.declare_parameter('initial_y', -1.7)
+        self.declare_parameter('initial_yaw_deg', 0.0)
 
         self.wheelbase = float(self.get_parameter('wheelbase').value)
         self.track_width = float(self.get_parameter('track_width').value)
@@ -69,9 +78,16 @@ class AckermannKinematicSim(Node):
         self.publish_scan = bool(self.get_parameter('publish_scan').value)
         self.publish_clock = bool(self.get_parameter('publish_clock').value)
 
-        self.x = 0.0
-        self.y = 0.0
-        self.yaw = 0.0
+        self.scan_environment = str(self.get_parameter('scan_environment').value)
+        self.track_segments = rectangular_track_segments(
+            float(self.get_parameter('track_outer_length_m').value),
+            float(self.get_parameter('track_outer_width_m').value),
+            float(self.get_parameter('track_lane_width_m').value),
+        )
+
+        self.x = float(self.get_parameter('initial_x').value)
+        self.y = float(self.get_parameter('initial_y').value)
+        self.yaw = math.radians(float(self.get_parameter('initial_yaw_deg').value))
         self.speed = 0.0
         self.steering = 0.0
         self.wheel_position = 0.0
@@ -97,8 +113,8 @@ class AckermannKinematicSim(Node):
         update_rate = max(float(self.get_parameter('update_rate_hz').value), 1.0)
         self.timer = self.create_timer(1.0 / update_rate, self.on_timer)
         self.get_logger().info(
-            'OSRacer kinematic sim ready: wheelbase=%.3fm track=%.3fm wheel_radius=%.4fm'
-            % (self.wheelbase, self.track_width, self.wheel_radius)
+            'OSRacer kinematic sim ready: wheelbase=%.3fm track=%.3fm wheel_radius=%.4fm scan=%s'
+            % (self.wheelbase, self.track_width, self.wheel_radius, self.scan_environment)
         )
 
     def on_ackermann(self, msg: AckermannDriveStamped) -> None:
@@ -213,7 +229,19 @@ class AckermannKinematicSim(Node):
         msg.scan_time = 1.0 / max(float(self.get_parameter('scan_rate_hz').value), 1.0)
         msg.range_min = 0.12
         msg.range_max = max(range_m, msg.range_min + 0.1)
-        msg.ranges = synthetic_scan(points, msg.angle_min, msg.angle_increment, msg.range_max)
+        if self.scan_environment == 'track':
+            msg.ranges = synthetic_track_scan(
+                self.x,
+                self.y,
+                self.yaw,
+                points,
+                msg.angle_min,
+                msg.angle_increment,
+                msg.range_max,
+                self.track_segments,
+            )
+        else:
+            msg.ranges = synthetic_scan(points, msg.angle_min, msg.angle_increment, msg.range_max)
         self.scan_pub.publish(msg)
 
     def publish_clock_msg(self) -> None:

@@ -25,7 +25,8 @@ from pathlib import Path
 
 package_dir = Path(sys.argv[1])
 ET.parse(package_dir / 'package.xml')
-ET.parse(package_dir / 'worlds' / 'osracer_empty.sdf')
+for world in (package_dir / 'worlds').glob('*.sdf'):
+    ET.parse(world)
 PY
 
 echo "[3/5] Offline unit tests"
@@ -54,6 +55,7 @@ for token in (
     'slam_sim.launch.py',
     'navigation_sim.launch.py',
     'race_sim.launch.py',
+    'osracer_rect_track.sdf',
 ):
     if token not in setup and token not in readme:
         raise SystemExit(f'missing package documentation for {token}')
@@ -61,6 +63,7 @@ for path in (
     package_dir / 'package.xml',
     package_dir / 'launch' / 'base_sim.launch.py',
     package_dir / 'worlds' / 'osracer_empty.sdf',
+    package_dir / 'worlds' / 'osracer_rect_track.sdf',
     package_dir / 'scripts' / 'check_sim_package.sh',
 ):
     if not path.exists():

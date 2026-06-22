@@ -27,7 +27,7 @@ def generate_launch_description():
         DeclareLaunchArgument(
             'world',
             default_value=PathJoinSubstitution([
-                FindPackageShare('osracer_sim'), 'worlds', 'osracer_empty.sdf'
+                FindPackageShare('osracer_sim'), 'worlds', 'osracer_rect_track.sdf'
             ]),
             description='Gazebo Sim world file'),
         DeclareLaunchArgument('use_rviz', default_value='false', choices=['true', 'false']),

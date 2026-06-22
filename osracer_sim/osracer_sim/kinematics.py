@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import math
+from typing import Optional
+
+Segment = tuple[tuple[float, float], tuple[float, float]]
 
 
 def clamp(value: float, low: float, high: float) -> float:
@@ -39,3 +42,74 @@ def synthetic_scan(points: int, angle_min: float, angle_increment: float, max_ra
             front_wall = 6.0 / math.cos(angle)
         ranges.append(min(max_range, side_wall, front_wall))
     return ranges
+
+
+def rectangle_segments(length: float, width: float) -> list[Segment]:
+    hx = length * 0.5
+    hy = width * 0.5
+    return [
+        ((-hx, -hy), (hx, -hy)),
+        ((hx, -hy), (hx, hy)),
+        ((hx, hy), (-hx, hy)),
+        ((-hx, hy), (-hx, -hy)),
+    ]
+
+
+def rectangular_track_segments(
+    outer_length: float,
+    outer_width: float,
+    lane_width: float,
+) -> list[Segment]:
+    inner_length = max(outer_length - 2.0 * lane_width, lane_width)
+    inner_width = max(outer_width - 2.0 * lane_width, lane_width)
+    return rectangle_segments(outer_length, outer_width) + rectangle_segments(inner_length, inner_width)
+
+
+def ray_segment_distance(
+    origin_x: float,
+    origin_y: float,
+    angle: float,
+    segment: Segment,
+    max_range: float,
+) -> Optional[float]:
+    (x1, y1), (x2, y2) = segment
+    ray_dx = math.cos(angle)
+    ray_dy = math.sin(angle)
+    seg_dx = x2 - x1
+    seg_dy = y2 - y1
+    denom = cross(ray_dx, ray_dy, seg_dx, seg_dy)
+    if abs(denom) < 1e-9:
+        return None
+    diff_x = x1 - origin_x
+    diff_y = y1 - origin_y
+    distance = cross(diff_x, diff_y, seg_dx, seg_dy) / denom
+    segment_u = cross(diff_x, diff_y, ray_dx, ray_dy) / denom
+    if 0.0 <= distance <= max_range and 0.0 <= segment_u <= 1.0:
+        return distance
+    return None
+
+
+def synthetic_track_scan(
+    x: float,
+    y: float,
+    yaw: float,
+    points: int,
+    angle_min: float,
+    angle_increment: float,
+    max_range: float,
+    segments: list[Segment],
+) -> list[float]:
+    ranges = []
+    for index in range(points):
+        angle = yaw + angle_min + index * angle_increment
+        best = max_range
+        for segment in segments:
+            distance = ray_segment_distance(x, y, angle, segment, max_range)
+            if distance is not None and distance < best:
+                best = distance
+        ranges.append(best)
+    return ranges
+
+
+def cross(ax: float, ay: float, bx: float, by: float) -> float:
+    return ax * by - ay * bx

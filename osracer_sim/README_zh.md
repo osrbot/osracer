@@ -12,6 +12,8 @@
   轴距 `0.285m`、轮距 `0.215m`、轮半径 `0.0425m`。
 - 同时支持 `/ackermann_cmd` 和 `/cmd_vel` 输入。
 - 发布 `/odometry/filtered`、`/tf`、`/joint_states`、`/scan` 和 `/clock`。
+- 默认 `/scan` 使用矩形赛道墙体 raycast，适合 Gap Follow、TTC safety 和
+  轨迹录制的离线接口验证；也可以切回 `scan_environment:=hallway`。
 
 ## 基础仿真
 
@@ -33,15 +35,28 @@ ros2 topic pub /ackermann_cmd ackermann_msgs/msg/AckermannDriveStamped \
   "{drive: {speed: 0.5, steering_angle: 0.2}}"
 ```
 
-## Gazebo 空世界
+切换简单走廊扫描：
+
+```bash
+ros2 launch osracer_sim base_sim.launch.py scan_environment:=hallway
+```
+
+## Gazebo 赛道世界
 
 ```bash
 ros2 launch osracer_sim gazebo.launch.py
 ```
 
-该入口启动现代 Gazebo Sim 的空地面 world，并同时启动轻量 kinematic 仿真节点。
-第一版没有把车辆物理模型 spawn 到 Gazebo 里；Gazebo 主要作为后续传感器、赛道
-和可视化扩展入口。
+该入口默认启动 `osracer_rect_track.sdf` 矩形赛道 world，并同时启动轻量
+kinematic 仿真节点。车辆物理模型还没有 spawn 到 Gazebo 里；Gazebo 主要作为后续
+传感器、赛道和可视化扩展入口。
+
+如果只需要空地面：
+
+```bash
+ros2 launch osracer_sim gazebo.launch.py \
+  world:=$(ros2 pkg prefix osracer_sim)/share/osracer_sim/worlds/osracer_empty.sdf
+```
 
 ## SLAM 仿真
 
@@ -95,9 +110,9 @@ ros2 launch osracer_sim race_sim.launch.py stage:=mpc
 
 ## 当前限制
 
-- `/scan` 是简单合成环境，不代表真实赛道。
+- `/scan` 是基于矩形赛道墙体的 2D raycast，不代表真实 LiDAR 噪声和材质反射。
 - 没有高保真轮胎侧偏、打滑、差速器、电机电流和电池模型。
-- Gazebo world 当前是扩展入口，不是完整物理车辆模型。
+- Gazebo world 当前只有场地和墙体，不是完整物理车辆模型。
 - 高速能力、MPC 稳定性和安全边界必须以真实车辆低速逐步验证为准。
 
 ## 自检
