@@ -383,10 +383,11 @@ ros2 launch osracer_debug debug_image.launch.py
 Export a TorchScript policy from `osracer_lab` first, then point this node at `policy.pt`.
 The node is safe by default: `enabled` defaults to `False`, and the default speed clamp is `0.3 m/s`.
 
-For Jetson Orin Nano Super 8GB deployment, see `docs/jetson_orin_runtime.md` and run the preflight check:
+For Jetson Orin Nano Super 8GB deployment, see `docs/jetson_orin_runtime.md` and run the preflight check.
+For the first real-car low-speed test sequence, follow `docs/first_drive_runbook.md`.
 
 ```bash
-tools/jetson_preflight.sh /path/to/policy.pt
+tools/jetson_preflight.sh --policy /path/to/policy.pt
 ```
 
 Optional offline replay smoke:

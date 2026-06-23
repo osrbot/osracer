@@ -1,0 +1,209 @@
+# OSRacer First-Drive Runbook
+
+This runbook is for the first low-speed real-car policy test on Jetson Orin Nano Super 8GB.
+It is intentionally conservative. Do not skip gates after a failure.
+
+## Preconditions
+
+- Manual override is available and tested.
+- Wheels can be lifted off the ground for block tests.
+- Battery, steering linkage, and wheel fasteners are checked.
+- `policy.pt` has already passed offline export validation.
+- The car workspace is built and sourced.
+
+```bash
+source /opt/ros/jazzy/setup.bash
+colcon build --packages-select osracer_bringup
+source install/setup.bash
+```
+
+## Stage 0: Environment Preflight
+
+Run:
+
+```bash
+tools/jetson_preflight.sh --policy /path/to/policy.pt --offline-smoke
+```
+
+Pass condition:
+
+- ROS setup is found.
+- `ackermann_msgs`, `nav_msgs`, `sensor_msgs`, and `geometry_msgs` are available.
+- TorchScript load/run passes in the same Python environment used by ROS launch.
+- Offline replay smoke completes.
+
+Stop if:
+
+- `ackermann_msgs` is missing.
+- `torch` is missing from the ROS launch Python environment.
+- `policy.pt` cannot load.
+
+## Stage 1: Start Sensors And Chassis
+
+Start the chassis bridge:
+
+```bash
+ros2 launch osracer_bringup chassis_ackermann.launch.py
+```
+
+Start sensors as needed:
+
+```bash
+ros2 launch osracer_bringup lidar.launch.py
+ros2 launch osracer_bringup usb_cam.launch.py
+```
+
+Run the read-only readiness check:
+
+```bash
+tools/real_car_readiness_check.sh \
+  --policy /path/to/policy.pt \
+  --require-topics
+```
+
+Pass condition:
+
+- `/odometry/filtered`, `/imu_filter`, and `/ackermann_cmd` are present.
+- One `/odometry/filtered` message and one `/imu_filter` message are received.
+
+Stop if:
+
+- Odom or IMU is stale.
+- Topic names do not match the policy node defaults.
+
+## Stage 2: Passive Observation Recording
+
+Drive manually or move the car without enabling policy control:
+
+```bash
+ros2 launch osracer_bringup policy_observation_recorder.launch.py \
+  output_path:=/tmp/osracer_policy_observations.csv \
+  rate_hz:=10.0
+```
+
+Record enough data for a representative low-speed pass. Then stop the recorder.
+
+Pass condition:
+
+- `/tmp/osracer_policy_observations.csv` exists.
+- The CSV has the policy observation columns:
+
+```text
+px,py,pz,roll,pitch,yaw,vx,vy,vz,wx,wy,wz,last_speed,last_steering
+```
+
+## Stage 3: Offline Policy Replay
+
+Run:
+
+```bash
+tools/policy_replay_csv.py \
+  --policy /path/to/policy.pt \
+  --input /tmp/osracer_policy_observations.csv \
+  --output /tmp/osracer_policy_replay.csv \
+  --max-speed-mps 0.3 \
+  --max-steering-rad 0.488
+
+tools/policy_replay_summary.py /tmp/osracer_policy_replay.csv \
+  --min-rows 100 \
+  --max-speed-cmd 0.3 \
+  --max-abs-steering-cmd 0.488
+```
+
+Pass condition:
+
+- Replay finishes without skipped rows.
+- `speed_cmd_max <= 0.3`.
+- `abs_steering_cmd_max <= 0.488`.
+- Clamp ratio is acceptable for the test; high clamp ratio means the policy is trying to exceed the low-speed envelope.
+
+Stop if:
+
+- Any non-finite row appears.
+- Steering sign is opposite of manual logs.
+- The summary gate fails.
+
+## Stage 4: MuJoCo Kinematic Replay
+
+From `osracer_lab`:
+
+```bash
+OSRACER_MUJOCO_PYTHON=/tmp/osracer_mujoco_venv/bin/python \
+python3 scripts/run_sim2real_replay_pipeline.py \
+  --observations /tmp/osracer_policy_observations.csv \
+  --policy /path/to/policy.pt \
+  --output-dir /tmp/osracer_sim2real_replay \
+  --min-rows 100 \
+  --max-clamped-ratio 0.5
+```
+
+Pass condition:
+
+- The pipeline completes.
+- Summary gate passes.
+- MuJoCo action replay reports plausible travel direction and no unexpected saturation.
+
+Stop if:
+
+- The pipeline fails before MuJoCo.
+- MuJoCo replay direction or yaw behavior disagrees with expectations.
+
+## Stage 5: Wheels-Off Closed Loop
+
+Lift the car so wheels cannot touch the ground.
+
+Start policy inference in disabled safe mode first:
+
+```bash
+ros2 launch osracer_bringup policy_inference.launch.py \
+  policy_path:=/path/to/policy.pt \
+  enabled:=False \
+  max_speed_mps:=0.3
+```
+
+Confirm the node starts and publishes safe stop behavior. Then run enabled with wheels still lifted:
+
+```bash
+ros2 launch osracer_bringup policy_inference.launch.py \
+  policy_path:=/path/to/policy.pt \
+  enabled:=True \
+  max_speed_mps:=0.3
+```
+
+Pass condition:
+
+- Manual override remains active.
+- Watchdog stops stale commands.
+- Steering direction is correct.
+- No unexpected full-throttle or full-steering behavior appears.
+
+Stop if:
+
+- Any command is non-finite.
+- Steering sign is wrong.
+- Commands continue after odom/IMU is stopped.
+
+## Stage 6: Ground Low-Speed Test
+
+Only after all prior stages pass, test on the floor:
+
+```bash
+ros2 launch osracer_bringup policy_inference.launch.py \
+  policy_path:=/path/to/policy.pt \
+  enabled:=True \
+  max_speed_mps:=0.3
+```
+
+Rules:
+
+- Keep manual override active.
+- Keep the first run short.
+- Save logs for every run.
+- Do not raise `max_speed_mps` until offline replay and real behavior agree.
+
+Stop immediately if:
+
+- The car turns opposite the expected direction.
+- Odom or IMU drops out.
+- The watchdog does not stop stale commands.
+- Manual override fails.

@@ -1,6 +1,7 @@
 # Jetson Orin Runtime Plan for OSRacer
 
 This document is for the real OSRacer compute platform. Current target hardware is Jetson Orin Nano Super 8GB.
+For the first real-car low-speed test sequence, follow `docs/first_drive_runbook.md`.
 
 ## Split of Responsibility
 
