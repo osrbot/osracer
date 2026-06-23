@@ -141,6 +141,7 @@ check_cmd python3
 TOOLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPLAY_TOOL="${TOOLS_DIR}/policy_replay_csv.py"
 SUMMARY_TOOL="${TOOLS_DIR}/policy_replay_summary.py"
+BENCHMARK_TOOL="${TOOLS_DIR}/benchmark_policy_inference.py"
 
 echo "-- Python runtime --"
 python3 - <<'PY'
@@ -194,6 +195,13 @@ else
     fail "policy_replay_summary.py not executable: ${SUMMARY_TOOL}"
 fi
 
+if [[ -x "${BENCHMARK_TOOL}" ]]; then
+    ok "benchmark_policy_inference.py: ${BENCHMARK_TOOL}"
+    python3 "${BENCHMARK_TOOL}" --help >/dev/null || warn "benchmark_policy_inference.py --help failed"
+else
+    fail "benchmark_policy_inference.py not executable: ${BENCHMARK_TOOL}"
+fi
+
 if [[ "${OFFLINE_SMOKE}" -eq 1 ]]; then
     echo "-- Offline replay smoke --"
     if [[ -z "${POLICY_PATH}" || ! -f "${POLICY_PATH}" ]]; then
@@ -230,6 +238,11 @@ PY
             --min-rows 2 \
             --max-speed-cmd 0.3 \
             --max-abs-steering-cmd 0.488
+        "${POLICY_RUNNER[@]}" "${BENCHMARK_TOOL}" \
+            --policy "${POLICY_PATH}" \
+            --warmup 5 \
+            --iterations 20 \
+            --output "${SMOKE_DIR}/policy_benchmark.json"
     fi
 fi
 

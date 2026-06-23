@@ -296,6 +296,23 @@ ros2 topic hz /odom
 ros2 topic hz /imu_filter
 ```
 
+
+Run a local policy inference latency benchmark after applying the performance
+profile and before enabling live commands:
+
+```bash
+tools/benchmark_policy_inference.py \
+  --policy /path/to/policy.pt \
+  --warmup 50 \
+  --iterations 500 \
+  --output /tmp/osracer_policy_benchmark.json
+```
+
+Use `--max-p95-ms` to turn the benchmark into a gate once a target-device
+baseline is recorded. For the 10 Hz first-drive target, the full ROS control loop
+has a 100 ms period, but policy inference should stay far below that so sensor
+processing and safety checks have headroom.
+
 For a repeatable runtime snapshot, run:
 
 ```bash
