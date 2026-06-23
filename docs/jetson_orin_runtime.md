@@ -381,6 +381,11 @@ tools/first_drive_gate.py \
   --serial-latency /tmp/osracer_serial_latency.json \
   --runtime-dir /tmp/osracer_runtime_monitor \
   --output /tmp/osracer_first_drive_gate.json
+
+tools/first_drive_evidence_pack.py \
+  --gate-report /tmp/osracer_first_drive_gate.json \
+  --output-dir /tmp/osracer_first_drive_evidence_pack \
+  --overwrite
 ```
 
 Recommended Orin Nano Super 8GB runtime posture:
