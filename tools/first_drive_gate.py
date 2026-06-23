@@ -30,6 +30,7 @@ def parse_args():
     parser.add_argument("--environment-report", required=True, help="JSON from tools/jetson_environment_report.py")
     parser.add_argument("--runtime-dir", default=None, help="Optional directory from tools/jetson_runtime_monitor.sh")
     parser.add_argument("--serial-latency", default=None, help="Optional serial_latency.json from tools/serial_latency_probe.py")
+    parser.add_argument("--policy-benchmark", default=None, help="Optional JSON from tools/benchmark_policy_inference.py")
     parser.add_argument("--output", default=None, help="Optional JSON report output path")
     parser.add_argument("--obs-dim", type=int, default=14, help="Policy observation dim for package verifier")
     parser.add_argument("--load-policy", action="store_true", help="Let package verifier load the policy artifact")
@@ -41,6 +42,7 @@ def parse_args():
     parser.add_argument("--max-temp-c", type=float, default=85.0)
     parser.add_argument("--max-swap-mb", type=int, default=1024)
     parser.add_argument("--max-serial-latency-s", type=float, default=0.05)
+    parser.add_argument("--max-policy-p95-ms", type=float, default=10.0)
     return parser.parse_args()
 
 
@@ -170,6 +172,29 @@ def run_serial_latency(args, report):
     check(ok, "serial_latency", f"overall={overall} p95={p95} max={args.max_serial_latency_s}", report)
 
 
+def run_policy_benchmark(args, report):
+    if not args.policy_benchmark:
+        check(False, "policy_inference_benchmark", "not supplied", report)
+        return
+    path = Path(args.policy_benchmark).resolve()
+    data = load_json(path)
+    latency = data.get("latency_ms", {}) if isinstance(data.get("latency_ms"), dict) else {}
+    p95 = latency.get("p95")
+    fmt = data.get("format")
+    device = data.get("device")
+    throughput = data.get("throughput_hz")
+    ok = isinstance(p95, (int, float)) and p95 <= args.max_policy_p95_ms
+    report["artifacts"]["policy_benchmark"] = {
+        "path": str(path),
+        "format": fmt,
+        "device": device,
+        "p95_latency_ms": p95,
+        "throughput_hz": throughput,
+        "max_allowed_p95_ms": args.max_policy_p95_ms,
+    }
+    check(ok, "policy_inference_benchmark", f"format={fmt} device={device} p95_ms={p95} max={args.max_policy_p95_ms}", report)
+
+
 def run_runtime_summary(args, report):
     if not args.runtime_dir:
         check(False, "runtime_monitor", "not supplied", report)
@@ -214,6 +239,7 @@ def build_report(args):
     run_sensor_summary(args, report)
     run_environment_report(args, report)
     run_serial_latency(args, report)
+    run_policy_benchmark(args, report)
     run_runtime_summary(args, report)
     report["overall"] = "pass" if not report["failures"] else "fail"
     return report

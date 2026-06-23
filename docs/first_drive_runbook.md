@@ -222,12 +222,19 @@ Rules:
 Before enabling closed-loop motion, save a final go/no-go report:
 
 ```bash
+tools/benchmark_policy_inference.py \
+  --policy /path/to/osracer_jetson_deployment/policy.pt \
+  --device cuda:0 \
+  --output /tmp/osracer_policy_benchmark.json \
+  --max-p95-ms 10.0
+
 tools/first_drive_gate.py \
   --package-dir /path/to/osracer_jetson_deployment \
   --policy-replay /tmp/osracer_policy_replay.csv \
   --sensor-summary /tmp/osracer_sensor_preflight/sensor_summary.json \
   --environment-report /tmp/osracer_jetson_environment.json \
   --serial-latency /tmp/osracer_serial_latency.json \
+  --policy-benchmark /tmp/osracer_policy_benchmark.json \
   --runtime-dir /tmp/osracer_runtime_monitor \
   --output /tmp/osracer_first_drive_gate.json
 

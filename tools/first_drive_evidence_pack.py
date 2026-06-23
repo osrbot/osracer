@@ -110,6 +110,7 @@ def build_pack(args):
 
     file_artifacts = {
         'policy_replay': 'policy_replay.csv',
+        'policy_benchmark': 'policy_benchmark.json',
         'sensor_summary': 'sensor_summary.json',
         'environment_report': 'jetson_environment.json',
         'serial_latency': 'serial_latency.json',
@@ -148,6 +149,7 @@ def readme_text(manifest):
         '- `first_drive_gate.json`',
         '- `evidence_manifest.json`',
         '- `policy_replay.csv` when supplied',
+        '- `policy_benchmark.json` when supplied',
         '- `sensor_summary.json` when supplied',
         '- `jetson_environment.json` when supplied',
         '- `serial_latency.json` when supplied',
