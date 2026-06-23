@@ -48,6 +48,27 @@ check_cmd() {
     return 1
 }
 
+print_file_value() {
+    local label="$1"
+    local path="$2"
+    if [[ -r "${path}" ]]; then
+        ok "${label}: $(tr -d '\0' <"${path}")"
+    else
+        warn "${label}: not available (${path})"
+    fi
+}
+
+print_meminfo_value() {
+    local key="$1"
+    local line
+    line="$(awk -v key="${key}:" '$1 == key {print $2 " " $3}' /proc/meminfo 2>/dev/null || true)"
+    if [[ -n "${line}" ]]; then
+        ok "${key}: ${line}"
+    else
+        warn "${key}: not found"
+    fi
+}
+
 echo "== OSRacer Jetson runtime preflight =="
 
 if [[ -r /etc/nv_tegra_release ]]; then
@@ -63,10 +84,40 @@ fi
 check_cmd nvpmodel
 check_cmd jetson_clocks
 check_cmd tegrastats
+check_cmd docker
+check_cmd nvidia-smi
 
 if command -v nvpmodel >/dev/null 2>&1; then
     echo "-- nvpmodel --"
     nvpmodel -q 2>/dev/null || warn "nvpmodel query failed; try running with sudo"
+fi
+
+echo "-- Platform resources --"
+print_meminfo_value MemTotal
+print_meminfo_value MemAvailable
+print_meminfo_value SwapTotal
+print_meminfo_value SwapFree
+df -h / /tmp 2>/dev/null || warn "df failed"
+if [[ -d /sys/devices/system/cpu/cpu0/cpufreq ]]; then
+    print_file_value "CPU governor" /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+    print_file_value "CPU min freq" /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
+    print_file_value "CPU max freq" /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
+else
+    warn "CPU cpufreq: not available"
+fi
+if [[ -d /sys/block ]]; then
+    zram_count="$(find /sys/block -maxdepth 1 -name 'zram*' 2>/dev/null | wc -l)"
+    ok "zram devices: ${zram_count}"
+fi
+
+echo "-- NVIDIA runtime --"
+if command -v nvidia-smi >/dev/null 2>&1; then
+    nvidia-smi --query-gpu=name,driver_version,memory.total,memory.used --format=csv,noheader 2>/dev/null || warn "nvidia-smi query failed"
+else
+    warn "nvidia-smi not found; this is normal on some Jetson images"
+fi
+if command -v docker >/dev/null 2>&1; then
+    docker info --format 'Docker runtimes: {{json .Runtimes}}' 2>/dev/null || warn "docker info failed; user may need docker group or root"
 fi
 
 if [[ -f "/opt/ros/${ROS_DISTRO_NAME}/setup.bash" ]]; then

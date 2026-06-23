@@ -66,6 +66,11 @@ Run the optional offline replay smoke when `policy.pt` is available:
 tools/jetson_preflight.sh --policy /path/to/policy.pt --offline-smoke
 ```
 
+The preflight is read-only. It reports Jetson Linux, power-mode tools, memory,
+swap/zram, disk space, CPU governor, Docker runtime visibility, ROS packages,
+Python inference packages, and optional policy replay. Use it before changing
+power or container settings so the baseline is recorded.
+
 Run a read-only real-car readiness check before enabling live policy commands:
 
 ```bash
@@ -219,6 +224,17 @@ ros2 topic hz /ackermann_cmd
 ros2 topic hz /odom
 ros2 topic hz /imu_filter
 ```
+
+Recommended Orin Nano Super 8GB runtime posture:
+
+- Keep training on the RTX 4080 SUPER host.
+- Run only inference, preprocessing, logging, and ROS control on Jetson.
+- Use NVMe for logs, replay CSVs, bags, and model artifacts.
+- Set the high-performance `nvpmodel` profile and run `jetson_clocks` for repeatable latency tests.
+- Keep `tegrastats` visible during camera or visual-policy tests.
+- Treat swap/zram as a safety margin, not as normal inference memory.
+- Prefer TorchScript for the first drift policy and TensorRT FP16 for visual policies.
+- Use INT8 only after calibration data is collected and offline replay proves bounded action differences.
 
 For MLP drift policies, TorchScript may be sufficient. For visual policies, TensorRT should be the default deployment target because camera preprocessing and inference compete for the 8GB memory budget.
 
