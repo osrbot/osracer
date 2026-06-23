@@ -22,11 +22,19 @@ source install/setup.bash
 Run:
 
 ```bash
+sudo tools/jetson_performance_profile.sh \
+  --apply \
+  --nvpmodel 0 \
+  --jetson-clocks \
+  --set-cpu-governor \
+  --json-output /tmp/osracer_performance_profile.json
+
 tools/jetson_preflight.sh --policy /path/to/policy.pt --offline-smoke
 ```
 
 Pass condition:
 
+- Jetson performance profile evidence is saved to `/tmp/osracer_performance_profile.json`.
 - ROS setup is found.
 - `ackermann_msgs`, `nav_msgs`, `sensor_msgs`, and `geometry_msgs` are available.
 - TorchScript load/run passes in the same Python environment used by ROS launch.
@@ -235,6 +243,7 @@ tools/first_drive_gate.py \
   --environment-report /tmp/osracer_jetson_environment.json \
   --serial-latency /tmp/osracer_serial_latency.json \
   --policy-benchmark /tmp/osracer_policy_benchmark.json \
+  --performance-profile /tmp/osracer_performance_profile.json \
   --runtime-dir /tmp/osracer_runtime_monitor \
   --output /tmp/osracer_first_drive_gate.json
 

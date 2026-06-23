@@ -31,6 +31,7 @@ def parse_args():
     parser.add_argument("--runtime-dir", default=None, help="Optional directory from tools/jetson_runtime_monitor.sh")
     parser.add_argument("--serial-latency", default=None, help="Optional serial_latency.json from tools/serial_latency_probe.py")
     parser.add_argument("--policy-benchmark", default=None, help="Optional JSON from tools/benchmark_policy_inference.py")
+    parser.add_argument("--performance-profile", default=None, help="JSON from tools/jetson_performance_profile.sh --json-output")
     parser.add_argument("--output", default=None, help="Optional JSON report output path")
     parser.add_argument("--obs-dim", type=int, default=14, help="Policy observation dim for package verifier")
     parser.add_argument("--load-policy", action="store_true", help="Let package verifier load the policy artifact")
@@ -195,6 +196,51 @@ def run_policy_benchmark(args, report):
     check(ok, "policy_inference_benchmark", f"format={fmt} device={device} p95_ms={p95} max={args.max_policy_p95_ms}", report)
 
 
+def run_performance_profile(args, report):
+    if not args.performance_profile:
+        check(False, "jetson_performance_profile", "not supplied", report)
+        return
+    path = Path(args.performance_profile).resolve()
+    data = load_json(path)
+    requested = data.get("requested", {}) if isinstance(data.get("requested"), dict) else {}
+    tools = data.get("tools", {}) if isinstance(data.get("tools"), dict) else {}
+    jetson = data.get("jetson", {}) if isinstance(data.get("jetson"), dict) else {}
+    governors = data.get("cpu_governors", {}) if isinstance(data.get("cpu_governors"), dict) else {}
+    apply_requested = data.get("apply_requested")
+    is_jetson = jetson.get("is_jetson")
+    nvpmodel = requested.get("nvpmodel")
+    jetson_clocks = requested.get("jetson_clocks")
+    nvpmodel_present = tools.get("nvpmodel", {}).get("present") is True
+    jetson_clocks_present = tools.get("jetson_clocks", {}).get("present") is True
+    governor_ok = not requested.get("set_cpu_governor") or governors.get("all_match_requested") is True
+    ok = (
+        apply_requested is True
+        and is_jetson is True
+        and bool(nvpmodel)
+        and jetson_clocks is True
+        and nvpmodel_present
+        and jetson_clocks_present
+        and governor_ok
+    )
+    report["artifacts"]["performance_profile"] = {
+        "path": str(path),
+        "apply_requested": apply_requested,
+        "is_jetson": is_jetson,
+        "nvpmodel": nvpmodel,
+        "jetson_clocks": jetson_clocks,
+        "nvpmodel_present": nvpmodel_present,
+        "jetson_clocks_present": jetson_clocks_present,
+        "cpu_governor_ok": governor_ok,
+    }
+    check(
+        ok,
+        "jetson_performance_profile",
+        f"apply={apply_requested} is_jetson={is_jetson} nvpmodel={nvpmodel} "
+        f"jetson_clocks={jetson_clocks} governor_ok={governor_ok}",
+        report,
+    )
+
+
 def run_runtime_summary(args, report):
     if not args.runtime_dir:
         check(False, "runtime_monitor", "not supplied", report)
@@ -240,6 +286,7 @@ def build_report(args):
     run_environment_report(args, report)
     run_serial_latency(args, report)
     run_policy_benchmark(args, report)
+    run_performance_profile(args, report)
     run_runtime_summary(args, report)
     report["overall"] = "pass" if not report["failures"] else "fail"
     return report
