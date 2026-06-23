@@ -27,6 +27,10 @@ def generate_launch_description():
         launch_arguments={
             'use_sim_time': 'true',
             'use_rviz': LaunchConfiguration('use_rviz'),
+            'obstacle_enabled': LaunchConfiguration('obstacle_enabled'),
+            'obstacle_x': LaunchConfiguration('obstacle_x'),
+            'obstacle_y': LaunchConfiguration('obstacle_y'),
+            'obstacle_radius': LaunchConfiguration('obstacle_radius'),
         }.items(),
     )
 
@@ -84,6 +88,10 @@ def generate_launch_description():
                 FindPackageShare('osracer_race'), 'config', 'tracks', 'example_raceline.csv'
             ])),
         DeclareLaunchArgument('record_output_csv', default_value='/tmp/osracer_sim_recorded_track.csv'),
+        DeclareLaunchArgument('obstacle_enabled', default_value='false', choices=['true', 'false']),
+        DeclareLaunchArgument('obstacle_x', default_value='2.0'),
+        DeclareLaunchArgument('obstacle_y', default_value='-1.7'),
+        DeclareLaunchArgument('obstacle_radius', default_value='0.25'),
         base_sim,
         TimerAction(period=1.0, actions=launches),
     ])

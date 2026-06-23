@@ -303,6 +303,13 @@ Gazebo joint controllers can also receive `/ackermann_cmd`:
 ros2 launch osracer_sim gazebo.launch.py use_gz_bridge:=true use_gz_control:=true publish_kinematic_clock:=false
 ```
 
+The kinematic `/scan` can include a deterministic circular obstacle for race
+controller safety and overtaking smoke tests:
+
+```bash
+ros2 launch osracer_sim race_sim.launch.py stage:=gap_follow obstacle_enabled:=true
+```
+
 ### 3.2 Sensors
 **Lidar:**
 ```bash

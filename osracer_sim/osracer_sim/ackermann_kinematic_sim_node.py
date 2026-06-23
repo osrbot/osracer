@@ -62,6 +62,10 @@ class AckermannKinematicSim(Node):
         self.declare_parameter('track_outer_length_m', 7.0)
         self.declare_parameter('track_outer_width_m', 4.5)
         self.declare_parameter('track_lane_width_m', 1.1)
+        self.declare_parameter('obstacle_enabled', False)
+        self.declare_parameter('obstacle_x', 2.0)
+        self.declare_parameter('obstacle_y', -1.7)
+        self.declare_parameter('obstacle_radius', 0.25)
         self.declare_parameter('initial_x', 0.0)
         self.declare_parameter('initial_y', -1.7)
         self.declare_parameter('initial_yaw_deg', 0.0)
@@ -252,10 +256,20 @@ class AckermannKinematicSim(Node):
                 msg.angle_increment,
                 msg.range_max,
                 self.track_segments,
+                self.scan_obstacles(),
             )
         else:
             msg.ranges = synthetic_scan(points, msg.angle_min, msg.angle_increment, msg.range_max)
         self.scan_pub.publish(msg)
+
+    def scan_obstacles(self) -> list[tuple[float, float, float]]:
+        if not bool(self.get_parameter('obstacle_enabled').value):
+            return []
+        return [(
+            float(self.get_parameter('obstacle_x').value),
+            float(self.get_parameter('obstacle_y').value),
+            max(float(self.get_parameter('obstacle_radius').value), 0.0),
+        )]
 
     def publish_clock_msg(self) -> None:
         msg = Clock()

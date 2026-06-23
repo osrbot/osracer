@@ -4,6 +4,7 @@ import math
 from typing import Optional
 
 Segment = tuple[tuple[float, float], tuple[float, float]]
+CircleObstacle = tuple[float, float, float]
 
 
 def clamp(value: float, low: float, high: float) -> float:
@@ -103,6 +104,34 @@ def ray_segment_distance(
     return None
 
 
+def ray_circle_distance(
+    origin_x: float,
+    origin_y: float,
+    angle: float,
+    obstacle: CircleObstacle,
+    max_range: float,
+) -> Optional[float]:
+    center_x, center_y, radius = obstacle
+    if radius <= 0.0:
+        return None
+    ray_dx = math.cos(angle)
+    ray_dy = math.sin(angle)
+    to_center_x = center_x - origin_x
+    to_center_y = center_y - origin_y
+    projection = to_center_x * ray_dx + to_center_y * ray_dy
+    closest_sq = to_center_x * to_center_x + to_center_y * to_center_y - projection * projection
+    radius_sq = radius * radius
+    if closest_sq > radius_sq:
+        return None
+    offset = math.sqrt(max(radius_sq - closest_sq, 0.0))
+    distance = projection - offset
+    if distance < 0.0:
+        distance = projection + offset
+    if 0.0 <= distance <= max_range:
+        return distance
+    return None
+
+
 def synthetic_track_scan(
     x: float,
     y: float,
@@ -112,6 +141,7 @@ def synthetic_track_scan(
     angle_increment: float,
     max_range: float,
     segments: list[Segment],
+    obstacles: list[CircleObstacle] | None = None,
 ) -> list[float]:
     ranges = []
     for index in range(points):
@@ -119,6 +149,10 @@ def synthetic_track_scan(
         best = max_range
         for segment in segments:
             distance = ray_segment_distance(x, y, angle, segment, max_range)
+            if distance is not None and distance < best:
+                best = distance
+        for obstacle in obstacles or []:
+            distance = ray_circle_distance(x, y, angle, obstacle, max_range)
             if distance is not None and distance < best:
                 best = distance
         ranges.append(best)

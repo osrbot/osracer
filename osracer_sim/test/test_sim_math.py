@@ -5,6 +5,7 @@ from osracer_sim.kinematics import (
     ackermann_front_angles,
     ackermann_gazebo_commands,
     clamp,
+    ray_circle_distance,
     ray_segment_distance,
     rectangular_track_segments,
     steering_from_twist,
@@ -49,6 +50,10 @@ class SimMathTest(unittest.TestCase):
         distance = ray_segment_distance(0.0, 0.0, 0.0, ((2.0, -1.0), (2.0, 1.0)), 8.0)
         self.assertAlmostEqual(distance, 2.0)
 
+    def test_ray_circle_distance_hits_obstacle(self):
+        distance = ray_circle_distance(0.0, 0.0, 0.0, (2.0, 0.0, 0.25), 8.0)
+        self.assertAlmostEqual(distance, 1.75)
+
     def test_rectangular_track_segments_include_inner_and_outer_walls(self):
         segments = rectangular_track_segments(7.0, 4.5, 1.1)
         self.assertEqual(len(segments), 8)
@@ -61,6 +66,14 @@ class SimMathTest(unittest.TestCase):
         self.assertEqual(len(ranges), 5)
         self.assertTrue(all(0.0 < value <= 8.0 for value in ranges))
         self.assertLess(ranges[2], 3.6)
+
+    def test_track_scan_can_include_obstacles(self):
+        segments = rectangular_track_segments(7.0, 4.5, 1.1)
+        clear_ranges = synthetic_track_scan(0.0, -1.7, 0.0, 5, -0.4, 0.2, 8.0, segments)
+        blocked_ranges = synthetic_track_scan(
+            0.0, -1.7, 0.0, 5, -0.4, 0.2, 8.0, segments, [(1.0, -1.7, 0.2)])
+        self.assertLess(blocked_ranges[2], clear_ranges[2])
+        self.assertAlmostEqual(blocked_ranges[2], 0.8)
 
 
 if __name__ == '__main__':

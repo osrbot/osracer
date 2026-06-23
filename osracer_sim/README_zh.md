@@ -41,6 +41,16 @@ ros2 topic pub /ackermann_cmd ackermann_msgs/msg/AckermannDrive \
 ros2 launch osracer_sim base_sim.launch.py scan_environment:=hallway
 ```
 
+在矩形赛道扫描中加入一个固定圆形障碍物：
+
+```bash
+ros2 launch osracer_sim base_sim.launch.py \
+  obstacle_enabled:=true \
+  obstacle_x:=2.0 \
+  obstacle_y:=-1.7 \
+  obstacle_radius:=0.25
+```
+
 ## Gazebo 赛道世界
 
 ```bash
@@ -149,9 +159,24 @@ ros2 launch osracer_sim race_sim.launch.py stage:=vehicle_id
 ros2 launch osracer_sim race_sim.launch.py stage:=mpc
 ```
 
+带障碍物的四阶段仿真示例：
+
+```bash
+ros2 launch osracer_sim race_sim.launch.py \
+  stage:=gap_follow \
+  obstacle_enabled:=true \
+  obstacle_x:=2.0 \
+  obstacle_y:=-1.7 \
+  obstacle_radius:=0.25
+```
+
+该障碍物只注入到 kinematic `/scan`，用于验证 TTC safety、Gap Follow 和
+`obstacle_overtake_node` 的接口链路；它不是 Gazebo 碰撞体。
+
 ## 当前限制
 
 - `/scan` 是基于矩形赛道墙体的 2D raycast，不代表真实 LiDAR 噪声和材质反射。
+- 可选圆形障碍物只影响 kinematic `/scan`，不会改变 Gazebo 物理场景。
 - 没有高保真轮胎侧偏、打滑、差速器、电机电流和电池模型。
 - Gazebo world 当前包含场地、墙体和简化 OSRacer 模型；还没有接入轮胎侧偏模型。
   Gazebo LiDAR/IMU 和 joint controller 已提供可选 `ros_gz_bridge` 入口，

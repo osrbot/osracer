@@ -17,6 +17,8 @@
   `ros_gz_bridge` launch path for `/gazebo/scan`, `/gazebo/imu`, and `/clock`.
 - Added `gazebo_ackermann_bridge_node` to translate `/ackermann_cmd` into
   Gazebo steering-position and wheel-velocity joint controller topics.
+- Added optional circular obstacle injection for the kinematic `/scan` so race
+  safety, Gap Follow, and overtaking flows can be smoke-tested without hardware.
 
 ### Navigation
 
