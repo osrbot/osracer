@@ -27,6 +27,7 @@ def parse_args():
     parser.add_argument("--package-dir", required=True, help="Jetson deployment package directory")
     parser.add_argument("--policy-replay", required=True, help="CSV produced by tools/policy_replay_csv.py")
     parser.add_argument("--sensor-summary", required=True, help="sensor_summary.json from tools/jetson_sensor_preflight.sh")
+    parser.add_argument("--environment-report", required=True, help="JSON from tools/jetson_environment_report.py")
     parser.add_argument("--runtime-dir", default=None, help="Optional directory from tools/jetson_runtime_monitor.sh")
     parser.add_argument("--serial-latency", default=None, help="Optional serial_latency.json from tools/serial_latency_probe.py")
     parser.add_argument("--output", default=None, help="Optional JSON report output path")
@@ -102,6 +103,24 @@ def run_sensor_summary(args, report):
     check(overall == "pass" and not missing, "sensor_summary", f"overall={overall} missing={missing}", report)
 
 
+def run_environment_report(args, report):
+    path = Path(args.environment_report).resolve()
+    data = load_json(path)
+    overall = data.get("overall")
+    failures = data.get("failures", [])
+    is_jetson = data.get("jetson", {}).get("is_jetson")
+    ros_setup = data.get("ros", {}).get("setup_exists")
+    report["artifacts"]["environment_report"] = {
+        "path": str(path),
+        "overall": overall,
+        "is_jetson": is_jetson,
+        "ros_setup_exists": ros_setup,
+        "failures": failures,
+    }
+    ok = overall == "pass" and is_jetson is True and ros_setup is True and not failures
+    check(ok, "environment_report", f"overall={overall} is_jetson={is_jetson} ros_setup={ros_setup} failures={failures}", report)
+
+
 def run_serial_latency(args, report):
     if not args.serial_latency:
         check(False, "serial_latency", "not supplied", report)
@@ -163,6 +182,7 @@ def build_report(args):
     run_package_verifier(args, report)
     run_policy_replay(args, report)
     run_sensor_summary(args, report)
+    run_environment_report(args, report)
     run_serial_latency(args, report)
     run_runtime_summary(args, report)
     report["overall"] = "pass" if not report["failures"] else "fail"

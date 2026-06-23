@@ -226,6 +226,7 @@ tools/first_drive_gate.py \
   --package-dir /path/to/osracer_jetson_deployment \
   --policy-replay /tmp/osracer_policy_replay.csv \
   --sensor-summary /tmp/osracer_sensor_preflight/sensor_summary.json \
+  --environment-report /tmp/osracer_jetson_environment.json \
   --serial-latency /tmp/osracer_serial_latency.json \
   --runtime-dir /tmp/osracer_runtime_monitor \
   --output /tmp/osracer_first_drive_gate.json
