@@ -235,6 +235,8 @@ tools/first_drive_evidence_pack.py \
   --gate-report /tmp/osracer_first_drive_gate.json \
   --output-dir /tmp/osracer_first_drive_evidence_pack \
   --overwrite
+
+tools/verify_first_drive_evidence_pack.py /tmp/osracer_first_drive_evidence_pack --require-pass
 ```
 
 Stop immediately if:
