@@ -63,6 +63,18 @@ def run_package_verifier(args, report):
         "log": result.stdout.splitlines(),
     }
     check(result.returncode == 0, "deployment_package", f"verify_jetson_deployment exit={result.returncode}", report)
+    log_text = result.stdout
+    if "source authority snapshot: not included" in log_text:
+        check(False, "source_authority_snapshot", "not included in deployment package", report)
+    else:
+        snapshot_ok = (
+            result.returncode == 0
+            and "[OK] source_authority_snapshot sources" in log_text
+            and "[OK] source_authority_snapshot osrcore_contract" in log_text
+            and "[OK] source_authority_snapshot osracer_contract" in log_text
+        )
+        detail = "verified by deployment package verifier" if snapshot_ok else "missing verifier OK lines"
+        check(snapshot_ok, "source_authority_snapshot", detail, report)
 
 
 def run_policy_replay(args, report):
