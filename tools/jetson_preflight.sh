@@ -95,6 +95,11 @@ if [[ -x "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/jetson_sensor_preflight.
 else
     warn "jetson_sensor_preflight.sh: not executable"
 fi
+if [[ -x "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/jetson_sensor_summary.py" ]]; then
+    ok "jetson_sensor_summary.py: available"
+else
+    warn "jetson_sensor_summary.py: not executable"
+fi
 check_cmd nvidia-smi
 
 if command -v nvpmodel >/dev/null 2>&1; then

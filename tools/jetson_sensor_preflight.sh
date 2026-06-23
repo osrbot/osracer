@@ -9,6 +9,8 @@ LIDAR_TOPIC="/scan"
 IMU_TOPIC="/imu_filter"
 ODOM_TOPIC="/odometry/filtered"
 EXTRA_TOPICS=()
+TOOLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SENSOR_SUMMARY_TOOL="${TOOLS_DIR}/jetson_sensor_summary.py"
 
 usage() {
     cat <<'EOF'
@@ -177,5 +179,13 @@ log "- Confirm camera topic matches AR0234 runtime resolution/fps target."
 log "- Confirm lidar topic exists, scan frame is laser, and measured hz matches the configured scan rate."
 log "- Confirm IMU and odom topic rates are stable before passive policy logging."
 log "- Attach this output directory to the real-car measurement record."
+
+if [[ -x "${SENSOR_SUMMARY_TOOL}" ]]; then
+    SUMMARY_JSON="${OUTPUT_DIR}/sensor_summary.json"
+    python3 "${SENSOR_SUMMARY_TOOL}" "${OUTPUT_DIR}" --output "${SUMMARY_JSON}" >>"${SUMMARY}" 2>&1 || true
+    log "- sensor_summary_json: ${SUMMARY_JSON}"
+else
+    log "- sensor_summary_json: skipped, ${SENSOR_SUMMARY_TOOL} not executable"
+fi
 
 printf '[OK] wrote sensor preflight logs to %s\n' "${OUTPUT_DIR}"

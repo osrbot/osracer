@@ -65,6 +65,12 @@ tools/jetson_sensor_preflight.sh \
   --odom-topic /odometry/filtered
 ```
 
+Summarize the sensor capture:
+
+```bash
+tools/jetson_sensor_summary.py /tmp/osracer_sensor_preflight --strict
+```
+
 Run the read-only readiness check:
 
 ```bash

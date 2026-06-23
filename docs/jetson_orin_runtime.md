@@ -99,9 +99,14 @@ tools/jetson_sensor_preflight.sh \
   --odom-topic /odometry/filtered
 ```
 
-Keep the generated `summary.md` and logs with the real-car measurement JSON.
-This is the quickest way to prove AR0234 camera visibility, 25m lidar network or
-USB visibility, topic frame names, and measured topic rates on Orin Nano.
+Keep the generated `summary.md`, `sensor_summary.json`, and logs with the real-car
+measurement JSON. This is the quickest way to prove AR0234 camera visibility,
+25m lidar network or USB visibility, topic frame names, and measured topic rates
+on Orin Nano. For a gate after collecting logs, run:
+
+```bash
+tools/jetson_sensor_summary.py /tmp/osracer_sensor_preflight --strict
+```
 
 If the policy came from an `osracer_lab` deployment package, verify the package
 first:
