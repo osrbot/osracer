@@ -32,6 +32,8 @@
   velocities from OSRacer wheelbase, track width, and wheel radius.
 - Added `osracer_rect_track_obstacle.sdf`, a Gazebo static obstacle world that
   matches the kinematic `obstacle_preset:=front` scenario.
+- Added `print_sim_scenarios.sh` to list the recommended base, race-stage,
+  Gazebo, and CSV-report simulation commands.
 
 ### Navigation
 

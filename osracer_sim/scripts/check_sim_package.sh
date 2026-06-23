@@ -60,6 +60,7 @@ for token in (
     'slam_sim.launch.py',
     'navigation_sim.launch.py',
     'race_sim.launch.py',
+    'print_sim_scenarios.sh',
     'validate_sim_ros.sh',
     'osracer_rect_track.sdf',
     'osracer_rect_track_obstacle.sdf',
@@ -73,6 +74,7 @@ for token in (
     'obstacle_enabled',
     'eval_output_csv',
     'SIM_DEVELOPMENT_PLAN_zh.md',
+    'OSRacer simulation scenario matrix',
     'kinematic -> Gazebo',
     '四阶段开发路线',
 ):
@@ -89,6 +91,7 @@ for path in (
     package_dir / 'models' / 'osracer_simple' / 'model.config',
     package_dir / 'models' / 'osracer_simple' / 'model.sdf',
     package_dir / 'scripts' / 'check_sim_package.sh',
+    package_dir / 'scripts' / 'print_sim_scenarios.sh',
     package_dir / 'scripts' / 'validate_sim_ros.sh',
 ):
     if not path.exists():

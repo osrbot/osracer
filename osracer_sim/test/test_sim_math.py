@@ -122,6 +122,16 @@ class SimMathTest(unittest.TestCase):
         self.assertIn('obstacle_enabled:=true', script_text)
         self.assertIn('use_gz_control:=true', script_text)
         self.assertIn('osracer_rect_track_obstacle.sdf', script_text)
+        self.assertIn('print_sim_scenarios.sh', script_text)
+
+    def test_scenario_matrix_covers_four_stage_workflow(self):
+        package_dir = Path(__file__).resolve().parents[1]
+        script_text = (package_dir / 'scripts' / 'print_sim_scenarios.sh').read_text(
+            encoding='utf-8')
+        for stage in ('gap_follow', 'track_record', 'pure_pursuit', 'stanley', 'vehicle_id', 'mpc'):
+            self.assertIn(f'stage:={stage}', script_text)
+        self.assertIn('osracer_rect_track_obstacle.sdf', script_text)
+        self.assertIn('race_report_tools', script_text)
 
     def test_gazebo_obstacle_world_matches_front_preset(self):
         package_dir = Path(__file__).resolve().parents[1]

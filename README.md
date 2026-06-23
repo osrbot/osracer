@@ -292,6 +292,12 @@ After building the workspace, validate installed simulation launch entries:
 bash $(ros2 pkg prefix osracer_sim)/share/osracer_sim/scripts/validate_sim_ros.sh
 ```
 
+Print the recommended four-stage simulation command matrix:
+
+```bash
+bash $(ros2 pkg prefix osracer_sim)/share/osracer_sim/scripts/print_sim_scenarios.sh
+```
+
 The first simulation stage publishes `/odometry/filtered`, `/tf`,
 `/joint_states`, `/scan`, and `/clock` from the measured OSRacer geometry. The
 default `/scan` is a rectangular-track raycast suitable for Gap Follow, TTC

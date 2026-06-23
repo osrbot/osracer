@@ -25,6 +25,7 @@ test -f "${share_dir}/launch/race_sim.launch.py"
 test -f "${share_dir}/worlds/osracer_rect_track.sdf"
 test -f "${share_dir}/worlds/osracer_rect_track_obstacle.sdf"
 test -f "${share_dir}/models/osracer_simple/model.sdf"
+test -x "${share_dir}/scripts/print_sim_scenarios.sh"
 
 echo "[2/5] Core launch arguments"
 ros2 launch osracer_sim base_sim.launch.py --show-args >/dev/null
@@ -52,6 +53,8 @@ ros2 launch osracer_sim gazebo.launch.py \
 ros2 launch osracer_sim gazebo.launch.py \
   world:="${share_dir}/worlds/osracer_rect_track_obstacle.sdf" \
   --show-args >/dev/null
+"${share_dir}/scripts/print_sim_scenarios.sh" | grep -q 'stage:=mpc'
+"${share_dir}/scripts/print_sim_scenarios.sh" | grep -q 'osracer_rect_track_obstacle.sdf'
 
 echo "[5/5] Optional live topic visibility"
 for topic in /scan /odometry/filtered /ackermann_cmd /clock; do

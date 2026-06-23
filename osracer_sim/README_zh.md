@@ -240,3 +240,12 @@ bash $(ros2 pkg prefix osracer_sim)/share/osracer_sim/scripts/validate_sim_ros.s
 
 该脚本会检查基础、Gazebo、SLAM、Nav2 和六个 Race stage 的 launch 参数解析，
 并覆盖障碍物仿真与 Gazebo joint controller 的参数组合。
+
+查看四阶段推荐仿真场景矩阵：
+
+```bash
+bash $(ros2 pkg prefix osracer_sim)/share/osracer_sim/scripts/print_sim_scenarios.sh
+```
+
+该脚本输出 `OSRacer simulation scenario matrix`，包含基础 kinematic、六个
+race stage、Gazebo 障碍物 world、Gazebo bridge 和 CSV 报告对比命令。
