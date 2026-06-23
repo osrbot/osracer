@@ -412,6 +412,15 @@ ros2 launch osracer_bringup policy_inference.launch.py \
   max_speed_mps:=0.3
 ```
 
+Before enabling live control, replay recorded observations through the same TorchScript policy:
+
+```bash
+tools/policy_replay_csv.py \
+  --policy /tmp/osracer_policy_export_smoke/policy.pt \
+  --input /path/to/recorded_observations.csv \
+  --output /tmp/osracer_policy_replay.csv
+```
+
 The node subscribes to `/odometry/filtered` and `/imu_filter`, builds the 14-value drift observation used by `osracer_lab`, and publishes `ackermann_msgs/msg/AckermannDrive` to `/ackermann_cmd`.
 
 ---

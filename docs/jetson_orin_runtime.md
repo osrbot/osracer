@@ -130,6 +130,44 @@ Stage 2: offline replay
 - Check action magnitude, steering sign, saturation rate, and non-finite handling.
 - Confirm the policy would stay within low-speed limits.
 
+Replay CSV format:
+
+```text
+px,py,pz,roll,pitch,yaw,vx,vy,vz,wx,wy,wz,last_speed,last_steering
+```
+
+`last_speed` and `last_steering` default to `0` when omitted, which is useful for first-pass manual driving logs. Use `--strict-last-action` when checking policy closed-loop logs.
+
+Example:
+
+```bash
+tools/policy_replay_csv.py \
+  --policy /path/to/policy.pt \
+  --input /path/to/recorded_observations.csv \
+  --output /tmp/osracer_policy_replay.csv \
+  --max-speed-mps 0.3 \
+  --max-steering-rad 0.488
+```
+
+The output appends:
+
+```text
+action_speed_raw,action_steering_raw,speed_cmd,steering_cmd,clamped
+```
+
+Use the replay output to check:
+
+- Whether `speed_cmd` stays inside the current test envelope.
+- Whether steering sign matches manual driving logs.
+- How often the policy saturates at the steering or speed clamp.
+- Whether any row fails because odometry, IMU, or preprocessing produced non-finite values.
+
+For Jetson deployment, run the same replay on the Jetson Python environment before enabling live ROS control:
+
+```bash
+tools/policy_replay_csv.py --policy /path/to/policy.pt --input /path/to/log.csv --output /tmp/replay.csv
+```
+
 Stage 3: low-speed closed loop
 
 - Use `enabled:=True`.
