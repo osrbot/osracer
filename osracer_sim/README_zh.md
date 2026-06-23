@@ -5,7 +5,7 @@
 差速器或电机动力学模型。
 
 仿真开发路线和 Gazebo 取舍见
-`SIM_DEVELOPMENT_PLAN_zh.md`。
+`SIM_DEVELOPMENT_PLAN_zh.md`，验收指标见 `SIM_VALIDATION_zh.md`。
 
 ## 设计边界
 
@@ -249,3 +249,6 @@ bash $(ros2 pkg prefix osracer_sim)/share/osracer_sim/scripts/print_sim_scenario
 
 该脚本输出 `OSRacer simulation scenario matrix`，包含基础 kinematic、六个
 race stage、Gazebo 障碍物 world、Gazebo bridge 和 CSV 报告对比命令。
+
+一次仿真是否可以进入真车低速验证，应按 `SIM_VALIDATION_zh.md` 检查 topic、
+TF/odom、CSV 指标、Gazebo 资源和安全停触发情况。

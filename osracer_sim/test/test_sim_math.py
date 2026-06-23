@@ -133,6 +133,15 @@ class SimMathTest(unittest.TestCase):
         self.assertIn('osracer_rect_track_obstacle.sdf', script_text)
         self.assertIn('race_report_tools', script_text)
 
+    def test_validation_doc_defines_stage_acceptance_matrix(self):
+        package_dir = Path(__file__).resolve().parents[1]
+        validation_text = (package_dir / 'SIM_VALIDATION_zh.md').read_text(encoding='utf-8')
+        self.assertIn('四阶段验收矩阵', validation_text)
+        self.assertIn('race_report_tools', validation_text)
+        self.assertIn('不能进入真车测试', validation_text)
+        for stage in ('Gap Follow', 'Pure Pursuit', 'Stanley', 'Vehicle ID', 'MPC'):
+            self.assertIn(stage, validation_text)
+
     def test_gazebo_obstacle_world_matches_front_preset(self):
         package_dir = Path(__file__).resolve().parents[1]
         world_text = (package_dir / 'worlds' / 'osracer_rect_track_obstacle.sdf').read_text(

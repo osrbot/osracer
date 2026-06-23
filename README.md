@@ -298,6 +298,10 @@ Print the recommended four-stage simulation command matrix:
 bash $(ros2 pkg prefix osracer_sim)/share/osracer_sim/scripts/print_sim_scenarios.sh
 ```
 
+Simulation acceptance criteria are documented in
+`osracer_sim/SIM_VALIDATION_zh.md`, including topic checks, CSV metrics, Gazebo
+resource checks, and conditions that should block real-vehicle testing.
+
 The first simulation stage publishes `/odometry/filtered`, `/tf`,
 `/joint_states`, `/scan`, and `/clock` from the measured OSRacer geometry. The
 default `/scan` is a rectangular-track raycast suitable for Gap Follow, TTC

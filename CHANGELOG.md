@@ -34,6 +34,8 @@
   matches the kinematic `obstacle_preset:=front` scenario.
 - Added `print_sim_scenarios.sh` to list the recommended base, race-stage,
   Gazebo, and CSV-report simulation commands.
+- Added `SIM_VALIDATION_zh.md` with simulation acceptance criteria, CSV metrics,
+  and blockers before real-vehicle testing.
 
 ### Navigation
 
