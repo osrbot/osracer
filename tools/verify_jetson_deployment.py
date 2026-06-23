@@ -93,7 +93,7 @@ def check_manifest(package_dir, manifest, expected_sha, failures):
             ok(f"manifest sha256 {name}")
         if name in expected_sha and expected_sha[name] != metadata.get("sha256"):
             fail(f"SHA256SUMS disagrees with manifest for {name}", failures)
-        if name not in {"hardware_params.json", "manifest.json", "SHA256SUMS"} and policy_name is None:
+        if name not in {"hardware_params.json", "manifest.json", "README.md", "SHA256SUMS"} and policy_name is None:
             policy_name = name
     return policy_name
 
