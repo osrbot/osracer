@@ -378,6 +378,36 @@ ros2 launch osracer_debug debug_imu.launch.py
 ros2 launch osracer_debug debug_image.launch.py
 ```
 
+### 3.4 TorchScript Policy Inference
+
+Export a TorchScript policy from `osracer_lab` first, then point this node at `policy.pt`.
+The node is safe by default: `enabled` defaults to `False`, and the default speed clamp is `0.3 m/s`.
+
+Runtime prerequisites:
+
+```bash
+sudo apt install ros-jazzy-ackermann-msgs
+python3 -m pip install torch
+```
+
+Use the same Python environment for `ros2 launch` and `torch`; otherwise the node will start only after the missing runtime dependency is installed.
+
+```bash
+ros2 launch osracer_bringup policy_inference.launch.py \
+  policy_path:=/tmp/osracer_policy_export_smoke/policy.pt
+```
+
+Enable non-zero policy commands only after the chassis bridge, odometry, IMU, and manual override are verified:
+
+```bash
+ros2 launch osracer_bringup policy_inference.launch.py \
+  policy_path:=/tmp/osracer_policy_export_smoke/policy.pt \
+  enabled:=True \
+  max_speed_mps:=0.3
+```
+
+The node subscribes to `/odometry/filtered` and `/imu_filter`, builds the 14-value drift observation used by `osracer_lab`, and publishes `ackermann_msgs/msg/AckermannDrive` to `/ackermann_cmd`.
+
 ---
 
 ## 4. Magnetometer Soft-Iron / Hard-Iron Calibration

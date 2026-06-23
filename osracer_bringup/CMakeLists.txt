@@ -17,6 +17,7 @@ ament_python_install_package(script)
 install(PROGRAMS
   script/chassis_ackermann.py
   script/led_matrix.py
+  script/policy_inference.py
   script/twist_bridge.py
   DESTINATION lib/${PROJECT_NAME}
 )
