@@ -89,7 +89,7 @@ tools/jetson_environment_report.py --output /tmp/osracer_jetson_environment.json
 Run the optional offline replay smoke when `policy.pt` is available:
 
 ```bash
-tools/jetson_preflight.sh --policy /path/to/policy.pt --offline-smoke
+tools/jetson_preflight.sh --policy /path/to/policy.pt --offline-smoke --environment-output /tmp/osracer_jetson_environment.json
 ```
 
 After starting camera, lidar, chassis, IMU, and odometry drivers, capture the

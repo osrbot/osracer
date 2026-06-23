@@ -4,6 +4,7 @@ set -u
 ROS_DISTRO_NAME="${ROS_DISTRO:-jazzy}"
 POLICY_PATH=""
 OFFLINE_SMOKE=0
+ENVIRONMENT_OUTPUT=""
 
 ok() { printf '[OK] %s\n' "$*"; }
 warn() { printf '[WARN] %s\n' "$*"; }
@@ -19,8 +20,12 @@ while [[ $# -gt 0 ]]; do
             POLICY_PATH="${2:-}"
             shift 2
             ;;
+        --environment-output)
+            ENVIRONMENT_OUTPUT="${2:-}"
+            shift 2
+            ;;
         --help|-h)
-            echo "Usage: tools/jetson_preflight.sh [--offline-smoke] [--policy /path/to/policy.pt]"
+            echo "Usage: tools/jetson_preflight.sh [--offline-smoke] [--policy /path/to/policy.pt] [--environment-output /tmp/osracer_jetson_environment.json]"
             echo "       tools/jetson_preflight.sh /path/to/policy.pt"
             exit 0
             ;;
@@ -152,6 +157,20 @@ TOOLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPLAY_TOOL="${TOOLS_DIR}/policy_replay_csv.py"
 SUMMARY_TOOL="${TOOLS_DIR}/policy_replay_summary.py"
 BENCHMARK_TOOL="${TOOLS_DIR}/benchmark_policy_inference.py"
+ENVIRONMENT_TOOL="${TOOLS_DIR}/jetson_environment_report.py"
+
+if [[ -n "${ENVIRONMENT_OUTPUT}" ]]; then
+    echo "-- Structured environment report --"
+    if [[ -x "${ENVIRONMENT_TOOL}" ]]; then
+        if python3 "${ENVIRONMENT_TOOL}" --output "${ENVIRONMENT_OUTPUT}"; then
+            ok "environment report: ${ENVIRONMENT_OUTPUT}"
+        else
+            warn "environment report failed; inspect ${ENVIRONMENT_OUTPUT} before first-drive gate"
+        fi
+    else
+        warn "jetson_environment_report.py not executable: ${ENVIRONMENT_TOOL}"
+    fi
+fi
 
 echo "-- Python runtime --"
 python3 - <<'PY'

@@ -393,7 +393,7 @@ tools/jetson_preflight.sh --policy /path/to/policy.pt
 Optional offline replay smoke:
 
 ```bash
-tools/jetson_preflight.sh --policy /path/to/policy.pt --offline-smoke
+tools/jetson_preflight.sh --policy /path/to/policy.pt --offline-smoke --environment-output /tmp/osracer_jetson_environment.json
 ```
 
 Read-only real-car readiness check:
