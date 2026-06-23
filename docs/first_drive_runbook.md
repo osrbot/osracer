@@ -239,6 +239,11 @@ tools/first_drive_evidence_pack.py \
 tools/verify_first_drive_evidence_pack.py /tmp/osracer_first_drive_evidence_pack --require-pass
 ```
 
+For visual policy packages, the evidence verifier also rechecks the archived
+deployment package for CameraInfo-derived camera calibration and confirms the
+first-drive gate log contains the deployment verifier's camera-calibration OK
+line.
+
 Stop immediately if:
 
 - The car turns opposite the expected direction.
