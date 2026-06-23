@@ -1,5 +1,6 @@
 import math
 import unittest
+from pathlib import Path
 
 from osracer_sim.kinematics import (
     ackermann_front_angles,
@@ -74,6 +75,13 @@ class SimMathTest(unittest.TestCase):
             0.0, -1.7, 0.0, 5, -0.4, 0.2, 8.0, segments, [(1.0, -1.7, 0.2)])
         self.assertLess(blocked_ranges[2], clear_ranges[2])
         self.assertAlmostEqual(blocked_ranges[2], 0.8)
+
+    def test_race_sim_exposes_eval_output_csv(self):
+        package_dir = Path(__file__).resolve().parents[1]
+        launch_text = (package_dir / 'launch' / 'race_sim.launch.py').read_text(encoding='utf-8')
+        self.assertIn("LaunchConfiguration('eval_output_csv')", launch_text)
+        self.assertIn("'eval_output_csv': eval_output_csv", launch_text)
+        self.assertIn("DeclareLaunchArgument('eval_output_csv'", launch_text)
 
 
 if __name__ == '__main__':

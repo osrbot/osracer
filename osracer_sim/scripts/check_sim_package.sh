@@ -67,6 +67,7 @@ for token in (
     '/gazebo/left_steering_position',
     '/model/osracer_simple/joint',
     'obstacle_enabled',
+    'eval_output_csv',
 ):
     if token not in setup and token not in readme:
         raise SystemExit(f'missing package documentation for {token}')

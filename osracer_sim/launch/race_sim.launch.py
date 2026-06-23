@@ -19,6 +19,7 @@ def race_launch(name):
 def generate_launch_description():
     race_config = LaunchConfiguration('race_config')
     raceline = LaunchConfiguration('raceline_file')
+    eval_output_csv = LaunchConfiguration('eval_output_csv')
 
     base_sim = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(PathJoinSubstitution([
@@ -38,7 +39,10 @@ def generate_launch_description():
         IncludeLaunchDescription(
             race_launch('gap_follow.launch.py'),
             condition=stage_is('gap_follow'),
-            launch_arguments={'race_config': race_config}.items(),
+            launch_arguments={
+                'race_config': race_config,
+                'eval_output_csv': eval_output_csv,
+            }.items(),
         ),
         IncludeLaunchDescription(
             race_launch('track_record.launch.py'),
@@ -51,12 +55,20 @@ def generate_launch_description():
         IncludeLaunchDescription(
             race_launch('pure_pursuit.launch.py'),
             condition=stage_is('pure_pursuit'),
-            launch_arguments={'race_config': race_config, 'raceline_file': raceline}.items(),
+            launch_arguments={
+                'race_config': race_config,
+                'raceline_file': raceline,
+                'eval_output_csv': eval_output_csv,
+            }.items(),
         ),
         IncludeLaunchDescription(
             race_launch('stanley.launch.py'),
             condition=stage_is('stanley'),
-            launch_arguments={'race_config': race_config, 'raceline_file': raceline}.items(),
+            launch_arguments={
+                'race_config': race_config,
+                'raceline_file': raceline,
+                'eval_output_csv': eval_output_csv,
+            }.items(),
         ),
         IncludeLaunchDescription(
             race_launch('vehicle_id.launch.py'),
@@ -66,7 +78,11 @@ def generate_launch_description():
         IncludeLaunchDescription(
             race_launch('mpc.launch.py'),
             condition=stage_is('mpc'),
-            launch_arguments={'race_config': race_config, 'raceline_file': raceline}.items(),
+            launch_arguments={
+                'race_config': race_config,
+                'raceline_file': raceline,
+                'eval_output_csv': eval_output_csv,
+            }.items(),
         ),
     ]
 
@@ -88,6 +104,7 @@ def generate_launch_description():
                 FindPackageShare('osracer_race'), 'config', 'tracks', 'example_raceline.csv'
             ])),
         DeclareLaunchArgument('record_output_csv', default_value='/tmp/osracer_sim_recorded_track.csv'),
+        DeclareLaunchArgument('eval_output_csv', default_value='/tmp/osracer_sim_eval.csv'),
         DeclareLaunchArgument('obstacle_enabled', default_value='false', choices=['true', 'false']),
         DeclareLaunchArgument('obstacle_x', default_value='2.0'),
         DeclareLaunchArgument('obstacle_y', default_value='-1.7'),

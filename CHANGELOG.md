@@ -19,6 +19,8 @@
   Gazebo steering-position and wheel-velocity joint controller topics.
 - Added optional circular obstacle injection for the kinematic `/scan` so race
   safety, Gap Follow, and overtaking flows can be smoke-tested without hardware.
+- Added `eval_output_csv` passthrough in `race_sim.launch.py` for comparable
+  simulation evaluation logs across Gap Follow, Pure Pursuit, Stanley, and MPC.
 
 ### Navigation
 

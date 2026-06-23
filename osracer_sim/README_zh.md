@@ -131,7 +131,9 @@ ros2 launch osracer_sim navigation_sim.launch.py use_rviz:=true
 第一阶段 Gap Follow：
 
 ```bash
-ros2 launch osracer_sim race_sim.launch.py stage:=gap_follow
+ros2 launch osracer_sim race_sim.launch.py \
+  stage:=gap_follow \
+  eval_output_csv:=/tmp/osracer_sim_eval_gap_follow.csv
 ```
 
 第二阶段轨迹录制：
@@ -143,8 +145,12 @@ ros2 launch osracer_sim race_sim.launch.py stage:=track_record
 第二阶段轨迹跟踪：
 
 ```bash
-ros2 launch osracer_sim race_sim.launch.py stage:=pure_pursuit
-ros2 launch osracer_sim race_sim.launch.py stage:=stanley
+ros2 launch osracer_sim race_sim.launch.py \
+  stage:=pure_pursuit \
+  eval_output_csv:=/tmp/osracer_sim_eval_pure_pursuit.csv
+ros2 launch osracer_sim race_sim.launch.py \
+  stage:=stanley \
+  eval_output_csv:=/tmp/osracer_sim_eval_stanley.csv
 ```
 
 第三阶段车辆能力辨识：
@@ -156,7 +162,9 @@ ros2 launch osracer_sim race_sim.launch.py stage:=vehicle_id
 第四阶段 MPC：
 
 ```bash
-ros2 launch osracer_sim race_sim.launch.py stage:=mpc
+ros2 launch osracer_sim race_sim.launch.py \
+  stage:=mpc \
+  eval_output_csv:=/tmp/osracer_sim_eval_mpc.csv
 ```
 
 带障碍物的四阶段仿真示例：
@@ -172,6 +180,16 @@ ros2 launch osracer_sim race_sim.launch.py \
 
 该障碍物只注入到 kinematic `/scan`，用于验证 TTC safety、Gap Follow 和
 `obstacle_overtake_node` 的接口链路；它不是 Gazebo 碰撞体。
+
+对比各阶段评测结果：
+
+```bash
+ros2 run osracer_race race_report_tools \
+  /tmp/osracer_sim_eval_gap_follow.csv \
+  /tmp/osracer_sim_eval_pure_pursuit.csv \
+  /tmp/osracer_sim_eval_stanley.csv \
+  /tmp/osracer_sim_eval_mpc.csv
+```
 
 ## 当前限制
 
