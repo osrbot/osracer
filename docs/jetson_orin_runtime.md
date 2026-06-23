@@ -236,6 +236,12 @@ tools/jetson_runtime_monitor.sh \
 Run it once with policy inference disabled and once with `enabled:=True` on
 blocks. Compare topic rates, process RSS/CPU, and tegrastats logs before floor
 tests.
+The monitor also writes `/tmp/osracer_runtime_monitor/summary_report.log`.
+To summarize an existing monitor directory again, run:
+
+```bash
+tools/jetson_runtime_summary.py /tmp/osracer_runtime_monitor
+```
 
 Recommended Orin Nano Super 8GB runtime posture:
 

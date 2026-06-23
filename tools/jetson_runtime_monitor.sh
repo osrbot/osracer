@@ -61,6 +61,9 @@ SUMMARY_LOG="${OUTPUT_DIR}/summary.log"
 TEGRASTATS_LOG="${OUTPUT_DIR}/tegrastats.log"
 TOPIC_LOG="${OUTPUT_DIR}/topic_hz.log"
 PROCESS_LOG="${OUTPUT_DIR}/process_resources.log"
+SUMMARY_REPORT="${OUTPUT_DIR}/summary_report.log"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SUMMARY_TOOL="${SCRIPT_DIR}/jetson_runtime_summary.py"
 
 log() {
     printf '%s %s\n' "$(date -Is)" "$*" | tee -a "${SUMMARY_LOG}"
@@ -132,4 +135,10 @@ log "  summary=${SUMMARY_LOG}"
 log "  tegrastats=${TEGRASTATS_LOG}"
 log "  topic_hz=${TOPIC_LOG}"
 log "  process_resources=${PROCESS_LOG}"
+if [[ -x "${SUMMARY_TOOL}" ]]; then
+    python3 "${SUMMARY_TOOL}" "${OUTPUT_DIR}" >"${SUMMARY_REPORT}" 2>&1 || true
+    log "  summary_report=${SUMMARY_REPORT}"
+else
+    log "  summary_report=not generated; ${SUMMARY_TOOL} not executable"
+fi
 log "OSRacer Jetson runtime monitor complete"
