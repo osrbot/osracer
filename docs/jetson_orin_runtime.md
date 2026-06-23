@@ -65,6 +65,15 @@ Run the optional offline replay smoke when `policy.pt` is available:
 tools/jetson_preflight.sh --policy /path/to/policy.pt --offline-smoke
 ```
 
+Run a read-only real-car readiness check before enabling live policy commands:
+
+```bash
+tools/real_car_readiness_check.sh \
+  --policy /path/to/policy.pt \
+  --observations /tmp/osracer_policy_observations.csv \
+  --replay /tmp/osracer_policy_replay.csv
+```
+
 On Jetson, prefer NVIDIA-provided or JetPack-compatible Python wheels for acceleration libraries.
 
 ## Runtime Launch Flow

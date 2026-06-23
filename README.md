@@ -395,6 +395,15 @@ Optional offline replay smoke:
 tools/jetson_preflight.sh --policy /path/to/policy.pt --offline-smoke
 ```
 
+Read-only real-car readiness check:
+
+```bash
+tools/real_car_readiness_check.sh \
+  --policy /path/to/policy.pt \
+  --observations /tmp/osracer_policy_observations.csv \
+  --replay /tmp/osracer_policy_replay.csv
+```
+
 Runtime prerequisites:
 
 ```bash
