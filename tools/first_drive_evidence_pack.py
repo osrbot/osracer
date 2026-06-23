@@ -8,7 +8,14 @@ import shutil
 from pathlib import Path
 
 DEFAULT_OUTPUT = Path('/tmp/osracer_first_drive_evidence_pack')
-PACKAGE_COPY_NAMES = {'manifest.json', 'SHA256SUMS', 'README.md', 'hardware_params.json', 'measured_overlay.json'}
+PACKAGE_COPY_NAMES = {
+    'manifest.json',
+    'SHA256SUMS',
+    'README.md',
+    'hardware_params.json',
+    'measured_overlay.json',
+    'source_authority_snapshot.json',
+}
 
 
 def parse_args():
@@ -145,7 +152,7 @@ def readme_text(manifest):
         '- `jetson_environment.json` when supplied',
         '- `serial_latency.json` when supplied',
         '- `runtime_monitor/` when supplied',
-        '- `deployment_package/` metadata and checksums when supplied',
+        '- `deployment_package/` metadata, source authority snapshot, and checksums when supplied',
         '',
     ])
 
