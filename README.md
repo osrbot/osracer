@@ -389,6 +389,12 @@ For Jetson Orin Nano Super 8GB deployment, see `docs/jetson_orin_runtime.md` and
 tools/jetson_preflight.sh /path/to/policy.pt
 ```
 
+Optional offline replay smoke:
+
+```bash
+tools/jetson_preflight.sh --policy /path/to/policy.pt --offline-smoke
+```
+
 Runtime prerequisites:
 
 ```bash

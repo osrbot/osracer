@@ -59,6 +59,12 @@ python3 -m pip install torch
 tools/jetson_preflight.sh /path/to/policy.pt
 ```
 
+Run the optional offline replay smoke when `policy.pt` is available:
+
+```bash
+tools/jetson_preflight.sh --policy /path/to/policy.pt --offline-smoke
+```
+
 On Jetson, prefer NVIDIA-provided or JetPack-compatible Python wheels for acceleration libraries.
 
 ## Runtime Launch Flow
