@@ -415,13 +415,17 @@ ros2 launch osracer_bringup policy_inference.launch.py \
 Before enabling live control, replay recorded observations through the same TorchScript policy:
 
 ```bash
+ros2 launch osracer_bringup policy_observation_recorder.launch.py \
+  output_path:=/tmp/osracer_policy_observations.csv
+
 tools/policy_replay_csv.py \
   --policy /tmp/osracer_policy_export_smoke/policy.pt \
-  --input /path/to/recorded_observations.csv \
+  --input /tmp/osracer_policy_observations.csv \
   --output /tmp/osracer_policy_replay.csv
 ```
 
-The node subscribes to `/odometry/filtered` and `/imu_filter`, builds the 14-value drift observation used by `osracer_lab`, and publishes `ackermann_msgs/msg/AckermannDrive` to `/ackermann_cmd`.
+The recorder subscribes to `/odometry/filtered`, `/imu_filter`, and `/ackermann_cmd`, then writes the 14-value drift observation CSV used by `osracer_lab`.
+The inference node subscribes to `/odometry/filtered` and `/imu_filter`, builds the same observation order, and publishes `ackermann_msgs/msg/AckermannDrive` to `/ackermann_cmd`.
 
 ---
 

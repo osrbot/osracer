@@ -124,6 +124,14 @@ Stage 1: passive logs
 - Record manual driving bags.
 - Validate observation builder against recorded `/odom` and `/imu`.
 
+Record the exact drift-policy observation CSV:
+
+```bash
+ros2 launch osracer_bringup policy_observation_recorder.launch.py \
+  output_path:=/tmp/osracer_policy_observations.csv \
+  rate_hz:=10.0
+```
+
 Stage 2: offline replay
 
 - Feed recorded observations into `policy.pt`.
@@ -143,7 +151,7 @@ Example:
 ```bash
 tools/policy_replay_csv.py \
   --policy /path/to/policy.pt \
-  --input /path/to/recorded_observations.csv \
+  --input /tmp/osracer_policy_observations.csv \
   --output /tmp/osracer_policy_replay.csv \
   --max-speed-mps 0.3 \
   --max-steering-rad 0.488
