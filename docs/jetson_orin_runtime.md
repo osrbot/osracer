@@ -66,6 +66,16 @@ Run the optional offline replay smoke when `policy.pt` is available:
 tools/jetson_preflight.sh --policy /path/to/policy.pt --offline-smoke
 ```
 
+If the policy came from an `osracer_lab` deployment package, verify the package
+first:
+
+```bash
+tools/verify_jetson_deployment.py /path/to/osracer_jetson_deployment
+tools/jetson_preflight.sh \
+  --policy /path/to/osracer_jetson_deployment/policy.pt \
+  --offline-smoke
+```
+
 The preflight is read-only. It reports Jetson Linux, power-mode tools, memory,
 swap/zram, disk space, CPU governor, Docker runtime visibility, ROS packages,
 Python inference packages, and optional policy replay. Use it before changing
