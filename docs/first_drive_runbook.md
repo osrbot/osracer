@@ -40,6 +40,19 @@ Pass condition:
 - TorchScript load/run passes in the same Python environment used by ROS launch.
 - Offline replay smoke completes.
 
+
+For ONNX deployment packages, build the TensorRT engine on the Jetson after Stage 0:
+
+```bash
+tools/build_tensorrt_engine.sh \
+  --onnx /path/to/osracer_jetson_deployment/policy.onnx \
+  --engine /path/to/osracer_jetson_deployment/policy_fp16.engine \
+  --fp16 \
+  --workspace-mb 1024 \
+  --log /tmp/osracer_trtexec_build.log \
+  --report /tmp/osracer_tensorrt_build_report.json
+```
+
 Stop if:
 
 - `ackermann_msgs` is missing.
@@ -244,6 +257,7 @@ tools/first_drive_gate.py \
   --serial-latency /tmp/osracer_serial_latency.json \
   --policy-benchmark /tmp/osracer_policy_benchmark.json \
   --performance-profile /tmp/osracer_performance_profile.json \
+  --tensorrt-build-report /tmp/osracer_tensorrt_build_report.json \
   --runtime-dir /tmp/osracer_runtime_monitor \
   --output /tmp/osracer_first_drive_gate.json
 

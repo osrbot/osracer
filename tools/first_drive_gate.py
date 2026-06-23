@@ -32,6 +32,7 @@ def parse_args():
     parser.add_argument("--serial-latency", default=None, help="Optional serial_latency.json from tools/serial_latency_probe.py")
     parser.add_argument("--policy-benchmark", default=None, help="Optional JSON from tools/benchmark_policy_inference.py")
     parser.add_argument("--performance-profile", default=None, help="JSON from tools/jetson_performance_profile.sh --json-output")
+    parser.add_argument("--tensorrt-build-report", default=None, help="JSON from tools/build_tensorrt_engine.sh --report")
     parser.add_argument("--output", default=None, help="Optional JSON report output path")
     parser.add_argument("--obs-dim", type=int, default=14, help="Policy observation dim for package verifier")
     parser.add_argument("--load-policy", action="store_true", help="Let package verifier load the policy artifact")
@@ -54,15 +55,23 @@ def check(ok, name, detail, report):
         report["failures"].append(f"{name}: {detail}")
 
 
-def package_task(package_dir):
+def package_manifest(package_dir):
     manifest = Path(package_dir).resolve() / "manifest.json"
     if not manifest.is_file():
-        return None
+        return {}
     with manifest.open("r", encoding="utf-8") as handle:
         data = json.load(handle)
-    if not isinstance(data, dict):
-        return None
-    return str(data.get("task", ""))
+    return data if isinstance(data, dict) else {}
+
+
+def package_task(package_dir):
+    data = package_manifest(package_dir)
+    return str(data.get("task", "")) if data else None
+
+
+def package_format(package_dir):
+    data = package_manifest(package_dir)
+    return str(data.get("format", "")) if data else ""
 
 
 def run_package_verifier(args, report):
@@ -241,6 +250,39 @@ def run_performance_profile(args, report):
     )
 
 
+def run_tensorrt_build_report(args, report):
+    fmt = package_format(args.package_dir)
+    required = fmt == "onnx"
+    if not args.tensorrt_build_report:
+        detail = f"not required for package format={fmt}" if not required else "required for ONNX deployment package"
+        check(not required, "tensorrt_build_report", detail, report)
+        return
+    path = Path(args.tensorrt_build_report).resolve()
+    data = load_json(path)
+    build = data.get("build", {}) if isinstance(data.get("build"), dict) else {}
+    engine = data.get("engine", {}) if isinstance(data.get("engine"), dict) else {}
+    onnx = data.get("onnx", {}) if isinstance(data.get("onnx"), dict) else {}
+    status = data.get("status")
+    exit_code = data.get("exit_code")
+    dry_run = data.get("dry_run")
+    fp16 = build.get("fp16")
+    workspace = build.get("workspace_mb")
+    engine_exists = engine.get("exists") is True and isinstance(engine.get("bytes"), int) and engine.get("bytes") > 0
+    onnx_exists = onnx.get("exists") is True
+    ok = status == "pass" and exit_code == 0 and dry_run is False and engine_exists and onnx_exists and fp16 is True and isinstance(workspace, int) and workspace >= 1024
+    report["artifacts"]["tensorrt_build_report"] = {
+        "path": str(path),
+        "status": status,
+        "exit_code": exit_code,
+        "dry_run": dry_run,
+        "fp16": fp16,
+        "workspace_mb": workspace,
+        "engine_exists": engine_exists,
+        "onnx_exists": onnx_exists,
+    }
+    check(ok, "tensorrt_build_report", f"status={status} exit={exit_code} dry_run={dry_run} fp16={fp16} workspace_mb={workspace} engine={engine_exists}", report)
+
+
 def run_runtime_summary(args, report):
     if not args.runtime_dir:
         check(False, "runtime_monitor", "not supplied", report)
@@ -287,6 +329,7 @@ def build_report(args):
     run_serial_latency(args, report)
     run_policy_benchmark(args, report)
     run_performance_profile(args, report)
+    run_tensorrt_build_report(args, report)
     run_runtime_summary(args, report)
     report["overall"] = "pass" if not report["failures"] else "fail"
     return report
