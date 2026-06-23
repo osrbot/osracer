@@ -28,6 +28,8 @@
   for kinematic scan simulation scenarios.
 - Documented the simulation development route and Gazebo tradeoffs in
   `osracer_sim/SIM_DEVELOPMENT_PLAN_zh.md`.
+- Updated the Gazebo Ackermann bridge to publish inner/outer wheel angular
+  velocities from OSRacer wheelbase, track width, and wheel radius.
 
 ### Navigation
 

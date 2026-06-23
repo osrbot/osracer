@@ -5,6 +5,7 @@ from typing import Optional
 
 Segment = tuple[tuple[float, float], tuple[float, float]]
 CircleObstacle = tuple[float, float, float]
+GazeboAckermannCommands = tuple[float, float, tuple[float, float, float, float]]
 
 
 def clamp(value: float, low: float, high: float) -> float:
@@ -37,12 +38,29 @@ def ackermann_gazebo_commands(
     wheelbase: float,
     track_width: float,
     wheel_radius: float,
-) -> tuple[float, float, float]:
+) -> GazeboAckermannCommands:
     left_steering, right_steering = ackermann_front_angles(steering, wheelbase, track_width)
-    wheel_velocity = 0.0
-    if wheel_radius > 1e-5:
+    if wheel_radius <= 1e-5:
+        return left_steering, right_steering, (0.0, 0.0, 0.0, 0.0)
+    if abs(speed) < 1e-5 or abs(steering) < 1e-5:
         wheel_velocity = speed / wheel_radius
-    return left_steering, right_steering, wheel_velocity
+        return left_steering, right_steering, (
+            wheel_velocity,
+            wheel_velocity,
+            wheel_velocity,
+            wheel_velocity,
+        )
+
+    center_radius = wheelbase / math.tan(steering)
+    angular_velocity = speed / center_radius
+    left_radius = center_radius - track_width * 0.5
+    right_radius = center_radius + track_width * 0.5
+    return left_steering, right_steering, (
+        angular_velocity * left_radius / wheel_radius,
+        angular_velocity * right_radius / wheel_radius,
+        angular_velocity * left_radius / wheel_radius,
+        angular_velocity * right_radius / wheel_radius,
+    )
 
 
 def obstacle_preset(name: str) -> list[CircleObstacle]:

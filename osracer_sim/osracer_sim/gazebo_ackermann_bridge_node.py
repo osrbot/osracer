@@ -58,7 +58,7 @@ class GazeboAckermannBridge(Node):
     def command_callback(self, msg: AckermannDrive) -> None:
         speed = clamp(float(msg.speed), -self.max_speed, self.max_speed)
         steering = clamp(float(msg.steering_angle), -self.max_steering, self.max_steering)
-        left_steering, right_steering, wheel_velocity = ackermann_gazebo_commands(
+        left_steering, right_steering, wheel_velocities = ackermann_gazebo_commands(
             speed,
             steering,
             self.wheelbase,
@@ -67,9 +67,8 @@ class GazeboAckermannBridge(Node):
         )
         self.left_steering_pub.publish(float_msg(left_steering))
         self.right_steering_pub.publish(float_msg(right_steering))
-        wheel_msg = float_msg(wheel_velocity)
-        for publisher in self.wheel_pubs:
-            publisher.publish(wheel_msg)
+        for publisher, wheel_velocity in zip(self.wheel_pubs, wheel_velocities):
+            publisher.publish(float_msg(wheel_velocity))
 
 
 def float_msg(value: float) -> Float64:

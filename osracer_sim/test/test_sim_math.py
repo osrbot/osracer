@@ -34,9 +34,23 @@ class SimMathTest(unittest.TestCase):
         self.assertGreater(right, 0.0)
 
     def test_ackermann_gazebo_commands_convert_speed_to_wheel_velocity(self):
-        left, right, velocity = ackermann_gazebo_commands(1.0, 0.3, 0.285, 0.215, 0.0425)
+        left, right, velocities = ackermann_gazebo_commands(1.0, 0.0, 0.285, 0.215, 0.0425)
+        self.assertEqual(left, 0.0)
+        self.assertEqual(right, 0.0)
+        self.assertEqual(len(velocities), 4)
+        self.assertTrue(all(math.isclose(value, 1.0 / 0.0425) for value in velocities))
+
+    def test_ackermann_gazebo_commands_split_inner_outer_wheel_speed(self):
+        left, right, velocities = ackermann_gazebo_commands(1.0, 0.3, 0.285, 0.215, 0.0425)
         self.assertGreater(left, right)
-        self.assertAlmostEqual(velocity, 1.0 / 0.0425)
+        left_front, right_front, left_rear, right_rear = velocities
+        self.assertLess(left_front, right_front)
+        self.assertLess(left_rear, right_rear)
+
+        _, _, right_turn_velocities = ackermann_gazebo_commands(1.0, -0.3, 0.285, 0.215, 0.0425)
+        left_front, right_front, left_rear, right_rear = right_turn_velocities
+        self.assertGreater(left_front, right_front)
+        self.assertGreater(left_rear, right_rear)
 
     def test_yaw_to_quat_is_normalized(self):
         quat = yaw_to_quat(0.7)

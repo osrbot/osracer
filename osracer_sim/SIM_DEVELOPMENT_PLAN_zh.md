@@ -80,11 +80,11 @@
 - `/gazebo/left_steering_position`
 - `/gazebo/right_steering_position`
 - `/model/osracer_simple/joint/*_wheel_joint/cmd_vel`
+- 基于轴距、轮距和轮半径的左右轮差速角速度计算
 
 下一步：
 
 - 用 Gazebo launch 做短时运行 smoke test，记录 joint topic 是否有输出。
-- 加入左右轮差速角速度计算，匹配阿克曼转弯几何。
 - 校核 steering joint 正方向和 RViz joint 动画一致。
 
 验收标准：

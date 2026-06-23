@@ -114,6 +114,8 @@ ros2 launch osracer_sim gazebo.launch.py \
 
 这条链路用于检查 Gazebo joint controller、转向方向和轮速方向。Gazebo 车体的物理
 运动仍取决于简化碰撞、摩擦和 joint controller 参数，不等价于实车高速动力学。
+转弯时 bridge 会按轴距、轮距和轮半径计算左右轮角速度；左转时右轮更快，右转时
+左轮更快，用于避免四轮同速导致的基础运动方向误判。
 
 如果只需要空地面：
 
