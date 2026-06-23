@@ -121,6 +121,15 @@ class SimMathTest(unittest.TestCase):
             self.assertIn(stage, script_text)
         self.assertIn('obstacle_enabled:=true', script_text)
         self.assertIn('use_gz_control:=true', script_text)
+        self.assertIn('osracer_rect_track_obstacle.sdf', script_text)
+
+    def test_gazebo_obstacle_world_matches_front_preset(self):
+        package_dir = Path(__file__).resolve().parents[1]
+        world_text = (package_dir / 'worlds' / 'osracer_rect_track_obstacle.sdf').read_text(
+            encoding='utf-8')
+        self.assertIn('<model name="front_obstacle">', world_text)
+        self.assertIn('<pose>2.0 -1.7 0.18 0 0 0</pose>', world_text)
+        self.assertIn('<radius>0.25</radius>', world_text)
 
 
 if __name__ == '__main__':

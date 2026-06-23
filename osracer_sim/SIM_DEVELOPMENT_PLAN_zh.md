@@ -51,6 +51,7 @@
 
 - `gazebo.launch.py`
 - `osracer_rect_track.sdf`
+- `osracer_rect_track_obstacle.sdf`
 - `osracer_empty.sdf`
 - `model://osracer_simple`
 - `/gazebo/scan`
@@ -60,7 +61,6 @@
 下一步：
 
 - 根据真实场地补充更接近比赛的 world。
-- 增加静态障碍物 world，和 kinematic `obstacle_preset` 做对应。
 - 记录 RViz/Gazebo 推荐显示配置，减少教学部署成本。
 
 验收标准：

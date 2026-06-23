@@ -124,6 +124,16 @@ ros2 launch osracer_sim gazebo.launch.py \
   world:=$(ros2 pkg prefix osracer_sim)/share/osracer_sim/worlds/osracer_empty.sdf
 ```
 
+如果需要 Gazebo 静态障碍物场景：
+
+```bash
+ros2 launch osracer_sim gazebo.launch.py \
+  world:=$(ros2 pkg prefix osracer_sim)/share/osracer_sim/worlds/osracer_rect_track_obstacle.sdf
+```
+
+该 world 在 `(2.0, -1.7)` 放置半径 `0.25m` 的圆柱障碍物，和
+`obstacle_preset:=front` 的 kinematic `/scan` 场景对齐。
+
 ## SLAM 仿真
 
 ```bash

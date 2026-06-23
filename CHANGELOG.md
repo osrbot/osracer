@@ -30,6 +30,8 @@
   `osracer_sim/SIM_DEVELOPMENT_PLAN_zh.md`.
 - Updated the Gazebo Ackermann bridge to publish inner/outer wheel angular
   velocities from OSRacer wheelbase, track width, and wheel radius.
+- Added `osracer_rect_track_obstacle.sdf`, a Gazebo static obstacle world that
+  matches the kinematic `obstacle_preset:=front` scenario.
 
 ### Navigation
 
