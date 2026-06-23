@@ -7,6 +7,11 @@ SENSOR_DURATION=10
 SERIAL_SAMPLES=5
 ROS_DISTRO_NAME="${ROS_DISTRO:-jazzy}"
 CAMERA_INFO_TOPIC="/camera_info"
+CAMERA_TOPIC="/rgb/image_raw"
+LIDAR_TOPIC="/scan"
+IMU_TOPIC="/imu_filter"
+ODOM_TOPIC="/odometry/filtered"
+EXTRA_TOPICS=()
 SKIP_SENSOR=0
 SKIP_SERIAL=0
 SKIP_ENVIRONMENT=0
@@ -27,6 +32,11 @@ Options:
   --ros-distro NAME      ROS distro for sensor preflight. Default: $ROS_DISTRO or jazzy.
   --camera-info-topic TOPIC
                          CameraInfo topic to capture once. Default: /camera_info.
+  --camera-topic TOPIC   Camera image topic for sensor preflight. Default: /rgb/image_raw.
+  --lidar-topic TOPIC    Lidar scan topic for sensor preflight. Default: /scan.
+  --imu-topic TOPIC      IMU topic for sensor preflight. Default: /imu_filter.
+  --odom-topic TOPIC     Odometry topic for sensor preflight. Default: /odometry/filtered.
+  --topic TOPIC          Additional topic for sensor preflight. Repeatable.
   --skip-sensor          Do not run tools/jetson_sensor_preflight.sh.
   --skip-environment     Do not run tools/jetson_environment_report.py.
   --skip-serial          Do not run tools/serial_latency_probe.py.
@@ -55,6 +65,26 @@ while [[ $# -gt 0 ]]; do
             ;;
         --camera-info-topic)
             CAMERA_INFO_TOPIC="${2:-}"
+            shift 2
+            ;;
+        --camera-topic)
+            CAMERA_TOPIC="${2:-}"
+            shift 2
+            ;;
+        --lidar-topic)
+            LIDAR_TOPIC="${2:-}"
+            shift 2
+            ;;
+        --imu-topic)
+            IMU_TOPIC="${2:-}"
+            shift 2
+            ;;
+        --odom-topic)
+            ODOM_TOPIC="${2:-}"
+            shift 2
+            ;;
+        --topic)
+            EXTRA_TOPICS+=("${2:-}")
             shift 2
             ;;
         --skip-sensor)
@@ -107,10 +137,19 @@ log "started_at=$(date --iso-8601=seconds 2>/dev/null || date)"
 if [[ "${SKIP_SENSOR}" -eq 0 ]]; then
     if [[ -x "${TOOLS_DIR}/jetson_sensor_preflight.sh" ]]; then
         log "running sensor preflight"
-        if "${TOOLS_DIR}/jetson_sensor_preflight.sh" \
-            --output-dir "${SENSOR_DIR}" \
-            --duration "${SENSOR_DURATION}" \
-            --ros-distro "${ROS_DISTRO_NAME}" >>"${SESSION_LOG}" 2>&1; then
+        sensor_args=(
+            --output-dir "${SENSOR_DIR}"
+            --duration "${SENSOR_DURATION}"
+            --ros-distro "${ROS_DISTRO_NAME}"
+            --camera-topic "${CAMERA_TOPIC}"
+            --lidar-topic "${LIDAR_TOPIC}"
+            --imu-topic "${IMU_TOPIC}"
+            --odom-topic "${ODOM_TOPIC}"
+        )
+        for topic in "${EXTRA_TOPICS[@]}"; do
+            sensor_args+=(--topic "${topic}")
+        done
+        if "${TOOLS_DIR}/jetson_sensor_preflight.sh" "${sensor_args[@]}" >>"${SESSION_LOG}" 2>&1; then
             SENSOR_STATUS="pass"
         else
             SENSOR_STATUS="fail"
@@ -169,7 +208,7 @@ if [[ "${SKIP_CAMERA_INFO}" -eq 0 ]]; then
 fi
 
 MANIFEST="${OUTPUT_DIR}/measurement_session.json"
-python3 - "${MANIFEST}" "${OUTPUT_DIR}" "${SENSOR_STATUS}" "${SENSOR_SUMMARY}" "${ENVIRONMENT_STATUS}" "${ENVIRONMENT_REPORT}" "${SERIAL_STATUS}" "${SERIAL_REPORT}" "${CAMERA_INFO_STATUS}" "${CAMERA_INFO_FILE}" "${CAMERA_INFO_TOPIC}" <<'PY'
+python3 - "${MANIFEST}" "${OUTPUT_DIR}" "${SENSOR_STATUS}" "${SENSOR_SUMMARY}" "${ENVIRONMENT_STATUS}" "${ENVIRONMENT_REPORT}" "${SERIAL_STATUS}" "${SERIAL_REPORT}" "${CAMERA_INFO_STATUS}" "${CAMERA_INFO_FILE}" "${CAMERA_INFO_TOPIC}" "${CAMERA_TOPIC}" "${LIDAR_TOPIC}" "${IMU_TOPIC}" "${ODOM_TOPIC}" "${EXTRA_TOPICS[@]}" <<'PY'
 import datetime as dt
 import json
 import sys
@@ -187,6 +226,11 @@ from pathlib import Path
     camera_info_status,
     camera_info_file,
     camera_info_topic,
+    camera_topic,
+    lidar_topic,
+    imu_topic,
+    odom_topic,
+    *extra_topics,
 ) = sys.argv[1:]
 def existing(path):
     p = Path(path)
@@ -200,6 +244,13 @@ data = {
         "sensor_preflight": {
             "status": sensor_status,
             "sensor_summary": existing(sensor_summary),
+            "topics": {
+                "camera": camera_topic,
+                "lidar": lidar_topic,
+                "imu": imu_topic,
+                "odom": odom_topic,
+                "extra": extra_topics,
+            },
         },
         "jetson_environment": {
             "status": environment_status,

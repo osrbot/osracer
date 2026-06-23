@@ -121,6 +121,10 @@ captures sensor topic evidence, Jetson environment, serial latency, and one
 ```bash
 tools/jetson_measurement_session.sh \
   --output-dir /tmp/osracer_measurement_session \
+  --camera-topic /rgb/image_raw \
+  --lidar-topic /scan \
+  --imu-topic /imu_filter \
+  --odom-topic /odometry/filtered \
   --camera-info-topic /camera_info
 ```
 
