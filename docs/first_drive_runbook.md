@@ -53,6 +53,18 @@ ros2 launch osracer_bringup lidar.launch.py
 ros2 launch osracer_bringup usb_cam.launch.py
 ```
 
+Capture the sensor device and ROS topic contract:
+
+```bash
+tools/jetson_sensor_preflight.sh \
+  --output-dir /tmp/osracer_sensor_preflight \
+  --duration 10 \
+  --camera-topic /rgb/image_raw \
+  --lidar-topic /scan \
+  --imu-topic /imu_filter \
+  --odom-topic /odometry/filtered
+```
+
 Run the read-only readiness check:
 
 ```bash

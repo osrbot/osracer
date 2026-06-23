@@ -90,6 +90,11 @@ if [[ -x "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/jetson_performance_profi
 else
     warn "jetson_performance_profile.sh: not executable"
 fi
+if [[ -x "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/jetson_sensor_preflight.sh" ]]; then
+    ok "jetson_sensor_preflight.sh: available"
+else
+    warn "jetson_sensor_preflight.sh: not executable"
+fi
 check_cmd nvidia-smi
 
 if command -v nvpmodel >/dev/null 2>&1; then
@@ -253,6 +258,7 @@ fi
 
 echo "-- Performance profile hint --"
 echo "Run tools/jetson_performance_profile.sh before changing power/clocks."
+echo "Run tools/jetson_sensor_preflight.sh after starting sensors to record device/topic rates."
 echo "After selecting the correct nvpmodel mode on the target Jetson, apply with:"
 echo "  tools/jetson_performance_profile.sh --apply --nvpmodel MODE_ID --jetson-clocks --set-cpu-governor"
 

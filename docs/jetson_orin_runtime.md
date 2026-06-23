@@ -86,6 +86,23 @@ Run the optional offline replay smoke when `policy.pt` is available:
 tools/jetson_preflight.sh --policy /path/to/policy.pt --offline-smoke
 ```
 
+After starting camera, lidar, chassis, IMU, and odometry drivers, capture the
+actual sensor device and ROS topic contract:
+
+```bash
+tools/jetson_sensor_preflight.sh \
+  --output-dir /tmp/osracer_sensor_preflight \
+  --duration 10 \
+  --camera-topic /rgb/image_raw \
+  --lidar-topic /scan \
+  --imu-topic /imu_filter \
+  --odom-topic /odometry/filtered
+```
+
+Keep the generated `summary.md` and logs with the real-car measurement JSON.
+This is the quickest way to prove AR0234 camera visibility, 25m lidar network or
+USB visibility, topic frame names, and measured topic rates on Orin Nano.
+
 If the policy came from an `osracer_lab` deployment package, verify the package
 first:
 
