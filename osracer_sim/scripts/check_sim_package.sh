@@ -59,6 +59,7 @@ for token in (
     'slam_sim.launch.py',
     'navigation_sim.launch.py',
     'race_sim.launch.py',
+    'validate_sim_ros.sh',
     'osracer_rect_track.sdf',
     'osracer_simple',
     'ros_gz_bridge',
@@ -80,6 +81,7 @@ for path in (
     package_dir / 'models' / 'osracer_simple' / 'model.config',
     package_dir / 'models' / 'osracer_simple' / 'model.sdf',
     package_dir / 'scripts' / 'check_sim_package.sh',
+    package_dir / 'scripts' / 'validate_sim_ros.sh',
 ):
     if not path.exists():
         raise SystemExit(f'missing installed resource: {path}')

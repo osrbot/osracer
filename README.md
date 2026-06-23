@@ -286,6 +286,12 @@ ros2 launch osracer_sim race_sim.launch.py stage:=mpc
 Pass `eval_output_csv:=/tmp/osracer_sim_eval_<stage>.csv` to collect comparable
 race evaluation logs from simulated controller runs.
 
+After building the workspace, validate installed simulation launch entries:
+
+```bash
+bash $(ros2 pkg prefix osracer_sim)/share/osracer_sim/scripts/validate_sim_ros.sh
+```
+
 The first simulation stage publishes `/odometry/filtered`, `/tf`,
 `/joint_states`, `/scan`, and `/clock` from the measured OSRacer geometry. The
 default `/scan` is a rectangular-track raycast suitable for Gap Follow, TTC

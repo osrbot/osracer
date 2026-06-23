@@ -83,6 +83,22 @@ class SimMathTest(unittest.TestCase):
         self.assertIn("'eval_output_csv': eval_output_csv", launch_text)
         self.assertIn("DeclareLaunchArgument('eval_output_csv'", launch_text)
 
+    def test_validate_sim_ros_covers_sim_launches_and_stages(self):
+        package_dir = Path(__file__).resolve().parents[1]
+        script_text = (package_dir / 'scripts' / 'validate_sim_ros.sh').read_text(encoding='utf-8')
+        for launch_name in (
+            'base_sim.launch.py',
+            'gazebo.launch.py',
+            'slam_sim.launch.py',
+            'navigation_sim.launch.py',
+            'race_sim.launch.py',
+        ):
+            self.assertIn(f'ros2 launch osracer_sim {launch_name}', script_text)
+        for stage in ('gap_follow', 'track_record', 'pure_pursuit', 'stanley', 'vehicle_id', 'mpc'):
+            self.assertIn(stage, script_text)
+        self.assertIn('obstacle_enabled:=true', script_text)
+        self.assertIn('use_gz_control:=true', script_text)
+
 
 if __name__ == '__main__':
     unittest.main()

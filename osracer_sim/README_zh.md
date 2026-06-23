@@ -209,3 +209,12 @@ ros2 run osracer_race race_report_tools \
 ```bash
 bash osracer_sim/scripts/check_sim_package.sh
 ```
+
+构建并 source 工作空间后，运行 ROS 入口验证：
+
+```bash
+bash $(ros2 pkg prefix osracer_sim)/share/osracer_sim/scripts/validate_sim_ros.sh
+```
+
+该脚本会检查基础、Gazebo、SLAM、Nav2 和六个 Race stage 的 launch 参数解析，
+并覆盖障碍物仿真与 Gazebo joint controller 的参数组合。

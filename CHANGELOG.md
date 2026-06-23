@@ -21,6 +21,9 @@
   safety, Gap Follow, and overtaking flows can be smoke-tested without hardware.
 - Added `eval_output_csv` passthrough in `race_sim.launch.py` for comparable
   simulation evaluation logs across Gap Follow, Pure Pursuit, Stanley, and MPC.
+- Added `validate_sim_ros.sh` and Docker coverage for installed simulation
+  launch entries, race-stage arguments, obstacle scenarios, and Gazebo control
+  arguments.
 
 ### Navigation
 

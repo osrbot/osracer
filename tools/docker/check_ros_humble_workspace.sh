@@ -94,6 +94,13 @@ else
   echo "Skipped osracer_sim self-check; package was not built in this profile."
 fi
 
+echo "[3c/4] osracer_sim ROS entry checks"
+if [[ -n "${SIM_PREFIX:-}" ]]; then
+  bash "${SIM_PREFIX}/share/osracer_sim/scripts/validate_sim_ros.sh"
+else
+  echo "Skipped osracer_sim ROS entry checks; package was not built in this profile."
+fi
+
 echo "[4/4] selected workspace launch arguments"
 if [[ -z "${BUILD_PACKAGES}" ]]; then
   ros2 launch osracer_bringup bringup.launch.py --show-args >/dev/null
