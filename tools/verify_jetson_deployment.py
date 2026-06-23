@@ -98,6 +98,24 @@ def check_manifest(package_dir, manifest, expected_sha, failures):
     return policy_name
 
 
+def check_measured_overlay(package_dir, manifest, failures):
+    overlay_meta = manifest.get("measured_overlay", {})
+    if not overlay_meta.get("included"):
+        ok("measured overlay: not included")
+        return
+    artifact = overlay_meta.get("artifact", "measured_overlay.json")
+    path = package_dir / artifact
+    overlay = load_json(path, failures)
+    if not overlay:
+        return
+    required = ("base_hardware_params", "measured_overlay", "validation", "calibration_plan")
+    for key in required:
+        if key in overlay:
+            ok(f"measured_overlay {key}")
+        else:
+            fail(f"measured_overlay missing key: {key}", failures)
+
+
 def check_hardware_contract(package_dir, manifest, failures):
     hardware = load_json(package_dir / "hardware_params.json", failures)
     if not hardware:
@@ -204,6 +222,7 @@ def main():
     check_sha256s(package_dir, expected_sha, failures)
     policy_name = check_manifest(package_dir, manifest, expected_sha, failures)
     check_hardware_contract(package_dir, manifest, failures)
+    check_measured_overlay(package_dir, manifest, failures)
 
     package_format = manifest.get("format", "torchscript")
     if policy_name:
