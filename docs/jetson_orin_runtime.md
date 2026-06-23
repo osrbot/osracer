@@ -225,6 +225,18 @@ ros2 topic hz /odom
 ros2 topic hz /imu_filter
 ```
 
+For a repeatable runtime snapshot, run:
+
+```bash
+tools/jetson_runtime_monitor.sh \
+  --duration 60 \
+  --output-dir /tmp/osracer_runtime_monitor
+```
+
+Run it once with policy inference disabled and once with `enabled:=True` on
+blocks. Compare topic rates, process RSS/CPU, and tegrastats logs before floor
+tests.
+
 Recommended Orin Nano Super 8GB runtime posture:
 
 - Keep training on the RTX 4080 SUPER host.
