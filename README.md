@@ -403,6 +403,14 @@ tools/real_car_readiness_check.sh \
   --policy /path/to/policy.pt \
   --observations /tmp/osracer_policy_observations.csv \
   --replay /tmp/osracer_policy_replay.csv
+
+tools/first_drive_gate.py \
+  --package-dir /path/to/osracer_jetson_deployment \
+  --policy-replay /tmp/osracer_policy_replay.csv \
+  --sensor-summary /tmp/osracer_sensor_preflight/sensor_summary.json \
+  --serial-latency /tmp/osracer_serial_latency.json \
+  --runtime-dir /tmp/osracer_runtime_monitor \
+  --output /tmp/osracer_first_drive_gate.json
 ```
 
 Runtime prerequisites:

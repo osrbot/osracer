@@ -72,12 +72,28 @@ def check_sha256s(package_dir, expected, failures):
             fail(f"sha256 mismatch for {name}: {actual} != {expected_digest}", failures)
 
 
+def policy_candidates(manifest):
+    artifacts = manifest.get("artifacts", {})
+    explicit = manifest.get("policy_artifact")
+    if explicit:
+        return [explicit]
+    ignored_names = {"hardware_params.json", "manifest.json", "README.md", "SHA256SUMS"}
+    ignored_kinds = {"measured_overlay", "hardware_params", "readme", "manifest", "checksum"}
+    candidates = []
+    for name, metadata in sorted(artifacts.items()):
+        if name in ignored_names:
+            continue
+        if metadata.get("kind") in ignored_kinds:
+            continue
+        candidates.append(name)
+    return candidates
+
+
 def check_manifest(package_dir, manifest, expected_sha, failures):
     artifacts = manifest.get("artifacts", {})
     if not artifacts:
         fail("manifest artifacts missing", failures)
         return None
-    policy_name = None
     for name, metadata in sorted(artifacts.items()):
         path = package_dir / name
         if not path.is_file():
@@ -93,9 +109,18 @@ def check_manifest(package_dir, manifest, expected_sha, failures):
             ok(f"manifest sha256 {name}")
         if name in expected_sha and expected_sha[name] != metadata.get("sha256"):
             fail(f"SHA256SUMS disagrees with manifest for {name}", failures)
-        if name not in {"hardware_params.json", "manifest.json", "README.md", "SHA256SUMS"} and policy_name is None:
-            policy_name = name
-    return policy_name
+    candidates = policy_candidates(manifest)
+    if len(candidates) == 1:
+        if candidates[0] not in artifacts:
+            fail(f"policy artifact not found in manifest artifacts: {candidates[0]}", failures)
+            return None
+        ok(f"policy artifact: {candidates[0]}")
+        return candidates[0]
+    if not candidates:
+        fail("policy artifact not declared in manifest", failures)
+    else:
+        fail(f"multiple policy artifact candidates: {candidates}", failures)
+    return None
 
 
 def check_measured_overlay(package_dir, manifest, failures):

@@ -363,6 +363,19 @@ To summarize an existing monitor directory again, run:
 tools/jetson_runtime_summary.py /tmp/osracer_runtime_monitor
 ```
 
+Before first closed-loop motion, aggregate the deployment package, replay, sensor,
+serial, and runtime evidence into one go/no-go report:
+
+```bash
+tools/first_drive_gate.py \
+  --package-dir /path/to/osracer_jetson_deployment \
+  --policy-replay /tmp/osracer_policy_replay.csv \
+  --sensor-summary /tmp/osracer_sensor_preflight/sensor_summary.json \
+  --serial-latency /tmp/osracer_serial_latency.json \
+  --runtime-dir /tmp/osracer_runtime_monitor \
+  --output /tmp/osracer_first_drive_gate.json
+```
+
 Recommended Orin Nano Super 8GB runtime posture:
 
 - Run `tools/jetson_performance_profile.sh` before and after applying the profile so the before/after state is recorded.

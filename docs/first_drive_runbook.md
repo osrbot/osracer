@@ -219,6 +219,18 @@ Rules:
 - Save logs for every run.
 - Do not raise `max_speed_mps` until offline replay and real behavior agree.
 
+Before enabling closed-loop motion, save a final go/no-go report:
+
+```bash
+tools/first_drive_gate.py \
+  --package-dir /path/to/osracer_jetson_deployment \
+  --policy-replay /tmp/osracer_policy_replay.csv \
+  --sensor-summary /tmp/osracer_sensor_preflight/sensor_summary.json \
+  --serial-latency /tmp/osracer_serial_latency.json \
+  --runtime-dir /tmp/osracer_runtime_monitor \
+  --output /tmp/osracer_first_drive_gate.json
+```
+
 Stop immediately if:
 
 - The car turns opposite the expected direction.
