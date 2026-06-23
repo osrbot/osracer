@@ -77,8 +77,8 @@ def policy_candidates(manifest):
     explicit = manifest.get("policy_artifact")
     if explicit:
         return [explicit]
-    ignored_names = {"hardware_params.json", "manifest.json", "README.md", "SHA256SUMS"}
-    ignored_kinds = {"measured_overlay", "hardware_params", "readme", "manifest", "checksum"}
+    ignored_names = {"hardware_params.json", "manifest.json", "README.md", "SHA256SUMS", "source_authority_snapshot.json"}
+    ignored_kinds = {"measured_overlay", "source_authority_snapshot", "hardware_params", "readme", "manifest", "checksum"}
     candidates = []
     for name, metadata in sorted(artifacts.items()):
         if name in ignored_names:
@@ -139,6 +139,37 @@ def check_measured_overlay(package_dir, manifest, failures):
             ok(f"measured_overlay {key}")
         else:
             fail(f"measured_overlay missing key: {key}", failures)
+
+
+def check_source_authority_snapshot(package_dir, manifest, failures):
+    snapshot_meta = manifest.get("source_authority_snapshot", {})
+    if not snapshot_meta.get("included"):
+        ok("source authority snapshot: not included")
+        return
+    artifact = snapshot_meta.get("artifact", "source_authority_snapshot.json")
+    path = package_dir / artifact
+    snapshot = load_json(path, failures)
+    if not snapshot:
+        return
+    for key in ("sources", "osrcore_contract", "osracer_contract"):
+        if key in snapshot:
+            ok(f"source_authority_snapshot {key}")
+        else:
+            fail(f"source_authority_snapshot missing key: {key}", failures)
+    osrcore = snapshot.get("osrcore_contract", {})
+    osracer = snapshot.get("osracer_contract", {})
+    checks = {
+        "osrcore serial_timeout_ms": (osrcore.get("serial_timeout_ms"), 500),
+        "osrcore velocity_command_documented": (osrcore.get("velocity_command_documented"), True),
+        "osrcore sync_frame_documented": (osrcore.get("sync_frame_documented"), True),
+        "osracer launch_baud_rate": (osracer.get("launch_baud_rate"), 460800),
+        "osracer launch_port_name": (osracer.get("launch_port_name"), "/dev/osrbot_base"),
+    }
+    for label, (actual, expected) in checks.items():
+        if actual == expected:
+            ok(f"source_authority_snapshot {label}: {actual}")
+        else:
+            fail(f"source_authority_snapshot {label}: actual={actual!r} expected={expected!r}", failures)
 
 
 def check_hardware_contract(package_dir, manifest, failures):
@@ -248,6 +279,7 @@ def main():
     policy_name = check_manifest(package_dir, manifest, expected_sha, failures)
     check_hardware_contract(package_dir, manifest, failures)
     check_measured_overlay(package_dir, manifest, failures)
+    check_source_authority_snapshot(package_dir, manifest, failures)
 
     package_format = manifest.get("format", "torchscript")
     if policy_name:
