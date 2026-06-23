@@ -45,6 +45,17 @@ def ackermann_gazebo_commands(
     return left_steering, right_steering, wheel_velocity
 
 
+def obstacle_preset(name: str) -> list[CircleObstacle]:
+    presets = {
+        'front': [(2.0, -1.7, 0.25)],
+        'left': [(1.6, -1.15, 0.25)],
+        'right': [(1.6, -2.25, 0.25)],
+        'off': [],
+        'custom': [],
+    }
+    return list(presets.get(name, []))
+
+
 def synthetic_scan(points: int, angle_min: float, angle_increment: float, max_range: float) -> list[float]:
     ranges = []
     for index in range(points):

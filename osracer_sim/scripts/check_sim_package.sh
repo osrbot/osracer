@@ -67,6 +67,7 @@ for token in (
     '/gazebo/imu',
     '/gazebo/left_steering_position',
     '/model/osracer_simple/joint',
+    'obstacle_preset',
     'obstacle_enabled',
     'eval_output_csv',
 ):

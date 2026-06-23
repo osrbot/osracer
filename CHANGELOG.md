@@ -24,6 +24,8 @@
 - Added `validate_sim_ros.sh` and Docker coverage for installed simulation
   launch entries, race-stage arguments, obstacle scenarios, and Gazebo control
   arguments.
+- Added reusable obstacle presets (`front`, `left`, `right`, `off`, `custom`)
+  for kinematic scan simulation scenarios.
 
 ### Navigation
 

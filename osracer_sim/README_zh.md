@@ -45,11 +45,21 @@ ros2 launch osracer_sim base_sim.launch.py scan_environment:=hallway
 
 ```bash
 ros2 launch osracer_sim base_sim.launch.py \
+  obstacle_preset:=front
+```
+
+也可以用自定义坐标：
+
+```bash
+ros2 launch osracer_sim base_sim.launch.py \
+  obstacle_preset:=custom \
   obstacle_enabled:=true \
   obstacle_x:=2.0 \
   obstacle_y:=-1.7 \
   obstacle_radius:=0.25
 ```
+
+内置 `obstacle_preset` 支持 `off`、`front`、`left`、`right` 和 `custom`。
 
 ## Gazebo 赛道世界
 
@@ -172,10 +182,7 @@ ros2 launch osracer_sim race_sim.launch.py \
 ```bash
 ros2 launch osracer_sim race_sim.launch.py \
   stage:=gap_follow \
-  obstacle_enabled:=true \
-  obstacle_x:=2.0 \
-  obstacle_y:=-1.7 \
-  obstacle_radius:=0.25
+  obstacle_preset:=front
 ```
 
 该障碍物只注入到 kinematic `/scan`，用于验证 TTC safety、Gap Follow 和

@@ -38,6 +38,7 @@ done
 echo "[4/5] Scenario launch arguments"
 ros2 launch osracer_sim race_sim.launch.py \
   stage:=gap_follow \
+  obstacle_preset:=front \
   obstacle_enabled:=true \
   eval_output_csv:=/tmp/osracer_sim_eval_validate.csv \
   --show-args >/dev/null

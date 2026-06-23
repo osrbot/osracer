@@ -24,6 +24,7 @@ from tf2_ros import TransformBroadcaster
 from osracer_sim.kinematics import (
     ackermann_front_angles,
     clamp,
+    obstacle_preset,
     rectangular_track_segments,
     steering_from_twist,
     synthetic_scan,
@@ -62,6 +63,7 @@ class AckermannKinematicSim(Node):
         self.declare_parameter('track_outer_length_m', 7.0)
         self.declare_parameter('track_outer_width_m', 4.5)
         self.declare_parameter('track_lane_width_m', 1.1)
+        self.declare_parameter('obstacle_preset', 'custom')
         self.declare_parameter('obstacle_enabled', False)
         self.declare_parameter('obstacle_x', 2.0)
         self.declare_parameter('obstacle_y', -1.7)
@@ -263,6 +265,10 @@ class AckermannKinematicSim(Node):
         self.scan_pub.publish(msg)
 
     def scan_obstacles(self) -> list[tuple[float, float, float]]:
+        preset = str(self.get_parameter('obstacle_preset').value)
+        preset_obstacles = obstacle_preset(preset)
+        if preset != 'custom':
+            return preset_obstacles
         if not bool(self.get_parameter('obstacle_enabled').value):
             return []
         return [(

@@ -6,6 +6,7 @@ from osracer_sim.kinematics import (
     ackermann_front_angles,
     ackermann_gazebo_commands,
     clamp,
+    obstacle_preset,
     ray_circle_distance,
     ray_segment_distance,
     rectangular_track_segments,
@@ -76,12 +77,20 @@ class SimMathTest(unittest.TestCase):
         self.assertLess(blocked_ranges[2], clear_ranges[2])
         self.assertAlmostEqual(blocked_ranges[2], 0.8)
 
+    def test_obstacle_presets_cover_common_sim_scenarios(self):
+        self.assertEqual(obstacle_preset('off'), [])
+        self.assertEqual(obstacle_preset('front'), [(2.0, -1.7, 0.25)])
+        self.assertEqual(obstacle_preset('left'), [(1.6, -1.15, 0.25)])
+        self.assertEqual(obstacle_preset('right'), [(1.6, -2.25, 0.25)])
+        self.assertEqual(obstacle_preset('unknown'), [])
+
     def test_race_sim_exposes_eval_output_csv(self):
         package_dir = Path(__file__).resolve().parents[1]
         launch_text = (package_dir / 'launch' / 'race_sim.launch.py').read_text(encoding='utf-8')
         self.assertIn("LaunchConfiguration('eval_output_csv')", launch_text)
         self.assertIn("'eval_output_csv': eval_output_csv", launch_text)
         self.assertIn("DeclareLaunchArgument('eval_output_csv'", launch_text)
+        self.assertIn("LaunchConfiguration('obstacle_preset')", launch_text)
 
     def test_validate_sim_ros_covers_sim_launches_and_stages(self):
         package_dir = Path(__file__).resolve().parents[1]

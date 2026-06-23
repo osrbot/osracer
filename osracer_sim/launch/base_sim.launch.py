@@ -47,6 +47,7 @@ def generate_launch_description():
                 LaunchConfiguration('track_outer_width_m'), value_type=float),
             'track_lane_width_m': ParameterValue(
                 LaunchConfiguration('track_lane_width_m'), value_type=float),
+            'obstacle_preset': LaunchConfiguration('obstacle_preset'),
             'obstacle_enabled': ParameterValue(LaunchConfiguration('obstacle_enabled'), value_type=bool),
             'obstacle_x': ParameterValue(LaunchConfiguration('obstacle_x'), value_type=float),
             'obstacle_y': ParameterValue(LaunchConfiguration('obstacle_y'), value_type=float),
@@ -73,6 +74,10 @@ def generate_launch_description():
         DeclareLaunchArgument('track_outer_length_m', default_value='7.0'),
         DeclareLaunchArgument('track_outer_width_m', default_value='4.5'),
         DeclareLaunchArgument('track_lane_width_m', default_value='1.1'),
+        DeclareLaunchArgument(
+            'obstacle_preset',
+            default_value='custom',
+            choices=['custom', 'off', 'front', 'left', 'right']),
         DeclareLaunchArgument('obstacle_enabled', default_value='false', choices=['true', 'false']),
         DeclareLaunchArgument('obstacle_x', default_value='2.0'),
         DeclareLaunchArgument('obstacle_y', default_value='-1.7'),

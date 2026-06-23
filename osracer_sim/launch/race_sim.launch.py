@@ -28,6 +28,7 @@ def generate_launch_description():
         launch_arguments={
             'use_sim_time': 'true',
             'use_rviz': LaunchConfiguration('use_rviz'),
+            'obstacle_preset': LaunchConfiguration('obstacle_preset'),
             'obstacle_enabled': LaunchConfiguration('obstacle_enabled'),
             'obstacle_x': LaunchConfiguration('obstacle_x'),
             'obstacle_y': LaunchConfiguration('obstacle_y'),
@@ -105,6 +106,10 @@ def generate_launch_description():
             ])),
         DeclareLaunchArgument('record_output_csv', default_value='/tmp/osracer_sim_recorded_track.csv'),
         DeclareLaunchArgument('eval_output_csv', default_value='/tmp/osracer_sim_eval.csv'),
+        DeclareLaunchArgument(
+            'obstacle_preset',
+            default_value='custom',
+            choices=['custom', 'off', 'front', 'left', 'right']),
         DeclareLaunchArgument('obstacle_enabled', default_value='false', choices=['true', 'false']),
         DeclareLaunchArgument('obstacle_x', default_value='2.0'),
         DeclareLaunchArgument('obstacle_y', default_value='-1.7'),

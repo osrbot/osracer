@@ -316,7 +316,7 @@ The kinematic `/scan` can include a deterministic circular obstacle for race
 controller safety and overtaking smoke tests:
 
 ```bash
-ros2 launch osracer_sim race_sim.launch.py stage:=gap_follow obstacle_enabled:=true
+ros2 launch osracer_sim race_sim.launch.py stage:=gap_follow obstacle_preset:=front
 ```
 
 ### 3.2 Sensors
