@@ -112,6 +112,47 @@ tools/real_car_readiness_check.sh \
 
 On Jetson, prefer NVIDIA-provided or JetPack-compatible Python wheels for acceleration libraries.
 
+
+## ONNX and TensorRT Path
+
+For the first MLP drift policy, TorchScript is the lowest-risk runtime. For
+visual policies or any deployment that starts competing with camera processing
+for the 8GB memory budget, export ONNX and build a TensorRT engine on the target
+Jetson.
+
+Export ONNX from `osracer_lab`:
+
+```bash
+~/rlgpu_ws/IsaacLab/isaaclab.sh -p scripts/export_osracer_policy.py \
+  --headless \
+  --checkpoint /path/to/model.pt \
+  --format onnx \
+  --output_dir /tmp/osracer_policy_export
+```
+
+Build a TensorRT engine on Jetson after applying the performance profile:
+
+```bash
+tools/build_tensorrt_engine.sh \
+  --onnx /tmp/osracer_policy_export/policy.onnx \
+  --engine /tmp/osracer_policy_export/policy_fp16.engine \
+  --fp16 \
+  --workspace-mb 1024
+```
+
+Use `--dry-run` first to record the exact `trtexec` command. Keep batch size 1
+for live control unless a batch-specific offline benchmark proves otherwise.
+
+Deployment packages are format-aware:
+
+```bash
+tools/verify_jetson_deployment.py /path/to/package
+```
+
+The verifier runs TorchScript load checks for `torchscript`, ONNX checker for
+`onnx`, and a structural engine check plus optional `trtexec --loadEngine` for
+`tensorrt`.
+
 ## Runtime Launch Flow
 
 Build and source the OSRacer workspace:

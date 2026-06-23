@@ -12,7 +12,7 @@ from pathlib import Path
 def parse_args():
     parser = argparse.ArgumentParser(description="Verify OSRacer Jetson deployment package.")
     parser.add_argument("package_dir", help="Directory containing manifest.json and SHA256SUMS")
-    parser.add_argument("--skip-policy-load", action="store_true", help="Skip TorchScript load/run check")
+    parser.add_argument("--skip-policy-load", action="store_true", help="Skip policy runtime load/checker validation")
     parser.add_argument("--obs-dim", type=int, default=14, help="Policy observation dimension for TorchScript smoke")
     return parser.parse_args()
 
@@ -118,7 +118,7 @@ def check_hardware_contract(package_dir, manifest, failures):
             fail(f"runtime_contract {key}: hardware={actual!r} manifest={expected!r}", failures)
 
 
-def check_policy_load(path, obs_dim, failures):
+def check_torchscript_policy(path, obs_dim, failures):
     code = f"""
 import sys
 import torch
@@ -135,6 +135,54 @@ print(tuple(out.shape))
         ok(f"TorchScript load/run {path.name}: output_shape={output.strip()}")
     except Exception as exc:
         fail(f"TorchScript load/run failed for {path.name}: {exc}", failures)
+
+
+def check_onnx_policy(path, failures):
+    code = """
+import sys
+import onnx
+path = sys.argv[1]
+model = onnx.load(path)
+onnx.checker.check_model(model)
+inputs = [node.name for node in model.graph.input]
+outputs = [node.name for node in model.graph.output]
+print(f"inputs={inputs} outputs={outputs}")
+"""
+    try:
+        output = subprocess.check_output([sys.executable, "-c", code, str(path)], text=True, stderr=subprocess.STDOUT)
+        ok(f"ONNX checker {path.name}: {output.strip()}")
+    except Exception as exc:
+        fail(f"ONNX checker failed for {path.name}: {exc}", failures)
+
+
+def check_tensorrt_engine(path, failures):
+    if path.stat().st_size <= 0:
+        fail(f"TensorRT engine is empty: {path.name}", failures)
+        return
+    ok(f"TensorRT engine artifact {path.name}: {path.stat().st_size} bytes")
+    try:
+        output = subprocess.check_output(
+            ["trtexec", "--loadEngine=" + str(path), "--verbose", "--noDataTransfers"],
+            text=True,
+            stderr=subprocess.STDOUT,
+            timeout=30,
+        )
+        ok(f"trtexec load {path.name}: {output.splitlines()[-1] if output.splitlines() else 'OK'}")
+    except FileNotFoundError:
+        ok("trtexec not found; structural TensorRT engine check only")
+    except Exception as exc:
+        fail(f"trtexec load failed for {path.name}: {exc}", failures)
+
+
+def check_policy_artifact(path, package_format, obs_dim, failures):
+    if package_format == "torchscript":
+        check_torchscript_policy(path, obs_dim, failures)
+    elif package_format == "onnx":
+        check_onnx_policy(path, failures)
+    elif package_format == "tensorrt":
+        check_tensorrt_engine(path, failures)
+    else:
+        fail(f"Unsupported deployment format: {package_format!r}", failures)
 
 
 def main():
@@ -157,12 +205,14 @@ def main():
     policy_name = check_manifest(package_dir, manifest, expected_sha, failures)
     check_hardware_contract(package_dir, manifest, failures)
 
+    package_format = manifest.get("format", "torchscript")
     if policy_name:
         policy_path = package_dir / policy_name
+        ok(f"deployment format: {package_format}")
         if args.skip_policy_load:
-            ok(f"policy load skipped: {policy_name}")
+            ok(f"policy runtime validation skipped: {policy_name}")
         else:
-            check_policy_load(policy_path, args.obs_dim, failures)
+            check_policy_artifact(policy_path, package_format, args.obs_dim, failures)
     else:
         fail("policy artifact not found in manifest", failures)
 
