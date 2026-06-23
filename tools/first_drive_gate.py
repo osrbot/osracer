@@ -51,6 +51,17 @@ def check(ok, name, detail, report):
         report["failures"].append(f"{name}: {detail}")
 
 
+def package_task(package_dir):
+    manifest = Path(package_dir).resolve() / "manifest.json"
+    if not manifest.is_file():
+        return None
+    with manifest.open("r", encoding="utf-8") as handle:
+        data = json.load(handle)
+    if not isinstance(data, dict):
+        return None
+    return str(data.get("task", ""))
+
+
 def run_package_verifier(args, report):
     command = [sys.executable, str(TOOLS_DIR / "verify_jetson_deployment.py"), str(Path(args.package_dir).resolve()), "--obs-dim", str(args.obs_dim)]
     if not args.load_policy:
@@ -75,6 +86,13 @@ def run_package_verifier(args, report):
         )
         detail = "verified by deployment package verifier" if snapshot_ok else "missing verifier OK lines"
         check(snapshot_ok, "source_authority_snapshot", detail, report)
+    task = package_task(args.package_dir)
+    if task and "Visual" not in task:
+        check(True, "camera_calibration_overlay", f"not required for task={task}", report)
+    else:
+        camera_ok = result.returncode == 0 and "[OK] camera calibration overlay:" in log_text
+        detail = "verified by deployment package verifier" if camera_ok else "missing verifier OK line"
+        check(camera_ok, "camera_calibration_overlay", detail, report)
 
 
 def run_policy_replay(args, report):

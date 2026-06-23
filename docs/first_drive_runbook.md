@@ -243,6 +243,8 @@ For visual policy packages, the evidence verifier also rechecks the archived
 deployment package for CameraInfo-derived camera calibration and confirms the
 first-drive gate log contains the deployment verifier's camera-calibration OK
 line.
+The first-drive gate report itself includes a separate
+`camera_calibration_overlay` check for visual packages.
 
 Stop immediately if:
 
