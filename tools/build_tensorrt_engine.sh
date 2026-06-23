@@ -9,6 +9,7 @@ MIN_BATCH=1
 OPT_BATCH=1
 MAX_BATCH=1
 DRY_RUN=0
+LOG_PATH=""
 EXTRA_ARGS=()
 
 fail() { printf '[FAIL] %s\n' "$*" >&2; }
@@ -28,6 +29,7 @@ Options:
   --opt-batch N        Dynamic batch optimum; default: 1.
   --max-batch N        Dynamic batch maximum; default: 1.
   --trtexec-arg ARG    Extra argument passed to trtexec; repeatable.
+  --log PATH           Save trtexec output to PATH.
   --dry-run            Print the trtexec command without executing it.
   -h, --help           Show this help.
 
@@ -72,6 +74,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --trtexec-arg)
             EXTRA_ARGS+=("${2:-}")
+            shift 2
+            ;;
+        --log)
+            LOG_PATH="${2:-}"
             shift 2
             ;;
         --dry-run)
@@ -134,7 +140,12 @@ if ! command -v trtexec >/dev/null 2>&1; then
     fail "trtexec not found; install TensorRT tools from JetPack before building engines"
     exit 1
 fi
-"${cmd[@]}"
+if [[ -n "${LOG_PATH}" ]]; then
+    mkdir -p "$(dirname "${LOG_PATH}")"
+    "${cmd[@]}" 2>&1 | tee "${LOG_PATH}"
+else
+    "${cmd[@]}"
+fi
 if [[ -s "${ENGINE_PATH}" ]]; then
     ok "wrote TensorRT engine: ${ENGINE_PATH} ($(stat -c%s "${ENGINE_PATH}" 2>/dev/null || wc -c <"${ENGINE_PATH}") bytes)"
 else

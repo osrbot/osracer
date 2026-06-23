@@ -137,11 +137,20 @@ tools/build_tensorrt_engine.sh \
   --onnx /tmp/osracer_policy_export/policy.onnx \
   --engine /tmp/osracer_policy_export/policy_fp16.engine \
   --fp16 \
-  --workspace-mb 1024
+  --workspace-mb 1024 \
+  --log /tmp/osracer_policy_export/trtexec_build.log
 ```
 
 Use `--dry-run` first to record the exact `trtexec` command. Keep batch size 1
 for live control unless a batch-specific offline benchmark proves otherwise.
+Summarize the TensorRT timing log with the same benchmark report format:
+
+```bash
+tools/benchmark_policy_inference.py \
+  --format trtexec-log \
+  --trtexec-log /tmp/osracer_policy_export/trtexec_build.log \
+  --output /tmp/osracer_policy_export/trtexec_benchmark.json
+```
 
 Deployment packages are format-aware:
 
