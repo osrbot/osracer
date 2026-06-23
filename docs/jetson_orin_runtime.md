@@ -51,6 +51,7 @@ Later targets:
 6. Install `ros-jazzy-ackermann-msgs`.
 7. Install Torch for the exact Python used by `ros2 launch`.
 8. Run `tools/jetson_preflight.sh`.
+9. Review and apply the runtime performance profile before latency-sensitive tests.
 
 Example:
 
@@ -58,6 +59,25 @@ Example:
 sudo apt install ros-jazzy-ackermann-msgs
 python3 -m pip install torch
 tools/jetson_preflight.sh /path/to/policy.pt
+```
+
+Review Jetson power, clocks, CPU governors, swap/zram, and storage without
+changing the system:
+
+```bash
+tools/jetson_performance_profile.sh
+```
+
+After checking the target Jetson's `nvpmodel -q` output, apply a repeatable
+runtime profile. `MODE_ID` is board/image specific, so do not hard-code it
+without checking the target device first:
+
+```bash
+sudo tools/jetson_performance_profile.sh \
+  --apply \
+  --nvpmodel MODE_ID \
+  --jetson-clocks \
+  --set-cpu-governor
 ```
 
 Run the optional offline replay smoke when `policy.pt` is available:
@@ -255,11 +275,12 @@ tools/jetson_runtime_summary.py /tmp/osracer_runtime_monitor
 
 Recommended Orin Nano Super 8GB runtime posture:
 
+- Run `tools/jetson_performance_profile.sh` before and after applying the profile so the before/after state is recorded.
+- Set the high-performance `nvpmodel` profile, run `jetson_clocks`, and keep the CPU governor at `performance` for repeatable latency tests.
+- Monitor thermals with `tegrastats`, especially during camera or visual-policy tests.
 - Keep training on the RTX 4080 SUPER host.
 - Run only inference, preprocessing, logging, and ROS control on Jetson.
 - Use NVMe for logs, replay CSVs, bags, and model artifacts.
-- Set the high-performance `nvpmodel` profile and run `jetson_clocks` for repeatable latency tests.
-- Keep `tegrastats` visible during camera or visual-policy tests.
 - Treat swap/zram as a safety margin, not as normal inference memory.
 - Prefer TorchScript for the first drift policy and TensorRT FP16 for visual policies.
 - Use INT8 only after calibration data is collected and offline replay proves bounded action differences.

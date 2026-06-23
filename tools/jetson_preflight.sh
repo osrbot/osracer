@@ -85,6 +85,11 @@ check_cmd nvpmodel
 check_cmd jetson_clocks
 check_cmd tegrastats
 check_cmd docker
+if [[ -x "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/jetson_performance_profile.sh" ]]; then
+    ok "jetson_performance_profile.sh: available"
+else
+    warn "jetson_performance_profile.sh: not executable"
+fi
 check_cmd nvidia-smi
 
 if command -v nvpmodel >/dev/null 2>&1; then
@@ -232,5 +237,10 @@ echo "-- ROS package hints --"
 if command -v apt-cache >/dev/null 2>&1; then
     apt-cache policy "ros-${ROS_DISTRO_NAME}-ackermann-msgs" 2>/dev/null | sed -n '1,8p'
 fi
+
+echo "-- Performance profile hint --"
+echo "Run tools/jetson_performance_profile.sh before changing power/clocks."
+echo "After selecting the correct nvpmodel mode on the target Jetson, apply with:"
+echo "  tools/jetson_performance_profile.sh --apply --nvpmodel MODE_ID --jetson-clocks --set-cpu-governor"
 
 echo "== Preflight complete =="
