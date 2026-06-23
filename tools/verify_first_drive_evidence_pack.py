@@ -83,6 +83,98 @@ def expected_camera_resolution(hardware):
     return 640, 480
 
 
+
+def deployment_format(pack_dir):
+    manifest_path = pack_dir / 'deployment_package' / 'manifest.json'
+    if not manifest_path.is_file():
+        return None
+    return str(load_json(manifest_path).get('format', ''))
+
+
+def verify_performance_profile(pack_dir, manifest, failures):
+    metadata = manifest.get('files', {}).get('performance_profile.json')
+    if not metadata:
+        fail('performance_profile.json missing from evidence pack', failures)
+        return
+    path = pack_dir / 'performance_profile.json'
+    if not path.is_file():
+        fail('performance_profile.json missing on disk', failures)
+        return
+    data = load_json(path)
+    requested = data.get('requested', {}) if isinstance(data.get('requested'), dict) else {}
+    tools = data.get('tools', {}) if isinstance(data.get('tools'), dict) else {}
+    jetson = data.get('jetson', {}) if isinstance(data.get('jetson'), dict) else {}
+    governors = data.get('cpu_governors', {}) if isinstance(data.get('cpu_governors'), dict) else {}
+    apply_requested = data.get('apply_requested')
+    is_jetson = jetson.get('is_jetson')
+    nvpmodel = requested.get('nvpmodel')
+    jetson_clocks = requested.get('jetson_clocks')
+    nvpmodel_present = tools.get('nvpmodel', {}).get('present') is True
+    jetson_clocks_present = tools.get('jetson_clocks', {}).get('present') is True
+    governor_ok = not requested.get('set_cpu_governor') or governors.get('all_match_requested') is True
+    if (
+        apply_requested is True
+        and is_jetson is True
+        and bool(nvpmodel)
+        and jetson_clocks is True
+        and nvpmodel_present
+        and jetson_clocks_present
+        and governor_ok
+    ):
+        ok(f'performance profile: nvpmodel={nvpmodel} jetson_clocks={jetson_clocks}')
+    else:
+        fail(
+            'performance profile invalid: '
+            f'apply={apply_requested} is_jetson={is_jetson} nvpmodel={nvpmodel} '
+            f'jetson_clocks={jetson_clocks} governor_ok={governor_ok}',
+            failures,
+        )
+
+
+def verify_tensorrt_build_report(pack_dir, manifest, failures):
+    fmt = deployment_format(pack_dir)
+    metadata = manifest.get('files', {}).get('tensorrt_build_report.json')
+    if not metadata:
+        if fmt == 'onnx':
+            fail('tensorrt_build_report.json required for ONNX deployment package', failures)
+        else:
+            ok(f'TensorRT build report: not required for package format={fmt}')
+        return
+    path = pack_dir / 'tensorrt_build_report.json'
+    if not path.is_file():
+        fail('tensorrt_build_report.json missing on disk', failures)
+        return
+    data = load_json(path)
+    build = data.get('build', {}) if isinstance(data.get('build'), dict) else {}
+    engine = data.get('engine', {}) if isinstance(data.get('engine'), dict) else {}
+    onnx = data.get('onnx', {}) if isinstance(data.get('onnx'), dict) else {}
+    status = data.get('status')
+    exit_code = data.get('exit_code')
+    dry_run = data.get('dry_run')
+    fp16 = build.get('fp16')
+    workspace = build.get('workspace_mb')
+    engine_exists = engine.get('exists') is True and isinstance(engine.get('bytes'), int) and engine.get('bytes') > 0
+    onnx_exists = onnx.get('exists') is True
+    if (
+        status == 'pass'
+        and exit_code == 0
+        and dry_run is False
+        and engine_exists
+        and onnx_exists
+        and fp16 is True
+        and isinstance(workspace, int)
+        and workspace >= 1024
+    ):
+        ok(f'TensorRT build report: fp16={fp16} workspace_mb={workspace} engine_bytes={engine.get("bytes")}')
+    else:
+        fail(
+            'TensorRT build report invalid: '
+            f'status={status} exit={exit_code} dry_run={dry_run} '
+            f'fp16={fp16} workspace_mb={workspace} engine={engine_exists}',
+            failures,
+        )
+
+
 def verify_camera_calibration_overlay(pack_dir, failures):
     failure_count = len(failures)
     package_dir = pack_dir / 'deployment_package'
@@ -192,6 +284,8 @@ def main():
         verify_group(pack_dir, dirname, files, failures)
     deployment = manifest.get('deployment_package', {})
     verify_group(pack_dir, 'deployment_package', deployment.get('files', {}), failures)
+    verify_performance_profile(pack_dir, manifest, failures)
+    verify_tensorrt_build_report(pack_dir, manifest, failures)
     verify_camera_calibration_overlay(pack_dir, failures)
     verify_gate_camera_log(pack_dir, failures)
 

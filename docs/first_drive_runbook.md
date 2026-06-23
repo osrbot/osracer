@@ -274,7 +274,9 @@ deployment package for CameraInfo-derived camera calibration and confirms the
 first-drive gate log contains the deployment verifier's camera-calibration OK
 line.
 The first-drive gate report itself includes a separate
-`camera_calibration_overlay` check for visual packages.
+`camera_calibration_overlay` check for visual packages. The evidence verifier
+also rechecks the archived Jetson performance profile and TensorRT build report
+when those reports are required.
 
 Stop immediately if:
 
