@@ -422,6 +422,10 @@ tools/policy_replay_csv.py \
   --policy /tmp/osracer_policy_export_smoke/policy.pt \
   --input /tmp/osracer_policy_observations.csv \
   --output /tmp/osracer_policy_replay.csv
+
+tools/policy_replay_summary.py /tmp/osracer_policy_replay.csv \
+  --max-speed-cmd 0.3 \
+  --max-abs-steering-cmd 0.488
 ```
 
 The recorder subscribes to `/odometry/filtered`, `/imu_filter`, and `/ackermann_cmd`, then writes the 14-value drift observation CSV used by `osracer_lab`.

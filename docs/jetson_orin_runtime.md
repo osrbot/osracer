@@ -155,6 +155,11 @@ tools/policy_replay_csv.py \
   --output /tmp/osracer_policy_replay.csv \
   --max-speed-mps 0.3 \
   --max-steering-rad 0.488
+
+tools/policy_replay_summary.py /tmp/osracer_policy_replay.csv \
+  --min-rows 100 \
+  --max-speed-cmd 0.3 \
+  --max-abs-steering-cmd 0.488
 ```
 
 The output appends:
