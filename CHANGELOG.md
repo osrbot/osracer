@@ -26,6 +26,8 @@
   arguments.
 - Added reusable obstacle presets (`front`, `left`, `right`, `off`, `custom`)
   for kinematic scan simulation scenarios.
+- Documented the simulation development route and Gazebo tradeoffs in
+  `osracer_sim/SIM_DEVELOPMENT_PLAN_zh.md`.
 
 ### Navigation
 

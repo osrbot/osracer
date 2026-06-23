@@ -47,6 +47,7 @@ from pathlib import Path
 
 package_dir = Path(sys.argv[1])
 readme = (package_dir / 'README_zh.md').read_text(encoding='utf-8')
+sim_plan = (package_dir / 'SIM_DEVELOPMENT_PLAN_zh.md').read_text(encoding='utf-8')
 setup = ''
 setup_path = package_dir / 'setup.py'
 if setup_path.exists():
@@ -70,11 +71,15 @@ for token in (
     'obstacle_preset',
     'obstacle_enabled',
     'eval_output_csv',
+    'SIM_DEVELOPMENT_PLAN_zh.md',
+    'kinematic -> Gazebo',
+    '四阶段开发路线',
 ):
-    if token not in setup and token not in readme:
+    if token not in setup and token not in readme and token not in sim_plan:
         raise SystemExit(f'missing package documentation for {token}')
 for path in (
     package_dir / 'package.xml',
+    package_dir / 'SIM_DEVELOPMENT_PLAN_zh.md',
     package_dir / 'launch' / 'base_sim.launch.py',
     package_dir / 'worlds' / 'osracer_empty.sdf',
     package_dir / 'worlds' / 'osracer_rect_track.sdf',

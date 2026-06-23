@@ -16,6 +16,7 @@ share_dir="${pkg_prefix}/share/osracer_sim"
 
 echo "[1/5] Package resources"
 test -f "${share_dir}/package.xml"
+test -f "${share_dir}/SIM_DEVELOPMENT_PLAN_zh.md"
 test -f "${share_dir}/launch/base_sim.launch.py"
 test -f "${share_dir}/launch/gazebo.launch.py"
 test -f "${share_dir}/launch/slam_sim.launch.py"

@@ -319,6 +319,10 @@ controller safety and overtaking smoke tests:
 ros2 launch osracer_sim race_sim.launch.py stage:=gap_follow obstacle_preset:=front
 ```
 
+See `osracer_sim/SIM_DEVELOPMENT_PLAN_zh.md` for the recommended simulation
+development route: kinematic first, Gazebo scene and bridge second, Gazebo joint
+control third, and calibrated vehicle dynamics last.
+
 ### 3.2 Sensors
 **Lidar:**
 ```bash

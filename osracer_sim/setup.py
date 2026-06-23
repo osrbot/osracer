@@ -19,7 +19,7 @@ setup(
     packages=find_packages(exclude=['test']),
     data_files=[
         ('share/ament_index/resource_index/packages', [f'resource/{package_name}']),
-        (f'share/{package_name}', ['package.xml', 'README_zh.md']),
+        (f'share/{package_name}', ['package.xml', 'README_zh.md', 'SIM_DEVELOPMENT_PLAN_zh.md']),
         (f'share/{package_name}/launch', glob('launch/*.launch.py')),
         (f'share/{package_name}/worlds', glob('worlds/*')),
         (f'share/{package_name}/scripts', glob('scripts/*')),
