@@ -22,9 +22,11 @@ source install/setup.bash
 Run:
 
 ```bash
+nvpmodel -q
+
 sudo tools/jetson_performance_profile.sh \
   --apply \
-  --nvpmodel 0 \
+  --nvpmodel MODE_ID \
   --jetson-clocks \
   --set-cpu-governor \
   --json-output /tmp/osracer_performance_profile.json
@@ -34,6 +36,7 @@ tools/jetson_preflight.sh --policy /path/to/policy.pt --offline-smoke
 
 Pass condition:
 
+- `MODE_ID` is selected from this Jetson's `nvpmodel -q` output, not copied from another board.
 - Jetson performance profile evidence is saved to `/tmp/osracer_performance_profile.json`.
 - ROS setup is found.
 - `ackermann_msgs`, `nav_msgs`, `sensor_msgs`, and `geometry_msgs` are available.
@@ -58,6 +61,7 @@ Stop if:
 - `ackermann_msgs` is missing.
 - `torch` is missing from the ROS launch Python environment.
 - `policy.pt` cannot load.
+- `nvpmodel -q` does not show a known high-performance mode for this Jetson image.
 
 ## Stage 1: Start Sensors And Chassis
 
@@ -257,9 +261,11 @@ tools/first_drive_gate.py \
   --serial-latency /tmp/osracer_serial_latency.json \
   --policy-benchmark /tmp/osracer_policy_benchmark.json \
   --performance-profile /tmp/osracer_performance_profile.json \
-  --tensorrt-build-report /tmp/osracer_tensorrt_build_report.json \
   --runtime-dir /tmp/osracer_runtime_monitor \
   --output /tmp/osracer_first_drive_gate.json
+
+# For ONNX deployment packages, add:
+#   --tensorrt-build-report /tmp/osracer_tensorrt_build_report.json
 
 tools/first_drive_evidence_pack.py \
   --gate-report /tmp/osracer_first_drive_gate.json \
