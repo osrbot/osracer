@@ -4,6 +4,7 @@
 import argparse
 import hashlib
 import json
+import math
 import subprocess
 import sys
 from pathlib import Path
@@ -32,6 +33,17 @@ def ok(message):
 def fail(message, failures):
     print(f"[FAIL] {message}")
     failures.append(message)
+
+
+def number(value, label, failures, *, min_value=0.001, max_value=10000.0):
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        fail(f"camera calibration {label} must be a number", failures)
+        return None
+    result = float(value)
+    if not math.isfinite(result) or result < min_value or result > max_value:
+        fail(f"camera calibration {label} out of range: {value!r}", failures)
+        return None
+    return result
 
 
 def load_json(path, failures):
@@ -127,6 +139,8 @@ def check_measured_overlay(package_dir, manifest, failures):
     overlay_meta = manifest.get("measured_overlay", {})
     if not overlay_meta.get("included"):
         ok("measured overlay: not included")
+        if "Visual" in str(manifest.get("task", "")):
+            fail("visual task requires measured overlay with camera calibration", failures)
         return
     artifact = overlay_meta.get("artifact", "measured_overlay.json")
     path = package_dir / artifact
@@ -139,6 +153,68 @@ def check_measured_overlay(package_dir, manifest, failures):
             ok(f"measured_overlay {key}")
         else:
             fail(f"measured_overlay missing key: {key}", failures)
+    hardware = load_json(package_dir / "hardware_params.json", failures)
+    check_camera_calibration_overlay(overlay, manifest, hardware, failures)
+
+
+def expected_camera_resolution(hardware):
+    runtime = hardware.get("camera_ar0234", {}).get("ros_runtime", {}) if isinstance(hardware, dict) else {}
+    resolution = runtime.get("configured_resolution_px")
+    if isinstance(resolution, list) and len(resolution) == 2:
+        return int(resolution[0]), int(resolution[1])
+    if isinstance(resolution, tuple) and len(resolution) == 2:
+        return int(resolution[0]), int(resolution[1])
+    return 640, 480
+
+
+def check_camera_calibration_overlay(overlay, manifest, hardware, failures):
+    measured = overlay.get("measured_overlay", {})
+    calibration_group = measured.get("camera_calibration", {}) if isinstance(measured, dict) else {}
+    value = calibration_group.get("camera_intrinsics_fx_fy_cx_cy_distortion") if isinstance(calibration_group, dict) else None
+    visual_task = "Visual" in str(manifest.get("task", ""))
+    expected_width, expected_height = expected_camera_resolution(hardware)
+    if value is None:
+        if visual_task:
+            fail("visual task measured_overlay missing camera calibration", failures)
+        else:
+            ok("camera calibration overlay: not included")
+        return
+    if not isinstance(value, dict):
+        fail("camera calibration value must be an object", failures)
+        return
+
+    width = int(number(value.get("width_px"), "width_px", failures, min_value=1.0) or 0)
+    height = int(number(value.get("height_px"), "height_px", failures, min_value=1.0) or 0)
+    fx = number(value.get("fx"), "fx", failures)
+    fy = number(value.get("fy"), "fy", failures)
+    cx = number(value.get("cx"), "cx", failures)
+    cy = number(value.get("cy"), "cy", failures)
+    if width and height and (width, height) != (expected_width, expected_height):
+        fail(
+            f"camera calibration resolution {width}x{height} does not match "
+            f"runtime {expected_width}x{expected_height}",
+            failures,
+        )
+    if width and cx is not None and not 0.0 <= cx <= width:
+        fail("camera calibration cx must be inside image width", failures)
+    if height and cy is not None and not 0.0 <= cy <= height:
+        fail("camera calibration cy must be inside image height", failures)
+    if width and fx is not None and fx > width * 8.0:
+        fail("camera calibration fx is implausibly large", failures)
+    if height and fy is not None and fy > height * 8.0:
+        fail("camera calibration fy is implausibly large", failures)
+    model = value.get("distortion_model")
+    if not isinstance(model, str) or not model.strip():
+        fail("camera calibration distortion_model missing", failures)
+    coeffs = value.get("distortion_coeffs")
+    if not isinstance(coeffs, list):
+        fail("camera calibration distortion_coeffs must be a list", failures)
+    else:
+        for index, coeff in enumerate(coeffs):
+            number(coeff, f"distortion_coeffs[{index}]", failures, min_value=-10.0, max_value=10.0)
+
+    if not any("camera calibration" in item for item in failures):
+        ok(f"camera calibration overlay: {width}x{height} fx={fx:.3f} fy={fy:.3f} model={model}")
 
 
 def check_source_authority_snapshot(package_dir, manifest, failures):

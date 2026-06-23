@@ -129,7 +129,8 @@ first:
 
 ```bash
 tools/verify_jetson_deployment.py /path/to/osracer_jetson_deployment
-# If present, measured_overlay.json is checksum-verified and structurally checked.
+# Visual packages fail verification unless measured_overlay.json includes
+# CameraInfo-derived camera calibration at the runtime resolution.
 tools/jetson_preflight.sh \
   --policy /path/to/osracer_jetson_deployment/policy.pt \
   --offline-smoke
