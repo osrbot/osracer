@@ -114,6 +114,16 @@ on Orin Nano. For a gate after collecting logs, run:
 tools/jetson_sensor_summary.py /tmp/osracer_sensor_preflight --strict
 ```
 
+For the sim2real measurement pack, prefer the combined read-only session. It
+captures sensor topic evidence, Jetson environment, serial latency, and one
+`CameraInfo` sample for AR0234 intrinsics import:
+
+```bash
+tools/jetson_measurement_session.sh \
+  --output-dir /tmp/osracer_measurement_session \
+  --camera-info-topic /camera_info
+```
+
 If the policy came from an `osracer_lab` deployment package, verify the package
 first:
 

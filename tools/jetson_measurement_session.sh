@@ -6,9 +6,11 @@ OUTPUT_DIR="${TMPDIR:-/tmp}/osracer_measurement_session_$(date +%Y%m%d_%H%M%S)"
 SENSOR_DURATION=10
 SERIAL_SAMPLES=5
 ROS_DISTRO_NAME="${ROS_DISTRO:-jazzy}"
+CAMERA_INFO_TOPIC="/camera_info"
 SKIP_SENSOR=0
 SKIP_SERIAL=0
 SKIP_ENVIRONMENT=0
+SKIP_CAMERA_INFO=0
 
 usage() {
     cat <<'EOF'
@@ -23,9 +25,12 @@ Options:
   --sensor-duration SEC  Seconds per ros2 topic hz sample. Default: 10.
   --serial-samples N     Read-only serial query samples. Default: 5.
   --ros-distro NAME      ROS distro for sensor preflight. Default: $ROS_DISTRO or jazzy.
+  --camera-info-topic TOPIC
+                         CameraInfo topic to capture once. Default: /camera_info.
   --skip-sensor          Do not run tools/jetson_sensor_preflight.sh.
   --skip-environment     Do not run tools/jetson_environment_report.py.
   --skip-serial          Do not run tools/serial_latency_probe.py.
+  --skip-camera-info     Do not capture CameraInfo.
   -h, --help             Show this help.
 EOF
 }
@@ -48,6 +53,10 @@ while [[ $# -gt 0 ]]; do
             ROS_DISTRO_NAME="${2:-}"
             shift 2
             ;;
+        --camera-info-topic)
+            CAMERA_INFO_TOPIC="${2:-}"
+            shift 2
+            ;;
         --skip-sensor)
             SKIP_SENSOR=1
             shift
@@ -58,6 +67,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --skip-serial)
             SKIP_SERIAL=1
+            shift
+            ;;
+        --skip-camera-info)
+            SKIP_CAMERA_INFO=1
             shift
             ;;
         -h|--help)
@@ -81,9 +94,11 @@ SENSOR_DIR="${OUTPUT_DIR}/sensor_preflight"
 SENSOR_SUMMARY="${SENSOR_DIR}/sensor_summary.json"
 ENVIRONMENT_REPORT="${OUTPUT_DIR}/jetson_environment.json"
 SERIAL_REPORT="${OUTPUT_DIR}/serial_latency.json"
+CAMERA_INFO_FILE="${OUTPUT_DIR}/camera_info.yaml"
 SENSOR_STATUS="skipped"
 ENVIRONMENT_STATUS="skipped"
 SERIAL_STATUS="skipped"
+CAMERA_INFO_STATUS="skipped"
 
 log "# OSRacer Jetson Measurement Session"
 log "output_dir=${OUTPUT_DIR}"
@@ -138,14 +153,41 @@ if [[ "${SKIP_SERIAL}" -eq 0 ]]; then
     fi
 fi
 
+if [[ "${SKIP_CAMERA_INFO}" -eq 0 ]]; then
+    if command -v ros2 >/dev/null 2>&1; then
+        log "capturing CameraInfo from ${CAMERA_INFO_TOPIC}"
+        if timeout 10 ros2 topic echo --once "${CAMERA_INFO_TOPIC}" >"${CAMERA_INFO_FILE}" 2>>"${SESSION_LOG}"; then
+            CAMERA_INFO_STATUS="pass"
+        else
+            CAMERA_INFO_STATUS="fail"
+            rm -f "${CAMERA_INFO_FILE}"
+        fi
+    else
+        log "ros2 command not available for CameraInfo capture"
+        CAMERA_INFO_STATUS="missing_ros2"
+    fi
+fi
+
 MANIFEST="${OUTPUT_DIR}/measurement_session.json"
-python3 - "${MANIFEST}" "${OUTPUT_DIR}" "${SENSOR_STATUS}" "${SENSOR_SUMMARY}" "${ENVIRONMENT_STATUS}" "${ENVIRONMENT_REPORT}" "${SERIAL_STATUS}" "${SERIAL_REPORT}" <<'PY'
+python3 - "${MANIFEST}" "${OUTPUT_DIR}" "${SENSOR_STATUS}" "${SENSOR_SUMMARY}" "${ENVIRONMENT_STATUS}" "${ENVIRONMENT_REPORT}" "${SERIAL_STATUS}" "${SERIAL_REPORT}" "${CAMERA_INFO_STATUS}" "${CAMERA_INFO_FILE}" "${CAMERA_INFO_TOPIC}" <<'PY'
 import datetime as dt
 import json
 import sys
 from pathlib import Path
 
-manifest, output_dir, sensor_status, sensor_summary, environment_status, environment_report, serial_status, serial_report = sys.argv[1:]
+(
+    manifest,
+    output_dir,
+    sensor_status,
+    sensor_summary,
+    environment_status,
+    environment_report,
+    serial_status,
+    serial_report,
+    camera_info_status,
+    camera_info_file,
+    camera_info_topic,
+) = sys.argv[1:]
 def existing(path):
     p = Path(path)
     return str(p) if p.exists() else None
@@ -166,6 +208,11 @@ data = {
         "serial_latency": {
             "status": serial_status,
             "serial_report": existing(serial_report),
+        },
+        "camera_info": {
+            "status": camera_info_status,
+            "camera_info": existing(camera_info_file),
+            "topic": camera_info_topic,
         },
     },
     "import_hint": "Use osracer_lab: MEASUREMENTS_FILE=docs/real_car_measurements.json MEASUREMENT_SESSION_FILE=<this file> scripts/validate_osracer_lab.sh import-measurement-session",
