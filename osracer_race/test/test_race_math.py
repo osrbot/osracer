@@ -731,6 +731,10 @@ class RaceMathTest(unittest.TestCase):
         self.assertIn("declare_parameter('odom_twist_covariance'", chassis_text)
         self.assertIn('self.odom_twist_covariance = self.diagonal_covariance_6d', chassis_text)
         self.assertIn('odom_msg.twist.covariance = self.odom_twist_covariance', chassis_text)
+        self.assertIn("declare_parameter('firmware_version_timeout_s', 0.8)", chassis_text)
+        self.assertIn('self.log_firmware_project_version()', chassis_text)
+        self.assertIn('serial_conn.write(b"fw version\\n")', chassis_text)
+        self.assertIn('OSRCORE ProjectVer:', chassis_text)
         self.assertIn('self.write_serial("stream sync\\n")', chassis_text)
         self.assertIn('self.write_serial("s\\n")', chassis_text)
 

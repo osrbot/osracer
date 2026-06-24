@@ -15,7 +15,9 @@ from std_msgs.msg import Int32MultiArray
 import serial
 import termios
 import math
+import re
 import threading
+import time
 import os
 
 class OsrbotCore(Node):
@@ -32,6 +34,7 @@ class OsrbotCore(Node):
         self.declare_parameter('max_steering_angle_deg', 30.0)
         self.declare_parameter('cmd_watchdog_timeout_s', 0.5)
         self.declare_parameter('reconnect_interval_s', 2.0)
+        self.declare_parameter('firmware_version_timeout_s', 0.8)
 
         self.declare_parameter('publish_tf', True)
         self.declare_parameter('publish_rc', True)
@@ -59,6 +62,7 @@ class OsrbotCore(Node):
         self.max_steering_angle_deg = self.get_parameter('max_steering_angle_deg').value
         self.cmd_watchdog_timeout = self.get_parameter('cmd_watchdog_timeout_s').value
         self.reconnect_interval_s = self.get_parameter('reconnect_interval_s').value
+        self.firmware_version_timeout_s = self.get_parameter('firmware_version_timeout_s').value
 
         self.publish_tf = self.get_parameter('publish_tf').value
         self.publish_rc = self.get_parameter('publish_rc').value
@@ -167,6 +171,8 @@ class OsrbotCore(Node):
                 )
                 return False
 
+        self.log_firmware_project_version()
+
         if not self.write_serial("stream sync\n"):
             return False
         if not self.write_serial("s\n"):
@@ -175,6 +181,49 @@ class OsrbotCore(Node):
         self.get_logger().info(f"Successfully opened serial port: {self.port_name}")
         self.start_read_thread()
         return True
+
+    def log_firmware_project_version(self):
+        with self.serial_lock:
+            serial_conn = self.serial
+
+        if not serial_conn or not serial_conn.is_open:
+            return
+
+        try:
+            serial_conn.reset_input_buffer()
+            serial_conn.write(b"stream off\n")
+            serial_conn.flush()
+            time.sleep(0.05)
+            serial_conn.reset_input_buffer()
+            serial_conn.write(b"fw version\n")
+            serial_conn.flush()
+
+            deadline = time.monotonic() + max(0.1, float(self.firmware_version_timeout_s))
+            while time.monotonic() < deadline:
+                line = serial_conn.readline().decode('utf-8', errors='ignore').strip()
+                if not line:
+                    continue
+                project_ver = self.parse_project_version(line)
+                if project_ver:
+                    self.get_logger().info(
+                        f"OSRCORE ProjectVer: {project_ver}, port: {self.port_name}"
+                    )
+                    return
+        except (serial.SerialException, OSError, ValueError, TypeError, termios.error) as e:
+            self.get_logger().warning(f"Could not query OSRCORE ProjectVer: {e}")
+            return
+
+        self.get_logger().warning("OSRCORE ProjectVer unavailable; firmware may be older")
+
+    @staticmethod
+    def parse_project_version(line: str):
+        match = re.search(r'\bProjectVer\s*[:=]\s*([^,\s]+)', line)
+        if match:
+            return match.group(1)
+        match = re.search(r'\bProjectVer\s+([^,\s]+)', line)
+        if match:
+            return match.group(1)
+        return None
 
     def port_available(self):
         if not self.port_name.startswith('/'):

@@ -9,6 +9,7 @@
 - 底盘串口默认 `/dev/osrbot_base`
 - 当前 `osrcore` 串口波特率 `460800`
 - 固件默认周期遥测为 `stream sync`，输出 `s/m/r/b`
+- 底盘节点启动时会查询 `fw version` 并在日志中打印固件 `ProjectVer`
 
 ## 常用命令
 

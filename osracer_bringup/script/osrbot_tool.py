@@ -172,6 +172,7 @@ def main():
     print("  stream off                   Disable periodic telemetry")
     print("  stream legacy                Enable legacy periodic telemetry (i/o/m/r/b)")
     print("  sn get                       Query ESP32-S3 hardware serial number")
+    print("  fw version                   Query firmware version and ProjectVer")
     print("  status                       Query speed, voltage, control source, IMU, heater, diagnostics and chassis calibration status")
     print("  mc cal [sec]                 Magnetometer calibration (default 30s, rotate 360 deg)")
     print("  mc set <12 floats>           Set magnetometer calibration parameters and save to NVS")

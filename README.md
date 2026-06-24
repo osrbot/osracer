@@ -162,6 +162,7 @@ graph TD
 | `publish_tf` | `auto` | Auto-set to `true` if EKF is off, `false` if EKF is on |
 | `port_name` | `/dev/osrbot_base` | Serial device port |
 | `baud_rate` | `460800` | Serial baud rate for current osrcore firmware |
+| `firmware_version_timeout_s` | `0.8` | Timeout for querying osrcore `fw version` and logging `ProjectVer` during serial startup |
 | `wheelbase` | `0.285` | Distance between front and rear axles (m) |
 | `odom_twist_covariance` | `[0.02, 0.20, 1.0, 1.0, 1.0, 0.30]` | Odometry twist covariance diagonal `[vx, vy, vz, vroll, vpitch, vyaw]` for EKF consumers |
 
@@ -172,7 +173,9 @@ magnetometer, `r` for RC channels, and `b` for battery voltage. In the current
 yaw-zero applied, so odometry pose/TF can consume the quaternion directly while
 preserving roll/pitch for slopes and 3D lidar use. The odometry covariance
 settings are ROS-side `nav_msgs/Odometry` metadata only and do not change the
-firmware serial protocol.
+firmware serial protocol. During serial startup the chassis node sends
+`fw version` once and logs the returned `ProjectVer` when supported by the
+installed osrcore firmware.
 
 ### 3.1.1 Field Demo Tools
 
