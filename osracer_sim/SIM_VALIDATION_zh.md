@@ -8,8 +8,8 @@
 
 ## 通用通过条件
 
-- `base_sim.launch.py` 能启动并发布 `/scan`、`/odometry/filtered`、`/tf`、
-  `/joint_states` 和 `/clock`。
+- `base_sim.launch.py` 能启动并发布 `/scan`、`/odometry/filtered`、`/imu_filter`、
+  `/tf`、`/joint_states` 和 `/clock`。
 - `race_sim.launch.py` 六个 stage 的 launch 参数能解析。
 - `gazebo.launch.py` 能加载默认赛道、障碍物赛道和可选 bridge 参数。
 - `eval_output_csv` 能生成 CSV，并可由 `race_report_tools` 汇总。
@@ -19,7 +19,7 @@
 
 | 阶段 | 推荐场景 | 重点观察 | 最低通过条件 |
 | --- | --- | --- | --- |
-| 基础链路 | `base_sim.launch.py` | `/scan`、TF、joint 动画、odom | topic 存在，TF 连续，轮子和转向 joint 有变化 |
+| 基础链路 | `base_sim.launch.py` | `/scan`、TF、joint 动画、odom、IMU | topic 存在，TF 连续，轮子和转向 joint 有变化，IMU yaw rate 随转弯变化 |
 | Gap Follow | `stage:=gap_follow obstacle_preset:=front` | safety stop、避障方向、速度限制 | 障碍物进入视野后不向障碍物持续加速 |
 | 轨迹录制 | `stage:=track_record` | 轨迹点、时间戳、odom 连续性 | CSV/轨迹文件有连续样本，无明显时间倒退 |
 | Pure Pursuit | `stage:=pure_pursuit` | 跟踪误差、转向方向 | `race_report_tools` 能输出 track error 样本 |

@@ -18,7 +18,7 @@ from geometry_msgs.msg import TransformStamped, Twist
 from nav_msgs.msg import Odometry
 from rclpy.node import Node
 from rosgraph_msgs.msg import Clock
-from sensor_msgs.msg import JointState, LaserScan
+from sensor_msgs.msg import Imu, JointState, LaserScan
 from tf2_ros import TransformBroadcaster
 
 from osracer_sim.kinematics import (
@@ -48,13 +48,19 @@ class AckermannKinematicSim(Node):
         self.declare_parameter('ackermann_stamped_topic', '/ackermann_cmd_stamped')
         self.declare_parameter('cmd_vel_topic', '/cmd_vel')
         self.declare_parameter('odom_topic', '/odometry/filtered')
+        self.declare_parameter('imu_topic', '/imu_filter')
         self.declare_parameter('scan_topic', '/scan')
         self.declare_parameter('odom_frame', 'odom')
         self.declare_parameter('base_frame', 'base_footprint')
+        self.declare_parameter('imu_frame', 'imu_link')
         self.declare_parameter('laser_frame', 'laser')
         self.declare_parameter('publish_tf', True)
+        self.declare_parameter('publish_imu', True)
         self.declare_parameter('publish_scan', True)
         self.declare_parameter('publish_clock', True)
+        self.declare_parameter('imu_orientation_covariance', [0.02, 0.02, 0.05])
+        self.declare_parameter('imu_angular_velocity_covariance', [0.01, 0.01, 0.01])
+        self.declare_parameter('imu_linear_acceleration_covariance', [0.10, 0.10, 0.10])
         self.declare_parameter('scan_rate_hz', 20.0)
         self.declare_parameter('scan_range_m', 8.0)
         self.declare_parameter('scan_fov_deg', 270.0)
@@ -80,10 +86,18 @@ class AckermannKinematicSim(Node):
         self.cmd_timeout = float(self.get_parameter('cmd_timeout_s').value)
         self.odom_frame = str(self.get_parameter('odom_frame').value)
         self.base_frame = str(self.get_parameter('base_frame').value)
+        self.imu_frame = str(self.get_parameter('imu_frame').value)
         self.laser_frame = str(self.get_parameter('laser_frame').value)
         self.publish_tf = bool(self.get_parameter('publish_tf').value)
+        self.publish_imu = bool(self.get_parameter('publish_imu').value)
         self.publish_scan = bool(self.get_parameter('publish_scan').value)
         self.publish_clock = bool(self.get_parameter('publish_clock').value)
+        self.imu_orientation_covariance = diagonal_covariance(
+            self.get_parameter('imu_orientation_covariance').value)
+        self.imu_angular_velocity_covariance = diagonal_covariance(
+            self.get_parameter('imu_angular_velocity_covariance').value)
+        self.imu_linear_acceleration_covariance = diagonal_covariance(
+            self.get_parameter('imu_linear_acceleration_covariance').value)
 
         self.scan_environment = str(self.get_parameter('scan_environment').value)
         self.track_segments = rectangular_track_segments(
@@ -96,6 +110,7 @@ class AckermannKinematicSim(Node):
         self.y = float(self.get_parameter('initial_y').value)
         self.yaw = math.radians(float(self.get_parameter('initial_yaw_deg').value))
         self.speed = 0.0
+        self.last_integrated_speed = 0.0
         self.steering = 0.0
         self.wheel_position = 0.0
         self.last_cmd_time = time.monotonic()
@@ -104,6 +119,7 @@ class AckermannKinematicSim(Node):
         self.sim_time_s = 0.0
 
         self.odom_pub = self.create_publisher(Odometry, self.get_parameter('odom_topic').value, 10)
+        self.imu_pub = self.create_publisher(Imu, self.get_parameter('imu_topic').value, 10)
         self.joint_pub = self.create_publisher(JointState, '/joint_states', 10)
         self.scan_pub = self.create_publisher(LaserScan, self.get_parameter('scan_topic').value, 10)
         self.clock_pub = self.create_publisher(Clock, '/clock', 10)
@@ -160,6 +176,10 @@ class AckermannKinematicSim(Node):
         yaw_rate = 0.0
         if abs(self.steering) > 1e-5 and abs(self.speed) > 1e-5:
             yaw_rate = self.speed * math.tan(self.steering) / self.wheelbase
+        longitudinal_accel = 0.0
+        if dt > 1e-6:
+            longitudinal_accel = (self.speed - self.last_integrated_speed) / dt
+        lateral_accel = self.speed * yaw_rate
         self.x += self.speed * math.cos(self.yaw) * dt
         self.y += self.speed * math.sin(self.yaw) * dt
         self.yaw = math.atan2(math.sin(self.yaw + yaw_rate * dt), math.cos(self.yaw + yaw_rate * dt))
@@ -168,6 +188,8 @@ class AckermannKinematicSim(Node):
 
         stamp = self.sim_stamp()
         self.publish_odom(stamp, yaw_rate)
+        if self.publish_imu:
+            self.publish_imu_msg(stamp, yaw_rate, longitudinal_accel, lateral_accel)
         self.publish_joints(stamp)
         if self.publish_tf:
             self.publish_transform(stamp)
@@ -177,6 +199,7 @@ class AckermannKinematicSim(Node):
         if self.publish_scan and now - self.last_scan_time >= 1.0 / scan_rate:
             self.last_scan_time = now
             self.publish_scan_msg(stamp)
+        self.last_integrated_speed = self.speed
 
     def publish_odom(self, stamp, yaw_rate: float) -> None:
         msg = Odometry()
@@ -195,6 +218,31 @@ class AckermannKinematicSim(Node):
         msg.pose.covariance = covariance(0.02, 1e3, 0.05)
         msg.twist.covariance = covariance(0.05, 1e3, 0.08)
         self.odom_pub.publish(msg)
+
+    def publish_imu_msg(
+            self,
+            stamp,
+            yaw_rate: float,
+            longitudinal_accel: float,
+            lateral_accel: float) -> None:
+        msg = Imu()
+        msg.header.stamp = stamp
+        msg.header.frame_id = self.imu_frame
+        qx, qy, qz, qw = yaw_to_quat(self.yaw)
+        msg.orientation.x = qx
+        msg.orientation.y = qy
+        msg.orientation.z = qz
+        msg.orientation.w = qw
+        msg.angular_velocity.x = 0.0
+        msg.angular_velocity.y = 0.0
+        msg.angular_velocity.z = yaw_rate
+        msg.linear_acceleration.x = longitudinal_accel
+        msg.linear_acceleration.y = lateral_accel
+        msg.linear_acceleration.z = 0.0
+        msg.orientation_covariance = self.imu_orientation_covariance
+        msg.angular_velocity_covariance = self.imu_angular_velocity_covariance
+        msg.linear_acceleration_covariance = self.imu_linear_acceleration_covariance
+        self.imu_pub.publish(msg)
 
     def publish_transform(self, stamp) -> None:
         transform = TransformStamped()
@@ -297,6 +345,16 @@ def covariance(xy: float, z_and_tilt: float, yaw: float) -> list[float]:
     for index, value in ((0, xy), (7, xy), (14, z_and_tilt), (21, z_and_tilt), (28, z_and_tilt), (35, yaw)):
         values[index] = value
     return values
+
+
+def diagonal_covariance(values) -> list[float]:
+    diagonal = [float(value) for value in values]
+    if len(diagonal) != 3:
+        raise ValueError('IMU covariance diagonal must contain exactly 3 values')
+    covariance_values = [0.0] * 9
+    for index, value in enumerate(diagonal):
+        covariance_values[index * 4] = value
+    return covariance_values
 
 
 def main(args: Iterable[str] | None = None) -> int:

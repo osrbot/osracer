@@ -264,13 +264,13 @@ Simulation acceptance criteria are documented in
 `osracer_sim/SIM_VALIDATION_zh.md`, including topic checks, CSV metrics, Gazebo
 resource checks, and conditions that should block real-vehicle testing.
 
-The first simulation stage publishes `/odometry/filtered`, `/tf`,
-`/joint_states`, `/scan`, and `/clock` from the measured OSRacer geometry. The
-default `/scan` is a rectangular-track raycast suitable for Gap Follow, TTC
-safety, and raceline recording smoke tests. The Gazebo entry starts the matching
-rectangular track world, a simplified OSRacer model, and the kinematic
-simulator; tire slip, drivetrain, and sensor noise model calibration are
-intentionally left for later validation work.
+The first simulation stage publishes `/odometry/filtered`, `/imu_filter`,
+`/tf`, `/joint_states`, `/scan`, and `/clock` from the measured OSRacer
+geometry. The default `/scan` is a rectangular-track raycast suitable for Gap
+Follow, TTC safety, and raceline recording smoke tests. The Gazebo entry starts
+the matching rectangular track world, a simplified OSRacer model, and the
+kinematic simulator; tire slip, drivetrain, and sensor noise model calibration
+are intentionally left for later validation work.
 
 On ROS 2 Humble / Ubuntu 22.04, the Gazebo launch uses Gazebo Fortress through
 `ign gazebo` internally. Start it with `ros2 launch osracer_sim gazebo.launch.py`;

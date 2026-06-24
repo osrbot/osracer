@@ -11,6 +11,7 @@ def generate_launch_description():
     use_rviz = LaunchConfiguration('use_rviz')
     use_sim_time = LaunchConfiguration('use_sim_time')
     odom_topic = LaunchConfiguration('odom_topic')
+    imu_topic = LaunchConfiguration('imu_topic')
 
     description_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(PathJoinSubstitution([
@@ -37,7 +38,9 @@ def generate_launch_description():
             'max_steering_angle_deg': ParameterValue(
                 LaunchConfiguration('max_steering_angle_deg'), value_type=float),
             'odom_topic': odom_topic,
+            'imu_topic': imu_topic,
             'publish_tf': ParameterValue(LaunchConfiguration('publish_tf'), value_type=bool),
+            'publish_imu': ParameterValue(LaunchConfiguration('publish_imu'), value_type=bool),
             'publish_scan': ParameterValue(LaunchConfiguration('publish_scan'), value_type=bool),
             'publish_clock': ParameterValue(LaunchConfiguration('publish_clock'), value_type=bool),
             'scan_environment': LaunchConfiguration('scan_environment'),
@@ -62,12 +65,14 @@ def generate_launch_description():
         DeclareLaunchArgument('use_sim_time', default_value='true', choices=['true', 'false']),
         DeclareLaunchArgument('use_rviz', default_value='false', choices=['true', 'false']),
         DeclareLaunchArgument('odom_topic', default_value='/odometry/filtered'),
+        DeclareLaunchArgument('imu_topic', default_value='/imu_filter'),
         DeclareLaunchArgument('wheelbase', default_value='0.285'),
         DeclareLaunchArgument('track_width', default_value='0.215'),
         DeclareLaunchArgument('wheel_radius', default_value='0.0425'),
         DeclareLaunchArgument('max_speed_mps', default_value='3.0'),
         DeclareLaunchArgument('max_steering_angle_deg', default_value='30.0'),
         DeclareLaunchArgument('publish_tf', default_value='true', choices=['true', 'false']),
+        DeclareLaunchArgument('publish_imu', default_value='true', choices=['true', 'false']),
         DeclareLaunchArgument('publish_scan', default_value='true', choices=['true', 'false']),
         DeclareLaunchArgument('publish_clock', default_value='true', choices=['true', 'false']),
         DeclareLaunchArgument('scan_environment', default_value='track', choices=['track', 'hallway']),

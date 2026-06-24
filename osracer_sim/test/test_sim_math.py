@@ -123,6 +123,28 @@ class SimMathTest(unittest.TestCase):
         self.assertIn('use_gz_control:=true', script_text)
         self.assertIn('osracer_rect_track_obstacle.sdf', script_text)
         self.assertIn('print_sim_scenarios.sh', script_text)
+        self.assertIn('/imu_filter', script_text)
+
+    def test_kinematic_sim_publishes_sync_frame_equivalent_imu(self):
+        package_dir = Path(__file__).resolve().parents[1]
+        node_text = (package_dir / 'osracer_sim' / 'ackermann_kinematic_sim_node.py').read_text(
+            encoding='utf-8')
+        launch_text = (package_dir / 'launch' / 'base_sim.launch.py').read_text(encoding='utf-8')
+        readme_text = (package_dir / 'README_zh.md').read_text(encoding='utf-8')
+        for expected in (
+            "self.declare_parameter('imu_topic', '/imu_filter')",
+            "self.declare_parameter('imu_frame', 'imu_link')",
+            'self.imu_pub = self.create_publisher(Imu',
+            'def publish_imu_msg',
+            'msg.angular_velocity.z = yaw_rate',
+            'msg.linear_acceleration.x = longitudinal_accel',
+            'msg.linear_acceleration.y = lateral_accel',
+            'def diagonal_covariance',
+        ):
+            self.assertIn(expected, node_text)
+        self.assertIn("DeclareLaunchArgument('imu_topic', default_value='/imu_filter')", launch_text)
+        self.assertIn("'publish_imu': ParameterValue", launch_text)
+        self.assertIn('osrcore `s` 同步帧', readme_text)
 
     def test_scenario_matrix_covers_four_stage_workflow(self):
         package_dir = Path(__file__).resolve().parents[1]

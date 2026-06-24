@@ -14,7 +14,9 @@
 - 第一版采用 kinematic Ackermann 模型，复用实车几何参数：
   轴距 `0.285m`、轮距 `0.215m`、轮半径 `0.0425m`。
 - 同时支持 `/ackermann_cmd` 和 `/cmd_vel` 输入。
-- 发布 `/odometry/filtered`、`/tf`、`/joint_states`、`/scan` 和 `/clock`。
+- 对齐 osrcore `s` 同步帧的 ROS 侧字段，发布 `/odometry/filtered`、`/imu_filter`、
+  `/tf`、`/joint_states`、`/scan` 和 `/clock`。其中 `/imu_filter` 使用同一份
+  kinematic 状态生成姿态四元数、yaw rate 和简化车体加速度。
 - 默认 `/scan` 使用矩形赛道墙体 raycast，适合 Gap Follow、TTC safety 和
   轨迹录制的离线接口验证；也可以切回 `scan_environment:=hallway`。
 

@@ -58,7 +58,7 @@ ros2 launch osracer_sim gazebo.launch.py \
 "${share_dir}/scripts/print_sim_scenarios.sh" | grep -q 'osracer_rect_track_obstacle.sdf'
 
 echo "[5/5] Optional live topic visibility"
-for topic in /scan /odometry/filtered /ackermann_cmd /clock; do
+for topic in /scan /odometry/filtered /imu_filter /ackermann_cmd /clock; do
   if ros2 topic list | grep -qx "${topic}"; then
     echo "found ${topic}"
   else
