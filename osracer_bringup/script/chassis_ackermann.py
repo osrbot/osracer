@@ -167,6 +167,11 @@ class OsrbotCore(Node):
                 )
                 return False
 
+        if not self.write_serial("stream sync\n"):
+            return False
+        if not self.write_serial("s\n"):
+            return False
+
         self.get_logger().info(f"Successfully opened serial port: {self.port_name}")
         self.start_read_thread()
         return True
