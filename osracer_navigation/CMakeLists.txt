@@ -14,7 +14,7 @@ find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 
-install(DIRECTORY launch params
+install(DIRECTORY launch params behavior_trees
     DESTINATION share/${PROJECT_NAME}/
 )
 
