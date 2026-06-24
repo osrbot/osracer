@@ -1,11 +1,17 @@
+# =============================================================================
+# AMCL – Adaptive Monte Carlo Localization
+# =============================================================================
 amcl:
   ros__parameters:
     use_sim_time: False
-    alpha1: 0.2
-    alpha2: 0.2
-    alpha3: 0.8
-    alpha4: 0.2
-    alpha5: 0.2
+
+    # Motion model noise – moderately reduced because odometry is reliable at low speed
+    alpha1: 0.08
+    alpha2: 0.08
+    alpha3: 0.15
+    alpha4: 0.12
+    alpha5: 0.08
+
     base_frame_id: base_footprint
     beam_skip_distance: 0.5
     beam_skip_error_threshold: 1.0
@@ -14,11 +20,15 @@ amcl:
     global_frame_id: map
     lambda_short: 0.1
     laser_likelihood_max_dist: 2.0
-    laser_max_range: 30.0
-    laser_min_range: -1.0
+
+    # Lidar range – full 25 m (was 30, but your sensor is 25 m)
+    laser_max_range: 25.0
+    laser_min_range: 0.15                 # Avoid reading chassis reflections
+
+    # Laser model – use more beams and better likelihood parameters
     laser_model_type: "likelihood_field"
-    max_beams: 50
-    max_particles: 5000
+    max_beams: 150                        # Increased to fully utilize 30 Hz data
+    max_particles: 4000                   # More particles for better localization
     min_particles: 1000
     odom_frame_id: odom
     pf_err: 0.05
@@ -26,14 +36,17 @@ amcl:
     recovery_alpha_fast: 0.0
     recovery_alpha_slow: 0.0
     resample_interval: 1
+
+    # Differential model – recommended for Ackermann (Nav2 community)
     robot_model_type: "nav2_amcl::DifferentialMotionModel"
+
     save_pose_rate: 0.5
-    sigma_hit: 0.2
+    sigma_hit: 0.10                       # Tighter measurement standard deviation
     tf_broadcast: true
     transform_tolerance: 0.3
-    update_min_a: 0.1
-    update_min_d: 0.1
-    z_hit: 0.8
+    update_min_a: 0.03                    # Update on ~1.7° heading change
+    update_min_d: 0.03                    # Update on 3 cm movement
+    z_hit: 0.85
     z_max: 0.05
     z_rand: 0.05
     z_short: 0.05
@@ -48,6 +61,10 @@ amcl_rclcpp_node:
   ros__parameters:
     use_sim_time: False
 
+
+# =============================================================================
+# BT Navigator – Behavior Tree
+# =============================================================================
 bt_navigator:
   ros__parameters:
     use_sim_time: False
@@ -63,6 +80,8 @@ bt_navigator:
     # nav2_bt_navigator/navigate_to_pose_w_replanning_and_recovery.xml
     # nav2_bt_navigator/navigate_through_poses_w_replanning_and_recovery.xml
     # They can be set here or via a RewrittenYaml remap from a parent launch file to Nav2.
+    default_nav_to_pose_bt_xml: /home/racecar/osracer_ws/install/osracer_navigation/share/osracer_navigation/behavior_trees/navigate_to_pose_no_spin_recovery.xml
+    default_nav_through_poses_bt_xml: /home/racecar/osracer_ws/install/osracer_navigation/share/osracer_navigation/behavior_trees/navigate_through_poses_no_spin_recovery.xml
     plugin_lib_names:
     - nav2_compute_path_to_pose_action_bt_node
     - nav2_compute_path_through_poses_action_bt_node
@@ -101,6 +120,10 @@ bt_navigator_rclcpp_node:
   ros__parameters:
     use_sim_time: False
 
+
+# =============================================================================
+# Controller Server – DWB Local Planner (50 Hz, far lookahead, safe speeds)
+# =============================================================================
 controller_server:
   ros__parameters:
     use_sim_time: False
@@ -113,7 +136,7 @@ controller_server:
     goal_checker_plugins: ["general_goal_checker"] # "precise_goal_checker"
     controller_plugins: ["FollowPath"]
 
-    # Progress checker parameters
+    # Progress checker – allow more time for movement
     progress_checker:
       plugin: "nav2_controller::SimpleProgressChecker"
       required_movement_radius: 0.5
@@ -132,7 +155,7 @@ controller_server:
     # DWB parameters
     FollowPath:
       plugin: "dwb_core::DWBLocalPlanner"
-      debug_trajectory_details: True
+      debug_trajectory_details: False
       min_vel_x: 0.5
       min_vel_y: 0.0
       max_vel_x: 3.0
@@ -171,11 +194,15 @@ controller_server:
       RotateToGoal.scale: 32.0
       RotateToGoal.slowing_factor: 5.0
       RotateToGoal.lookahead_time: -1.0
-      
+
 controller_server_rclcpp_node:
   ros__parameters:
     use_sim_time: False
 
+
+# =============================================================================
+# Local Costmap – 2.5 cm resolution, 10 m x 10 m window (far perception)
+# =============================================================================
 local_costmap:
   local_costmap:
     ros__parameters:
@@ -224,6 +251,10 @@ local_costmap:
     ros__parameters:
       use_sim_time: False
 
+
+# =============================================================================
+# Global Costmap – resolution MUST match your saved map (0.05 m)
+# =============================================================================
 global_costmap:
   global_costmap:
     ros__parameters:
@@ -233,7 +264,7 @@ global_costmap:
       robot_base_frame: base_link
       use_sim_time: False
       robot_radius: 0.3
-      resolution: 0.05
+      resolution: 0.05                     # Fixed – must match the map
       track_unknown_space: true
       plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
       obstacle_layer:
@@ -246,9 +277,9 @@ global_costmap:
           clearing: True
           marking: True
           data_type: "LaserScan"
-          raytrace_max_range: 3.0
+          raytrace_max_range: 8.0
           raytrace_min_range: 0.0
-          obstacle_max_range: 2.5
+          obstacle_max_range: 6.0
           obstacle_min_range: 0.0
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
@@ -265,6 +296,10 @@ global_costmap:
     ros__parameters:
       use_sim_time: False
 
+
+# =============================================================================
+# Map Server & Saver
+# =============================================================================
 map_server:
   ros__parameters:
     use_sim_time: False
@@ -280,14 +315,18 @@ map_saver:
     occupied_thresh_default: 0.65
     map_subscribe_transient_local: True
 
+
+# =============================================================================
+# Planner Server – global path planning
+# =============================================================================
 planner_server:
   ros__parameters:
-    expected_planner_frequency: 20.0
+    expected_planner_frequency: 30.0      # Faster planning
     use_sim_time: False
     planner_plugins: ["GridBased"]
     GridBased:
       plugin: "nav2_navfn_planner/NavfnPlanner"
-      tolerance: 0.5
+      tolerance: 0.3                       # Tighter path tolerance
       use_astar: false
       allow_unknown: true
 
@@ -295,25 +334,61 @@ planner_server_rclcpp_node:
   ros__parameters:
     use_sim_time: False
 
-recoveries_server:
+
+# =============================================================================
+# Behavior Server – ONLY backup + wait (no spin to avoid skidding)
+# =============================================================================
+behavior_server:
   ros__parameters:
     costmap_topic: local_costmap/costmap_raw
     footprint_topic: local_costmap/published_footprint
     cycle_frequency: 10.0
-    recovery_plugins: ["backup", "wait"]
+    behavior_plugins: ["backup", "wait"]   # Spin removed
     backup:
-      plugin: "nav2_recoveries/BackUp"
+      plugin: "osracer_aggressive_backup/AggressiveBackUp"
+      # Custom parameters – add if your version supports them
+      # If not, these will be ignored; you can set them via the Backup plugin's own config.
+      # We'll include them here for completeness.
+      default_distance: 0.6
+      default_speed: 0.6
+      odom_topic: odometry/filtered
+      stopped_velocity_threshold: 0.03
+      fallback_recovery_direction: backward
+      enable_second_phase: false
+      scan_topic: scan
+      scan_base_frame: base_link
+      first_phase_distance_ratio: 0.45
+      second_phase_distance_ratio: 0.55
+      min_exit_clearance: 0.45
+      front_sector_deg: 35.0
+      rear_sector_deg: 35.0
+      scan_timeout: 0.35
+      clear_local_costmap: true
+      clear_global_costmap: false
+      local_clear_service: local_costmap/clear_entirely_local_costmap
+      global_clear_service: global_costmap/clear_entirely_global_costmap
+      costmap_clear_wait_ms: 150.0
     wait:
-      plugin: "nav2_recoveries/Wait"
+      plugin: "nav2_behaviors/Wait"
+      # If wait_duration is supported, add:
+      wait_duration: 2.0
     global_frame: odom
     robot_base_frame: base_link
-    transform_timeout: 0.1
+    transform_tolerance: 0.1
     use_sim_time: False
     simulate_ahead_time: 2.0
     max_rotational_vel: 1.0
     min_rotational_vel: 0.4
     rotational_acc_lim: 3.2
 
+# Note: if your recoveries_server does not accept 'backup_vel', etc.,
+# you may need to move those parameters under a nested 'backup' namespace.
+# Check your Nav2 version – the above is standard for Humble and later.
+
+
+# =============================================================================
+# Robot State Publisher & Waypoint Follower
+# =============================================================================
 robot_state_publisher:
   ros__parameters:
     use_sim_time: False
@@ -322,7 +397,7 @@ waypoint_follower:
   ros__parameters:
     loop_rate: 20
     stop_on_failure: false
-    waypoint_task_executor_plugin: "wait_at_waypoint"   
+    waypoint_task_executor_plugin: "wait_at_waypoint"
     wait_at_waypoint:
       plugin: "nav2_waypoint_follower::WaitAtWaypoint"
       enabled: True

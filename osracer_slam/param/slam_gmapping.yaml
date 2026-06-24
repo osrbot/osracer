@@ -1,7 +1,7 @@
 /slam_gmapping:
   ros__parameters:
     # ===== Map size and resolution =====
-    delta: 0.04                     # 4 cm grid – fine details at low speed
+    delta: 0.025                    # 2.5 cm grid – fine details at low speed
     xmin: -30.0
     xmax: 30.0
     ymin: -30.0
