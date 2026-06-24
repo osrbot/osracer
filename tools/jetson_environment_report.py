@@ -19,7 +19,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Write a structured Jetson environment report for OSRacer.")
     parser.add_argument("--output", default=None, help="Optional JSON output path")
     parser.add_argument("--json", action="store_true", help="Print full JSON report")
-    parser.add_argument("--ros-distro", default=os.environ.get("ROS_DISTRO", "jazzy"))
+    parser.add_argument("--ros-distro", default=os.environ.get("ROS_DISTRO", "humble"))
     parser.add_argument("--allow-non-jetson", action="store_true", help="Do not fail only because this host is not a Jetson image")
     parser.add_argument("--required-command", action="append", default=[], help="Required command; may be repeated")
     parser.add_argument("--required-python-module", action="append", default=[], help="Required Python module; may be repeated")

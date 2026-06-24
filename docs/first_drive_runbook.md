@@ -1,6 +1,7 @@
 # OSRacer First-Drive Runbook
 
 This runbook is for the first low-speed real-car policy test on Jetson Orin Nano Super 8GB.
+Target runtime is JetPack 6.x / Ubuntu 22.04 with ROS 2 Humble.
 It is intentionally conservative. Do not skip gates after a failure.
 
 ## Preconditions
@@ -12,7 +13,7 @@ It is intentionally conservative. Do not skip gates after a failure.
 - The car workspace is built and sourced.
 
 ```bash
-source /opt/ros/jazzy/setup.bash
+source /opt/ros/humble/setup.bash
 colcon build --packages-select osracer_bringup
 source install/setup.bash
 ```

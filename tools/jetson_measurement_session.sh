@@ -5,7 +5,7 @@ TOOLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OUTPUT_DIR="${TMPDIR:-/tmp}/osracer_measurement_session_$(date +%Y%m%d_%H%M%S)"
 SENSOR_DURATION=10
 SERIAL_SAMPLES=5
-ROS_DISTRO_NAME="${ROS_DISTRO:-jazzy}"
+ROS_DISTRO_NAME="${ROS_DISTRO:-humble}"
 CAMERA_INFO_TOPIC="/camera_info"
 CAMERA_TOPIC="/rgb/image_raw"
 LIDAR_TOPIC="/scan"
@@ -29,7 +29,7 @@ Options:
   --output-dir DIR       Output directory. Default: /tmp/osracer_measurement_session_<timestamp>.
   --sensor-duration SEC  Seconds per ros2 topic hz sample. Default: 10.
   --serial-samples N     Read-only serial query samples. Default: 5.
-  --ros-distro NAME      ROS distro for sensor preflight. Default: $ROS_DISTRO or jazzy.
+  --ros-distro NAME      ROS distro for sensor preflight. Default: $ROS_DISTRO or humble.
   --camera-info-topic TOPIC
                          CameraInfo topic to capture once. Default: /camera_info.
   --camera-topic TOPIC   Camera image topic for sensor preflight. Default: /rgb/image_raw.

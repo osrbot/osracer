@@ -903,15 +903,13 @@ class RaceMathTest(unittest.TestCase):
             self.assertIn("'README_zh.md'", setup_text)
             self.assertIn("'PHASES_zh.md'", setup_text)
             self.assertIn("'ROS_VALIDATION_zh.md'", setup_text)
-            self.assertIn("'PRE_PUSH_REVIEW_zh.md'", setup_text)
         self.assertIn('bash osracer_race/scripts/check_race_package.sh', readme_text)
-        self.assertIn('osracer_race/PRE_PUSH_REVIEW_zh.md', readme_text)
         for section in (
             '推荐上手顺序',
             '安装和自检',
             'Topic 链路和安全边界',
             '参数文件说明',
-            '车端验证和推送前检查',
+            '车端验证和交付检查',
             '常见问题',
         ):
             self.assertIn(section, readme_text)
@@ -962,19 +960,18 @@ class RaceMathTest(unittest.TestCase):
             launch_text = (package_root / 'launch' / launch_name).read_text(encoding='utf-8')
             self.assertIn('x,y,speed,curvature', launch_text, launch_name)
 
-    def test_pre_push_review_documents_verified_and_unverified_scope(self):
+    def test_ros_validation_documents_vehicle_side_scope(self):
         package_root = Path(__file__).resolve().parents[1]
-        review_text = (package_root / 'PRE_PUSH_REVIEW_zh.md').read_text(encoding='utf-8')
+        review_text = (package_root / 'ROS_VALIDATION_zh.md').read_text(encoding='utf-8')
         for expected in (
-            '不修改底层固件',
+            'Ubuntu 22.04 + ROS 2 Humble',
+            'Jetson Orin Nano',
+            '不替代实车低速验证',
             'helper 模块 import smoke test',
             'validate_race_ros.sh',
-            'git diff --check',
-            '未发现 `.DS_Store`',
-            '未发现旧品牌关键词残留',
             'colcon build --symlink-install --packages-select osracer_race',
             '真车低速安全验证',
-            'ROS_VALIDATION_zh.md',
+            '不会发布运动命令',
         ):
             self.assertIn(expected, review_text)
 
@@ -1015,7 +1012,7 @@ class RaceMathTest(unittest.TestCase):
         for verification in (
             'helper 模块 import smoke test',
             '安装布局模拟检查',
-            'PRE_PUSH_REVIEW_zh.md',
+            'ROS_VALIDATION_zh.md',
             'validate_race_ros.sh',
         ):
             self.assertIn(verification, phases_text)
@@ -1083,7 +1080,6 @@ class RaceMathTest(unittest.TestCase):
             "'README_zh.md'",
             "'PHASES_zh.md'",
             "'ROS_VALIDATION_zh.md'",
-            "'PRE_PUSH_REVIEW_zh.md'",
             "glob('config/*.yaml')",
             "glob('config/tracks/*')",
             "glob('launch/*.launch.py')",

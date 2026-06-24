@@ -43,12 +43,6 @@ ROS/实车验证清单见：
 osracer_race/ROS_VALIDATION_zh.md
 ```
 
-推送前审查记录见：
-
-```bash
-osracer_race/PRE_PUSH_REVIEW_zh.md
-```
-
 ## 推荐上手顺序
 
 建议按下面顺序使用，不要一开始直接切高速参数：
@@ -428,7 +422,7 @@ PYTHONPATH=./osracer_race python3 osracer_race/test/test_race_math.py
 bash osracer_race/scripts/check_race_package.sh
 ```
 
-## 车端验证和推送前检查
+## 车端验证和交付检查
 
 车端完整验证以 `ROS_VALIDATION_zh.md` 为准。最小检查顺序：
 
@@ -439,17 +433,11 @@ source install/setup.bash
 bash $(ros2 pkg prefix osracer_race)/share/osracer_race/scripts/validate_race_ros.sh
 ```
 
-推送前本地检查：
+源码自检：
 
 ```bash
 bash osracer_race/scripts/check_race_package.sh
 git diff --check
-```
-
-推送前审查范围记录在：
-
-```bash
-osracer_race/PRE_PUSH_REVIEW_zh.md
 ```
 
 ## 安全要求

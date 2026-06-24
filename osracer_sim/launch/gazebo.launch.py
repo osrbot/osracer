@@ -24,13 +24,13 @@ def generate_launch_description():
     )
 
     gazebo = ExecuteProcess(
-        cmd=['gz', 'sim', '-r', world],
+        cmd=['ign', 'gazebo', '-r', world],
         condition=IfCondition(LaunchConfiguration('include_model')),
         output='screen',
     )
 
     gazebo_without_model = ExecuteProcess(
-        cmd=['gz', 'sim', '-r', world_without_model],
+        cmd=['ign', 'gazebo', '-r', world_without_model],
         condition=UnlessCondition(LaunchConfiguration('include_model')),
         output='screen',
     )
@@ -69,6 +69,9 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
+        SetEnvironmentVariable(
+            'IGN_GAZEBO_RESOURCE_PATH',
+            [models_path, ':', EnvironmentVariable('IGN_GAZEBO_RESOURCE_PATH', default_value='')]),
         SetEnvironmentVariable(
             'GZ_SIM_RESOURCE_PATH',
             [models_path, ':', EnvironmentVariable('GZ_SIM_RESOURCE_PATH', default_value='')]),

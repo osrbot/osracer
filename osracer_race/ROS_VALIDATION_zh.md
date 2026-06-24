@@ -3,7 +3,7 @@
 本文档用于在 Ubuntu 22.04 + ROS 2 Humble 机器上验证 `osracer_race`。
 推荐在车端 Jetson Orin Nano 或连接真实车辆的 ROS 2 Humble 开发机上执行。开发电脑
 可以用于远程终端、RViz、录包、地图和轨迹文件准备；串口、LiDAR、相机和实车运动验证
-以车端结果为准。
+以车端结果为准。本文档不替代实车低速验证。
 
 ## 1. 构建验证
 
@@ -47,6 +47,9 @@ bash $(ros2 pkg prefix osracer_race)/share/osracer_race/scripts/validate_race_ro
 ```
 
 ## 3. 低速安全验证
+
+真车低速安全验证必须先使用 `race_safe.yaml`，确认安全停车、遥控器/底层急停和
+命令限幅都可靠后，才能继续提高速度。
 
 启动整车 bringup 和无地图比赛模式：
 

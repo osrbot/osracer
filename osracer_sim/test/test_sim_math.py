@@ -150,6 +150,14 @@ class SimMathTest(unittest.TestCase):
         self.assertIn('<pose>2.0 -1.7 0.18 0 0 0</pose>', world_text)
         self.assertIn('<radius>0.25</radius>', world_text)
 
+    def test_gazebo_launch_uses_humble_fortress_command(self):
+        package_dir = Path(__file__).resolve().parents[1]
+        launch_text = (package_dir / 'launch' / 'gazebo.launch.py').read_text(encoding='utf-8')
+        self.assertIn("'ign', 'gazebo'", launch_text)
+        self.assertNotIn("'gz', 'sim'", launch_text)
+        self.assertIn('IGN_GAZEBO_RESOURCE_PATH', launch_text)
+        self.assertIn('GZ_SIM_RESOURCE_PATH', launch_text)
+
 
 if __name__ == '__main__':
     unittest.main()

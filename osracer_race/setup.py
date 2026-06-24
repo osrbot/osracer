@@ -14,7 +14,6 @@ setup(
             'README_zh.md',
             'PHASES_zh.md',
             'ROS_VALIDATION_zh.md',
-            'PRE_PUSH_REVIEW_zh.md',
         ]),
         (f'share/{package_name}/config', glob('config/*.yaml')),
         (f'share/{package_name}/config/tracks', glob('config/tracks/*')),

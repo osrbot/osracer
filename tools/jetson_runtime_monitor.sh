@@ -3,7 +3,7 @@ set -u
 
 DURATION_S=60
 OUTPUT_DIR="${TMPDIR:-/tmp}/osracer_runtime_monitor"
-ROS_DISTRO_NAME="${ROS_DISTRO:-jazzy}"
+ROS_DISTRO_NAME="${ROS_DISTRO:-humble}"
 TOPICS=("/ackermann_cmd" "/odometry/filtered" "/imu_filter" "/rgb/image_raw")
 PROCESS_PATTERNS=("policy_inference.py" "chassis_ackermann.py" "usb_cam" "ros2")
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -u
 
-ROS_DISTRO_NAME="${ROS_DISTRO:-jazzy}"
+ROS_DISTRO_NAME="${ROS_DISTRO:-humble}"
 POLICY_PATH=""
 OFFLINE_SMOKE=0
 ENVIRONMENT_OUTPUT=""
@@ -240,14 +240,15 @@ px,py,pz,roll,pitch,yaw,vx,vy,vz,wx,wy,wz,last_speed,last_steering
 0,0,0,0,0,0,0,0,0,0,0,0,0,0
 0.1,0,0,0,0,0.05,0.2,0,0,0,0,0.1,0,0
 CSV
+        ISAACLAB_RUNNER="${ISAACLAB_RUNNER:-${HOME}/rlgpu_ws/IsaacLab/isaaclab.sh}"
         if python3 - <<'PY' >/dev/null 2>&1
 import importlib.util
 raise SystemExit(0 if importlib.util.find_spec("torch") else 1)
 PY
         then
             POLICY_RUNNER=(python3)
-        elif [[ -x "/home/osrbot/rlgpu_ws/IsaacLab/isaaclab.sh" ]]; then
-            POLICY_RUNNER=(/home/osrbot/rlgpu_ws/IsaacLab/isaaclab.sh -p)
+        elif [[ -x "${ISAACLAB_RUNNER}" ]]; then
+            POLICY_RUNNER=("${ISAACLAB_RUNNER}" -p)
         else
             POLICY_RUNNER=(python3)
             warn "torch not found in python3 and IsaacLab runner not found; replay may fail"

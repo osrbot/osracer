@@ -75,6 +75,10 @@ ros2 launch osracer_sim gazebo.launch.py
 场景可视化和后续控制插件接入；ROS 侧里程计、TF、joint 动画和 `/scan` 仍由
 `ackermann_kinematic_sim_node` 发布。
 
+在 ROS 2 Humble / Ubuntu 22.04 上，该 launch 内部使用 Gazebo Fortress 的
+`ign gazebo` 命令。用户通过上面的 `ros2 launch` 启动即可，不需要直接调用
+`gz sim`。
+
 如果只想加载赛道和 ROS kinematic 仿真，不加载 Gazebo 车辆模型：
 
 ```bash

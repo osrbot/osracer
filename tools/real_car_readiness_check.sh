@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -u
 
-ROS_DISTRO_NAME="${ROS_DISTRO:-jazzy}"
+ROS_DISTRO_NAME="${ROS_DISTRO:-humble}"
 POLICY_PATH=""
 OBSERVATIONS_CSV=""
 REPLAY_CSV=""

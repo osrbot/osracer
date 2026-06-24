@@ -1,6 +1,6 @@
-# Jetson Orin Runtime Plan for OSRacer
+# Jetson Orin Runtime for OSRacer
 
-This document is for the real OSRacer compute platform. Current target hardware is Jetson Orin Nano Super 8GB.
+This document is for the real OSRacer compute platform. Current target hardware is Jetson Orin Nano Super 8GB running JetPack 6.x / Ubuntu 22.04 with ROS 2 Humble.
 For the first real-car low-speed test sequence, follow `docs/first_drive_runbook.md`.
 
 ## Split of Responsibility
@@ -16,7 +16,7 @@ External workstation
   sim2sim and replay validation
 
 Jetson Orin Nano Super 8GB
-  ROS 2 runtime
+  ROS 2 Humble runtime
   policy inference
   TensorRT / TorchScript / ONNX Runtime
   sensor preprocessing
@@ -48,8 +48,8 @@ Later targets:
 2. Use NVMe for workspace, logs, and model artifacts when possible.
 3. Configure a high-performance power mode before runtime tests.
 4. Keep thermal throttling visible with `tegrastats` or `jtop`.
-5. Install ROS 2 Jazzy packages and OSRacer workspace dependencies.
-6. Install `ros-jazzy-ackermann-msgs`.
+5. Install ROS 2 Humble packages and OSRacer workspace dependencies.
+6. Install `ros-humble-ackermann-msgs`.
 7. Install Torch for the exact Python used by `ros2 launch`.
 8. Run `tools/jetson_preflight.sh`.
 9. Review and apply the runtime performance profile before latency-sensitive tests.
@@ -57,7 +57,7 @@ Later targets:
 Example:
 
 ```bash
-sudo apt install ros-jazzy-ackermann-msgs
+sudo apt install ros-humble-ackermann-msgs
 python3 -m pip install torch
 tools/jetson_preflight.sh /path/to/policy.pt
 ```
@@ -213,7 +213,7 @@ The verifier runs TorchScript load checks for `torchscript`, ONNX checker for
 Build and source the OSRacer workspace:
 
 ```bash
-source /opt/ros/jazzy/setup.bash
+source /opt/ros/humble/setup.bash
 colcon build --packages-select osracer_bringup
 source install/setup.bash
 ```

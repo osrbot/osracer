@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -u
 
-ROS_DISTRO_NAME="${ROS_DISTRO:-jazzy}"
+ROS_DISTRO_NAME="${ROS_DISTRO:-humble}"
 OUTPUT_DIR="${TMPDIR:-/tmp}/osracer_sensor_preflight_$(date +%Y%m%d_%H%M%S)"
 DURATION_S=5
 CAMERA_TOPIC="/rgb/image_raw"
@@ -22,7 +22,7 @@ formats, network interfaces, ROS topic metadata, and short topic-rate samples.
 Options:
   --output-dir DIR       Directory for logs and summary.
   --duration SECONDS     Seconds per ros2 topic hz sample. Default: 5.
-  --ros-distro NAME      ROS distro to source. Default: $ROS_DISTRO or jazzy.
+  --ros-distro NAME      ROS distro to source. Default: $ROS_DISTRO or humble.
   --camera-topic TOPIC   Camera image topic. Default: /rgb/image_raw.
   --lidar-topic TOPIC    Lidar scan topic. Default: /scan.
   --imu-topic TOPIC      IMU topic. Default: /imu_filter.

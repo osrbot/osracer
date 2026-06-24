@@ -21,9 +21,8 @@
   safety, Gap Follow, and overtaking flows can be smoke-tested without hardware.
 - Added `eval_output_csv` passthrough in `race_sim.launch.py` for comparable
   simulation evaluation logs across Gap Follow, Pure Pursuit, Stanley, and MPC.
-- Added `validate_sim_ros.sh` and Docker coverage for installed simulation
-  launch entries, race-stage arguments, obstacle scenarios, and Gazebo control
-  arguments.
+- Added `validate_sim_ros.sh` coverage for installed simulation launch entries,
+  race-stage arguments, obstacle scenarios, and Gazebo control arguments.
 - Added reusable obstacle presets (`front`, `left`, `right`, `off`, `custom`)
   for kinematic scan simulation scenarios.
 - Documented the simulation development route and Gazebo tradeoffs in
@@ -92,8 +91,6 @@
   changes.
 - Added raceline target-speed tracking and path-progress reward terms to the
   MPC shooting cost.
-- Fixed the Docker ROS Humble stable profile so it builds the TEB /
-  `costmap_converter` chain required by the default navigation planner.
 - Removed unused bringup demo/test scripts and old STM32/no-RC chassis variants
   from the ROS package surface.
 - Removed duplicate `osracer_navigation/maps` files and pointed the navigation
@@ -117,23 +114,14 @@
 - Expanded the race usage README into a detailed tutorial covering setup,
   self-checks, topic flow, staged operation, vehicle-side validation, and
   troubleshooting.
-- Added a Docker-based Ubuntu 22.04 + ROS 2 Humble compile-check environment
-  for macOS pre-push validation.
-- Added stable/full Docker build profiles so pinned third-party dependencies can
-  be checked separately from the stable deployment path.
-- Added ROS Humble Docker dependencies for serial, Tk demo GUI,
-  `tf_transformations`, `libg2o`, and suitesparse so the full TEB and
-  `costmap_converter` dependency chain builds in the macOS pre-push check.
-- Made package-limited Docker checks skip `osracer_race` installed entry checks
-  when that package was not part of the selected build.
 - Updated package manifests for bringup, navigation, SLAM, calibration, debug,
   and demo packages to declare their actual ROS 2 runtime dependencies.
 - Replaced legacy placeholder and personal maintainer metadata with the OSRBot
   maintainer address across package manifests.
 - Aligned `twist_bridge.py` with the measured `0.285m` OSRacer wheelbase and
   added configurable odometry twist covariance for EKF fusion.
-- Added `PRE_PUSH_REVIEW_zh.md` to record verified static checks, cleanup scope,
-  package boundaries, and remaining ROS/vehicle validation items before pushing.
+- Removed the internal race-package pre-push note from the installed package
+  surface; vehicle-side validation is documented in `ROS_VALIDATION_zh.md`.
 - Reused signed-curvature-safe speed limiting in Pure Pursuit so externally
   generated racelines with negative curvature still reduce corner speed.
 - Applied the same raceline curvature speed limiting to Stanley tracking

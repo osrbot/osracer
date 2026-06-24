@@ -82,9 +82,8 @@
 - `scripts/check_race_package.sh` 自检脚本；在 ROS/colcon 存在时会自动构建 `osracer_race`。
 - `scripts/validate_race_ros.sh` 车端 ROS 验证脚本；构建后检查资源、CLI、launch 参数和可选 topic。
 - 安装布局模拟检查，覆盖安装后的 share 资源、文档、launch、脚本和测试。
-- `git diff --check`。
 - 缓存、PDF、固件、分区表、隐私关键词扫描。
-- `PRE_PUSH_REVIEW_zh.md` 推送前审查记录。
+- `ROS_VALIDATION_zh.md` ROS/实车验证清单。
 
 本机未完成：
 

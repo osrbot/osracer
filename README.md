@@ -1,5 +1,11 @@
 # OSRacer - Autonomous Racing Car
 
+This repository is the ROS 2 runtime workspace for OSRacer vehicles. Delivered
+robots run it on the onboard Jetson Orin Nano with JetPack 6.x, Ubuntu 22.04,
+and ROS 2 Humble. The installation steps below are for rebuilding the robot
+workspace or preparing another ROS 2 Humble machine; normal field use starts
+from the launch and demo commands after the vehicle has been deployed.
+
 ## 1. Installation & Setup
 
 ### 1.1 System Requirements
@@ -53,42 +59,27 @@ sudo apt install ros-humble-nav2-bringup \
                  ros-humble-cv-bridge \
                  ros-humble-rqt-tf-tree \
                  ros-humble-tf-transformations \
+                 ros-humble-ros-gz-bridge \
+                 ros-humble-ros-gz-sim \
                  ros-humble-ackermann-msgs -y
 ```
 
-### 1.4 Serial Driver Installation
-Install serial communication libraries and drivers:
-
-```bash
-# CppLinuxSerial (for serial communication)
-git clone https://github.com/gbmhunter/CppLinuxSerial.git
-cd CppLinuxSerial
-mkdir build && cd build
-cmake .. && make
-sudo make install
-
-# Serial ROS2 wrapper
-git clone https://github.com/RoverRobotics-forks/serial-ros2.git
-cd serial-ros2
-mkdir build && cd build
-cmake .. && make
-sudo make install
-
-# Remove conflicting brltty (if present)
-sudo apt remove brltty
-```
-
-### 1.5 UDEV Rules Setup
-Configure permissions for serial devices:
+### 1.4 Serial Device Setup
+The chassis driver uses Python serial and the stable udev device
+`/dev/osrbot_base`. Configure serial permissions and install the packaged udev
+rules on the robot computer:
 
 ```bash
 sudo usermod -aG dialout $USER
+sudo apt remove brltty
+sudo bash osracer_bringup/script/udev/install_udev.sh
 sudo udevadm control --reload-rules
-sudo service udev restart
 sudo udevadm trigger
 ```
 
-### 1.6 Update Source Code With Git
+Log out and back in after adding the user to `dialout`.
+
+### 1.5 Update Source Code With Git
 
 ```bash
 cd ~/your_workspace/src/osracer && git add . && git stash && git pull --recurse-submodules
@@ -281,6 +272,10 @@ rectangular track world, a simplified OSRacer model, and the kinematic
 simulator; tire slip, drivetrain, and sensor noise model calibration are
 intentionally left for later validation work.
 
+On ROS 2 Humble / Ubuntu 22.04, the Gazebo launch uses Gazebo Fortress through
+`ign gazebo` internally. Start it with `ros2 launch osracer_sim gazebo.launch.py`;
+users do not need to call `gz sim` directly.
+
 Gazebo-native LiDAR and IMU topics can be bridged separately when needed:
 
 ```bash
@@ -395,7 +390,7 @@ tools/verify_first_drive_evidence_pack.py /tmp/osracer_first_drive_evidence_pack
 Runtime prerequisites:
 
 ```bash
-sudo apt install ros-jazzy-ackermann-msgs
+sudo apt install ros-humble-ackermann-msgs
 python3 -m pip install torch
 ```
 
