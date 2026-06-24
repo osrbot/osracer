@@ -116,45 +116,16 @@ ros2 launch osracer_bringup bringup.launch.py
 
 ---
 
-## 2.1 Docker ROS Check on macOS
+## 2.1 Development and Runtime Split
 
-For macOS development, use Docker as the pre-push ROS 2 Humble compile-check
-environment. The container uses Ubuntu 22.04 + ROS 2 Humble, copies the mounted
-source into a temporary workspace, and runs `colcon build` without leaving
-root-owned `build/`, `install/`, or `log/` folders in the repository.
+The robot computer is the Jetson Orin Nano running JetPack 6.x and ROS 2 Humble.
+Use it for hardware bringup, LiDAR/camera/serial access, SLAM, navigation, and
+real-car race tests.
 
-```bash
-bash tools/docker/run_ros_humble_check.sh
-```
-
-By default the script uses `OSRACER_BUILD_PROFILE=stable`, which builds the
-main OSRacer packages plus the pinned dependencies needed by the stable
-deployment path: Lakibeam lidar, gmapping, camera calibration, and the TEB /
-`costmap_converter` chain used by the default navigation planner. It then runs
-the installed `osracer_race` self-check and non-motion ROS entry validation.
-
-For a faster package-only check:
-
-```bash
-OSRACER_BUILD_PACKAGES=osracer_race bash tools/docker/run_ros_humble_check.sh
-```
-
-Package-limited builds use `colcon --packages-up-to` for the requested package
-and skip workspace-wide launch checks for packages that were not built.
-
-For the explicit full dependency profile:
-
-```bash
-OSRACER_BUILD_PROFILE=full bash tools/docker/run_ros_humble_check.sh
-```
-
-Use this profile before dependency or navigation changes are promoted. It keeps
-the invocation explicit even though the default stable profile already validates
-the pinned TEB and `costmap_converter` chain required by navigation.
-
-This Docker check is for compilation and launch-argument validation only. USB
-serial devices, LiDAR, camera, RViz, and real vehicle motion still need an
-Ubuntu 22.04 ROS machine or the vehicle computer.
+A separate development computer can be used for editing code, visualizing RViz,
+recording bags, and preparing maps or race lines. It should connect to the robot
+over the same ROS 2 network, but hardware drivers and final motion tests should
+run on the Jetson.
 
 ---
 

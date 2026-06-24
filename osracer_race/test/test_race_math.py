@@ -920,9 +920,8 @@ class RaceMathTest(unittest.TestCase):
             'ros2 topic echo /race/safety_stop',
             'ros2 topic hz /scan',
             'ros2 topic hz /odometry/filtered',
-            'bash tools/docker/run_ros_humble_check.sh',
-            'OSRACER_BUILD_PACKAGES=osracer_race bash tools/docker/run_ros_humble_check.sh',
-            'OSRACER_BUILD_PROFILE=full bash tools/docker/run_ros_humble_check.sh',
+            'bash osracer_race/scripts/check_race_package.sh',
+            'bash $(ros2 pkg prefix osracer_race)/share/osracer_race/scripts/validate_race_ros.sh',
         ):
             self.assertIn(command, readme_text)
         self.assertIn('bash $(ros2 pkg prefix osracer_race)/share/osracer_race/scripts/check_race_package.sh', validation_text)
@@ -1033,48 +1032,13 @@ class RaceMathTest(unittest.TestCase):
         self.assertIn('Recommended first run sequence', readme_text)
         self.assertIn('race_safe.yaml', readme_text)
         self.assertIn('race_fast.yaml', readme_text)
-        self.assertIn('Docker ROS Check on macOS', readme_text)
-        self.assertIn('tools/docker/run_ros_humble_check.sh', readme_text)
         self.assertIn('git submodule update --init --recursive', readme_text)
-        self.assertIn('OSRACER_BUILD_PROFILE=stable', readme_text)
-        self.assertIn('OSRACER_BUILD_PROFILE=full', readme_text)
+        self.assertIn('Development and Runtime Split', readme_text)
+        self.assertIn('Jetson Orin Nano', readme_text)
 
-    def test_docker_ros_check_scripts_are_documented_and_executable(self):
+    def test_public_tree_does_not_include_local_dev_check_scripts(self):
         repo_root = Path(__file__).resolve().parents[2]
-        docker_dir = repo_root / 'tools' / 'docker'
-        if not docker_dir.exists():
-            self.skipTest('source-tree docker check files are not installed with osracer_race')
-
-        run_script = docker_dir / 'run_ros_humble_check.sh'
-        check_script = docker_dir / 'check_ros_humble_workspace.sh'
-        dockerfile = docker_dir / 'ros_humble_check.Dockerfile'
-
-        self.assertTrue(os.access(run_script, os.X_OK))
-        self.assertTrue(os.access(check_script, os.X_OK))
-        dockerfile_text = dockerfile.read_text(encoding='utf-8')
-        run_text = run_script.read_text(encoding='utf-8')
-        check_text = check_script.read_text(encoding='utf-8')
-
-        self.assertIn('FROM osrf/ros:humble-desktop', dockerfile_text)
-        self.assertIn('python3-colcon-common-extensions', dockerfile_text)
-        self.assertIn('python3-serial', dockerfile_text)
-        self.assertIn('python3-tk', dockerfile_text)
-        self.assertIn('ros-humble-ackermann-msgs', dockerfile_text)
-        self.assertIn('ros-humble-libg2o', dockerfile_text)
-        self.assertIn('ros-humble-tf-transformations', dockerfile_text)
-        self.assertIn('docker build', run_text)
-        self.assertIn('target=/src/osracer,readonly', run_text)
-        self.assertIn('OSRACER_BUILD_PROFILE', run_text)
-        self.assertIn('OSRACER_BUILD_PACKAGES', run_text)
-        self.assertIn('osracer_dependency/Lakibeam_ROS2_Driver/package.xml', check_text)
-        self.assertIn('git submodule update --init --recursive', check_text)
-        self.assertIn('STABLE_PACKAGES=', check_text)
-        self.assertIn('FULL_PACKAGES=', check_text)
-        self.assertIn('costmap_converter', check_text)
-        self.assertIn('teb_local_planner', check_text)
-        self.assertIn('colcon build --symlink-install', check_text)
-        self.assertIn('OSRACER_BUILD_PACKAGES', check_text)
-        self.assertIn('validate_race_ros.sh', check_text)
+        self.assertFalse((repo_root / 'tools' / 'local_dev_check').exists())
 
     def test_package_metadata_is_trimmed_and_scripts_are_executable(self):
         package_root = self.source_package_root()

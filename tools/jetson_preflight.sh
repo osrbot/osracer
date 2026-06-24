@@ -89,7 +89,6 @@ fi
 check_cmd nvpmodel
 check_cmd jetson_clocks
 check_cmd tegrastats
-check_cmd docker
 if [[ -x "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/jetson_performance_profile.sh" ]]; then
     ok "jetson_performance_profile.sh: available"
 else
@@ -136,10 +135,6 @@ if command -v nvidia-smi >/dev/null 2>&1; then
 else
     warn "nvidia-smi not found; this is normal on some Jetson images"
 fi
-if command -v docker >/dev/null 2>&1; then
-    docker info --format 'Docker runtimes: {{json .Runtimes}}' 2>/dev/null || warn "docker info failed; user may need docker group or root"
-fi
-
 if [[ -f "/opt/ros/${ROS_DISTRO_NAME}/setup.bash" ]]; then
     ok "ROS setup: /opt/ros/${ROS_DISTRO_NAME}/setup.bash"
     set +u

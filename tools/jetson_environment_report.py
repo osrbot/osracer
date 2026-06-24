@@ -77,7 +77,7 @@ def build_report(args):
     nv_tegra = read_text("/etc/nv_tegra_release")
     device_model = read_text("/proc/device-tree/model")
     is_jetson = bool(nv_tegra or (device_model and "NVIDIA" in device_model.upper()))
-    commands = {name: command_info(name) for name in sorted(set(required_commands + ("docker", "trtexec")))}
+    commands = {name: command_info(name) for name in sorted(set(required_commands + ("trtexec",)))}
     modules = {name: python_module_info(name) for name in sorted(set(required_modules + ("onnx", "tensorrt")))}
     ros_setup = f"/opt/ros/{args.ros_distro}/setup.bash"
     failures = []

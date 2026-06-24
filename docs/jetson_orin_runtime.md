@@ -5,10 +5,11 @@ For the first real-car low-speed test sequence, follow `docs/first_drive_runbook
 
 ## Split of Responsibility
 
-Use the RTX 4080 SUPER server for training and simulation. Use Jetson for runtime inference and real-robot control.
+Use a separate workstation for training, simulation, and heavy dataset
+preparation. Use Jetson for runtime inference and real-robot control.
 
 ```text
-Server
+External workstation
   IsaacLab / MuJoCo
   train policy
   export TorchScript / optional ONNX
@@ -142,9 +143,9 @@ tools/jetson_preflight.sh \
 ```
 
 The preflight is read-only. It reports Jetson Linux, power-mode tools, memory,
-swap/zram, disk space, CPU governor, Docker runtime visibility, ROS packages,
-Python inference packages, and optional policy replay. Use it before changing
-power or container settings so the baseline is recorded.
+swap/zram, disk space, CPU governor, ROS packages, Python inference packages,
+and optional policy replay. Use it before changing power settings so the
+baseline is recorded.
 
 Run a read-only real-car readiness check before enabling live policy commands:
 
@@ -422,7 +423,7 @@ Recommended Orin Nano Super 8GB runtime posture:
 - Run `tools/jetson_performance_profile.sh` before and after applying the profile so the before/after state is recorded.
 - Set the high-performance `nvpmodel` profile, run `jetson_clocks`, and keep the CPU governor at `performance` for repeatable latency tests.
 - Monitor thermals with `tegrastats`, especially during camera or visual-policy tests.
-- Keep training on the RTX 4080 SUPER host.
+- Keep heavy training and large simulation sweeps on an external workstation.
 - Run only inference, preprocessing, logging, and ROS control on Jetson.
 - Use NVMe for logs, replay CSVs, bags, and model artifacts.
 - Treat swap/zram as a safety margin, not as normal inference memory.

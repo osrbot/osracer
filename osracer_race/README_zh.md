@@ -96,36 +96,26 @@ bash $(ros2 pkg prefix osracer_race)/share/osracer_race/scripts/validate_race_ro
 bash osracer_race/scripts/check_race_package.sh
 ```
 
-macOS 开发机推荐用 Docker 做推送前 ROS 编译检查：
-
-```bash
-bash tools/docker/run_ros_humble_check.sh
-```
-
 运行前必须先初始化 `osracer_dependency` submodule：
 
 ```bash
 git submodule update --init --recursive
 ```
 
-默认会在 Ubuntu 22.04 + ROS 2 Humble 容器中复制源码到临时工作空间，并使用
-`OSRACER_BUILD_PROFILE=stable` 编译主包和稳定交付依赖。stable 包含 Lakibeam 雷达、
-gmapping、camera calibration、默认导航 planner 使用的 TEB/costmap_converter
-链路和 OSRacer 主功能包。随后脚本会运行安装后的 race 包自检和非运动 ROS 入口验证。
+客户拿到机器人后，车端 Jetson Orin Nano 负责运行底盘、雷达、相机、SLAM、Nav2 和
+race 控制节点；自己的开发电脑主要用于编辑代码、远程终端、RViz、录包、地图和轨迹文件
+准备。实车运动相关验证必须在车端或连接真实车辆的 ROS 2 Humble 环境完成。
 
-只想快速检查 race 包时：
+race 包本地自检：
 
 ```bash
-OSRACER_BUILD_PACKAGES=osracer_race bash tools/docker/run_ros_humble_check.sh
+bash osracer_race/scripts/check_race_package.sh
 ```
 
-指定 `OSRACER_BUILD_PACKAGES` 时脚本使用 `colcon --packages-up-to` 构建目标包及其依赖，
-并跳过未构建包的 workspace 级 launch 检查。
-
-推送前检查全部依赖链路时：
+构建后检查 ROS 入口：
 
 ```bash
-OSRACER_BUILD_PROFILE=full bash tools/docker/run_ros_humble_check.sh
+bash $(ros2 pkg prefix osracer_race)/share/osracer_race/scripts/validate_race_ros.sh
 ```
 
 ## Topic 链路和安全边界
