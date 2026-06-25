@@ -162,7 +162,9 @@ graph TD
 | `publish_tf` | `auto` | Auto-set to `true` if EKF is off, `false` if EKF is on |
 | `port_name` | `/dev/osrbot_base` | Serial device port |
 | `baud_rate` | `460800` | Serial baud rate for current osrcore firmware |
-| `firmware_version_timeout_s` | `0.8` | Timeout for querying osrcore `fw version` and logging `ProjectVer` during serial startup |
+| `firmware_version_timeout_s` | `0.3` | Timeout for querying osrcore `fw version` and logging `ProjectVer` during serial startup |
+| `link_status_enabled` | `true` | Send osrcore `link up/ping/down ros` connection-state commands |
+| `link_ping_period_s` | `1.0` | Period for `link ping ros` while the serial port is connected |
 | `wheelbase` | `0.285` | Distance between front and rear axles (m) |
 | `odom_twist_covariance` | `[0.02, 0.20, 1.0, 1.0, 1.0, 0.30]` | Odometry twist covariance diagonal `[vx, vy, vz, vroll, vpitch, vyaw]` for EKF consumers |
 
@@ -175,7 +177,13 @@ preserving roll/pitch for slopes and 3D lidar use. The odometry covariance
 settings are ROS-side `nav_msgs/Odometry` metadata only and do not change the
 firmware serial protocol. During serial startup the chassis node sends
 `fw version` once and logs the returned `ProjectVer` when supported by the
-installed osrcore firmware.
+installed osrcore firmware. After `stream sync` is enabled, it sends
+`link up ros`, refreshes the host link with `link ping ros` once per second,
+and attempts `link down ros` before a normal serial close. These link and
+diagnostic commands are auxiliary protocol lines and do not change `s/i/o/m/r/b`
+frame parsing; failures are logged and do not block ROS bringup.
+Use the serial debug tool's `diag` command to query unified firmware diagnostic
+status such as `DIAG: Level=1, Code=110, Name=HOST_LOST, ...`.
 
 ### 3.1.1 Field Demo Tools
 

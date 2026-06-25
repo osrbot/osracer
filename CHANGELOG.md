@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Bringup
+
+- Added best-effort osrcore host-link commands in the chassis serial node:
+  `link up ros` after `stream sync`, `link ping ros` every second while
+  connected, and `link down ros` before normal serial close.
+- Reduced the `fw version` startup query timeout to `0.3s`; missing
+  `ProjectVer` only warns and does not block ROS bringup.
+- Documented the auxiliary `diag` command path for unified firmware diagnostic
+  status without changing `s/i/o/m/r/b` frame parsing.
+
 ### Simulation
 
 - Added `osracer_sim` with a lightweight kinematic Ackermann simulator, modern
@@ -199,7 +209,7 @@
 
 ### ROS interface and TF
 
-- No firmware serial protocol changes. The chassis node still consumes the
+- No motion telemetry frame changes. The chassis node still consumes the
   current osrcore `stream sync` telemetry:
   `s px py pz vx vy vz yaw qx qy qz qw ax ay az gx gy gz`.
 - Added configurable odometry twist covariance as ROS `nav_msgs/Odometry`

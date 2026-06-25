@@ -34,7 +34,9 @@ class OsrbotCore(Node):
         self.declare_parameter('max_steering_angle_deg', 30.0)
         self.declare_parameter('cmd_watchdog_timeout_s', 0.5)
         self.declare_parameter('reconnect_interval_s', 2.0)
-        self.declare_parameter('firmware_version_timeout_s', 0.8)
+        self.declare_parameter('firmware_version_timeout_s', 0.3)
+        self.declare_parameter('link_status_enabled', True)
+        self.declare_parameter('link_ping_period_s', 1.0)
 
         self.declare_parameter('publish_tf', True)
         self.declare_parameter('publish_rc', True)
@@ -63,6 +65,8 @@ class OsrbotCore(Node):
         self.cmd_watchdog_timeout = self.get_parameter('cmd_watchdog_timeout_s').value
         self.reconnect_interval_s = self.get_parameter('reconnect_interval_s').value
         self.firmware_version_timeout_s = self.get_parameter('firmware_version_timeout_s').value
+        self.link_status_enabled = self.get_parameter('link_status_enabled').value
+        self.link_ping_period_s = self.get_parameter('link_ping_period_s').value
 
         self.publish_tf = self.get_parameter('publish_tf').value
         self.publish_rc = self.get_parameter('publish_rc').value
@@ -132,6 +136,7 @@ class OsrbotCore(Node):
         # --- State Variables ---
         self.last_cmd_time = self.get_clock().now()
         self.reconnect_timer = self.create_timer(self.reconnect_interval_s, self.reconnect_serial)
+        self.link_ping_timer = self.create_timer(self.link_ping_period_s, self.link_ping)
         self.open_serial()
 
         self.get_logger().info("Vehicle bridge node started.")
@@ -177,6 +182,7 @@ class OsrbotCore(Node):
             return False
         if not self.write_serial("s\n"):
             return False
+        self.send_link_command("up")
 
         self.get_logger().info(f"Successfully opened serial port: {self.port_name}")
         self.start_read_thread()
@@ -225,6 +231,24 @@ class OsrbotCore(Node):
             return match.group(1)
         return None
 
+    def send_link_command(self, state: str):
+        if not self.link_status_enabled:
+            return True
+
+        command = f"link {state} ros\n"
+        if self.write_serial(command):
+            return True
+
+        self.get_logger().warning(f"Could not send '{command.strip()}' to osrcore")
+        return False
+
+    def link_ping(self):
+        with self.serial_lock:
+            connected = self.serial is not None and self.serial.is_open
+
+        if connected:
+            self.send_link_command("ping")
+
     def port_available(self):
         if not self.port_name.startswith('/'):
             return True
@@ -246,8 +270,18 @@ class OsrbotCore(Node):
 
         try:
             if serial_conn and serial_conn.is_open:
+                self.write_link_down(serial_conn)
                 serial_conn.close()
         except Exception:
+            pass
+
+    def write_link_down(self, serial_conn):
+        if not self.link_status_enabled:
+            return
+        try:
+            serial_conn.write(b"link down ros\n")
+            serial_conn.flush()
+        except (serial.SerialException, OSError, ValueError, TypeError, termios.error):
             pass
 
     def mark_serial_failed(self, failed_conn):
@@ -352,6 +386,9 @@ class OsrbotCore(Node):
                 return
 
             cmd_type = parts[0]
+
+            if cmd_type.startswith(('FW', 'DIAG', 'LINK', 'OK', 'ERROR')) or cmd_type == 'link':
+                return
 
             # --- s-frame: synchronized data ---
             if cmd_type == 's' and len(parts) == 18:
