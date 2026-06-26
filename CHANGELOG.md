@@ -19,6 +19,8 @@
 - Fixed the refreshed `osracer_demo` GUI layout to avoid tuple `pady` on
   `tk.Frame` construction, which fails on the Tk version used by the Orin Nano
   Ubuntu image.
+- Fixed the refreshed `osracer_demo` GUI color variable so button-label loops
+  cannot overwrite it and pass labels such as `停止高级节点` as Tk color names.
 - Reduced the `fw version` startup query timeout to `0.3s`; missing
   `ProjectVer` only warns and does not block ROS bringup.
 - Documented the auxiliary `diag` command path for unified firmware diagnostic

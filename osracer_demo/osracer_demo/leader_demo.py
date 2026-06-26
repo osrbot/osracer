@@ -82,7 +82,7 @@ class LeaderDemo(tk.Tk):
     def _build_ui(self) -> None:
         bg = "#f3f4f6"
         panel_bg = "#ffffff"
-        text = "#111827"
+        text_color = "#111827"
         muted = "#6b7280"
         border = "#d1d5db"
         accent = "#2563eb"
@@ -143,14 +143,14 @@ class LeaderDemo(tk.Tk):
             card.grid(row=0, column=idx, sticky="ew", padx=(0, 10))
             status.columnconfigure(idx, weight=1)
             tk.Label(card, text=label, bg=panel_bg, fg=muted, font=("Arial", 10, "bold")).pack(anchor="w")
-            tk.Label(card, textvariable=self.status_vars[name], bg=panel_bg, fg=text, font=("Arial", 13, "bold")).pack(anchor="w", pady=(4, 0))
+            tk.Label(card, textvariable=self.status_vars[name], bg=panel_bg, fg=text_color, font=("Arial", 13, "bold")).pack(anchor="w", pady=(4, 0))
 
         main = tk.Frame(self, bg=bg, padx=16)
         main.pack(fill="x", pady=(0, 12))
 
         def section(parent: tk.Widget, title: str) -> tk.Frame:
             outer = tk.Frame(parent, bg=panel_bg, highlightbackground=border, highlightthickness=1, padx=14, pady=12)
-            tk.Label(outer, text=title, bg=panel_bg, fg=text, font=("Arial", 14, "bold")).pack(anchor="w", pady=(0, 8))
+            tk.Label(outer, text=title, bg=panel_bg, fg=text_color, font=("Arial", 14, "bold")).pack(anchor="w", pady=(0, 8))
             return outer
 
         left = section(main, "基础流程")
@@ -166,8 +166,8 @@ class LeaderDemo(tk.Tk):
             ("状态检查", self.check_status),
             ("启动车辆链路", self.start_vehicle_link),
         ]
-        for text, command in buttons:
-            ttk.Button(left, text=text, command=command, style="Primary.TButton").pack(fill="x", pady=4)
+        for label_text, command in buttons:
+            ttk.Button(left, text=label_text, command=command, style="Primary.TButton").pack(fill="x", pady=4)
         tk.Label(
             left,
             text="先检查环境，再启动底盘链路。遥控器仍保留现场接管价值。",
@@ -184,8 +184,8 @@ class LeaderDemo(tk.Tk):
             ("完整 8 字演示", lambda: self.run_motion("figure8")),
             ("持续最小圈绕行", lambda: self.run_motion("circle")),
         ]
-        for text, command in motion_buttons:
-            ttk.Button(middle, text=text, command=command, style="Action.TButton").pack(fill="x", pady=4)
+        for label_text, command in motion_buttons:
+            ttk.Button(middle, text=label_text, command=command, style="Action.TButton").pack(fill="x", pady=4)
         ttk.Button(middle, text="紧急停车", command=self.emergency_stop, style="Stop.TButton").pack(fill="x", pady=(14, 4))
 
         advanced = [
@@ -196,8 +196,8 @@ class LeaderDemo(tk.Tk):
             ("边建图边导航", self.start_slam_navigation),
             ("停止高级节点", self.stop_advanced),
         ]
-        for text, command in advanced:
-            ttk.Button(right, text=text, command=command, style="Action.TButton").pack(fill="x", pady=4)
+        for label_text, command in advanced:
+            ttk.Button(right, text=label_text, command=command, style="Action.TButton").pack(fill="x", pady=4)
 
         note = (
             "高级功能只负责启动节点和 RViz，不自动下发导航目标。切换高级功能前先停止高级节点。"
@@ -209,7 +209,7 @@ class LeaderDemo(tk.Tk):
 
         log_tools = tk.Frame(log_frame, bg=panel_bg)
         log_tools.pack(fill="x", pady=(0, 6))
-        tk.Label(log_tools, text="运行日志", bg=panel_bg, fg=text, font=("Arial", 14, "bold")).pack(side="left")
+        tk.Label(log_tools, text="运行日志", bg=panel_bg, fg=text_color, font=("Arial", 14, "bold")).pack(side="left")
         ttk.Button(log_tools, text="清空日志", command=self.clear_log, style="Action.TButton").pack(side="right")
 
         self.log_text = tk.Text(
