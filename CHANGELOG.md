@@ -11,8 +11,15 @@
   code can run from a local folder or from the installed ROS package scripts.
 - Refreshed the `osracer_demo` leader GUI with a lightweight built-in Tkinter
   layout, clearer status cards, grouped actions, and a darker log console.
+- Switched the `osracer_demo` leader GUI default text to English and replaced
+  the high-saturation blue/red controls with a calmer green-gray and warm stop
+  palette.
 - Hardened `osracer_demo` stop cleanup by repeating zero-speed commands, then
   terminating and force-killing only demo-related ROS launch/node processes.
+- Extended `osracer_demo` stop cleanup to include actual chassis, LiDAR,
+  camera, LED, TF, EKF, Nav2, SLAM, and RViz process names, and made GUI STOP
+  actions re-run cleanup on every click instead of skipping while an older stop
+  command is still tracked.
 - Hardened the `osracer_demo` desktop launcher so it logs Orin Nano double-click
   startup failures, supports common workspace install paths, and reports missing
   `osracer_demo` package setup clearly.

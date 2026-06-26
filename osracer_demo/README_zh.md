@@ -28,6 +28,8 @@ $(ros2 pkg prefix osracer_demo)/share/osracer_demo/scripts/install_desktop_short
 
 安装后桌面会出现 `OSRacer Demo`，双击即可打开图形控制台。
 
+图形控制台默认使用英文界面，便于公开 demo 和现场交付统一。
+
 如果双击后没有窗口，查看启动日志：
 
 ```bash

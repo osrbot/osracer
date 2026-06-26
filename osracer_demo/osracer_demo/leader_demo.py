@@ -59,7 +59,7 @@ def motion_cmd(demo: str) -> str:
 class LeaderDemo(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
-        self.title("OSRacer 演示控制台")
+        self.title("OSRacer Demo Console")
         self.geometry("980x760")
         self.minsize(900, 700)
 
@@ -69,10 +69,10 @@ class LeaderDemo(tk.Tk):
         self.advanced_names = {"odom-rviz", "mapping", "navigation", "active-mapping", "slam-navigation"}
         self.motion_prefix = "motion-"
         self.status_vars = {
-            "vehicle": tk.StringVar(value="未检查"),
-            "ros": tk.StringVar(value="未检查"),
-            "control": tk.StringVar(value="ROS 模式，遥控器保留急停/接管"),
-            "action": tk.StringVar(value="空闲"),
+            "vehicle": tk.StringVar(value="Not checked"),
+            "ros": tk.StringVar(value="Not checked"),
+            "control": tk.StringVar(value="ROS mode; RC keeps emergency override"),
+            "action": tk.StringVar(value="Idle"),
         }
 
         self._build_ui()
@@ -80,14 +80,15 @@ class LeaderDemo(tk.Tk):
         self.protocol("WM_DELETE_WINDOW", self.on_close)
 
     def _build_ui(self) -> None:
-        bg = "#f3f4f6"
-        panel_bg = "#ffffff"
-        text_color = "#111827"
-        muted = "#6b7280"
-        border = "#d1d5db"
-        accent = "#2563eb"
-        danger = "#dc2626"
-        dark = "#111827"
+        bg = "#f5f4ef"
+        panel_bg = "#fffefa"
+        text_color = "#1f2933"
+        muted = "#687076"
+        border = "#d8d2c6"
+        accent = "#3f6f5f"
+        action_bg = "#e7e2d8"
+        stop_bg = "#8a4b38"
+        dark = "#233029"
 
         self.configure(bg=bg)
         style = ttk.Style()
@@ -98,10 +99,12 @@ class LeaderDemo(tk.Tk):
         style.configure("Primary.TButton", font=("Arial", 13, "bold"), padding=(14, 10))
         style.configure("Action.TButton", font=("Arial", 12), padding=(12, 9))
         style.configure("Stop.TButton", font=("Arial", 18, "bold"), padding=(16, 14))
-        style.map("Primary.TButton", foreground=[("active", "#ffffff")], background=[("active", "#1d4ed8")])
+        style.map("Primary.TButton", foreground=[("active", "#ffffff")], background=[("active", "#345f50")])
         style.configure("Primary.TButton", foreground="#ffffff", background=accent, bordercolor=accent)
-        style.configure("Stop.TButton", foreground="#ffffff", background=danger, bordercolor=danger)
-        style.map("Stop.TButton", foreground=[("active", "#ffffff")], background=[("active", "#b91c1c")])
+        style.configure("Action.TButton", foreground=text_color, background=action_bg, bordercolor=border)
+        style.map("Action.TButton", background=[("active", "#ddd6c8")])
+        style.configure("Stop.TButton", foreground="#ffffff", background=stop_bg, bordercolor=stop_bg)
+        style.map("Stop.TButton", foreground=[("active", "#ffffff")], background=[("active", "#723d2e")])
 
         header = tk.Frame(self, bg=dark, padx=24, pady=18)
         header.pack(fill="x")
@@ -109,14 +112,14 @@ class LeaderDemo(tk.Tk):
         title_block.pack(side="left", fill="x", expand=True)
         tk.Label(
             title_block,
-            text="OSRacer 演示控制台",
+            text="OSRacer Demo Console",
             bg=dark,
             fg="#ffffff",
             font=("Arial", 22, "bold"),
         ).pack(anchor="w")
         tk.Label(
             title_block,
-            text="现场低速演示 / 建图 / 导航控制",
+            text="Field demo / mapping / navigation",
             bg=dark,
             fg="#cbd5e1",
             font=("Arial", 12),
@@ -134,10 +137,10 @@ class LeaderDemo(tk.Tk):
         status = tk.Frame(self, bg=bg, padx=16, pady=14)
         status.pack(fill="x")
         for idx, (name, label) in enumerate([
-            ("vehicle", "车辆连接"),
-            ("ros", "ROS 环境"),
-            ("control", "控制模式"),
-            ("action", "当前动作"),
+            ("vehicle", "Vehicle Link"),
+            ("ros", "ROS Environment"),
+            ("control", "Control Mode"),
+            ("action", "Current Action"),
         ]):
             card = tk.Frame(status, bg=panel_bg, highlightbackground=border, highlightthickness=1, padx=14, pady=10)
             card.grid(row=0, column=idx, sticky="ew", padx=(0, 10))
@@ -153,9 +156,9 @@ class LeaderDemo(tk.Tk):
             tk.Label(outer, text=title, bg=panel_bg, fg=text_color, font=("Arial", 14, "bold")).pack(anchor="w", pady=(0, 8))
             return outer
 
-        left = section(main, "基础流程")
-        middle = section(main, "动作演示")
-        right = section(main, "高级功能")
+        left = section(main, "Basic Flow")
+        middle = section(main, "Motion Demo")
+        right = section(main, "Advanced")
         left.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
         middle.grid(row=0, column=1, sticky="nsew", padx=(0, 10))
         right.grid(row=0, column=2, sticky="nsew")
@@ -163,14 +166,14 @@ class LeaderDemo(tk.Tk):
             main.columnconfigure(idx, weight=1, uniform="main")
 
         buttons = [
-            ("状态检查", self.check_status),
-            ("启动车辆链路", self.start_vehicle_link),
+            ("Check Status", self.check_status),
+            ("Start Vehicle Link", self.start_vehicle_link),
         ]
         for label_text, command in buttons:
             ttk.Button(left, text=label_text, command=command, style="Primary.TButton").pack(fill="x", pady=4)
         tk.Label(
             left,
-            text="先检查环境，再启动底盘链路。遥控器仍保留现场接管价值。",
+            text="Check the environment first, then start the vehicle link. RC remains available for field takeover.",
             bg=panel_bg,
             fg=muted,
             wraplength=270,
@@ -179,28 +182,28 @@ class LeaderDemo(tk.Tk):
         ).pack(anchor="w", pady=(10, 0))
 
         motion_buttons = [
-            ("暖机小动作", lambda: self.run_motion("warmup")),
-            ("直线+S弯展示", lambda: self.run_motion("showcase")),
-            ("完整 8 字演示", lambda: self.run_motion("figure8")),
-            ("持续最小圈绕行", lambda: self.run_motion("circle")),
+            ("Warm-up Motion", lambda: self.run_motion("warmup")),
+            ("Line + S Turn", lambda: self.run_motion("showcase")),
+            ("Figure-8 Demo", lambda: self.run_motion("figure8")),
+            ("Continuous Tight Circle", lambda: self.run_motion("circle")),
         ]
         for label_text, command in motion_buttons:
             ttk.Button(middle, text=label_text, command=command, style="Action.TButton").pack(fill="x", pady=4)
-        ttk.Button(middle, text="紧急停车", command=self.emergency_stop, style="Stop.TButton").pack(fill="x", pady=(14, 4))
+        ttk.Button(middle, text="Emergency Stop", command=self.emergency_stop, style="Stop.TButton").pack(fill="x", pady=(14, 4))
 
         advanced = [
-            ("打开里程计 RViz", self.open_odom_rviz),
-            ("打开建图演示", self.start_mapping),
-            ("打开导航演示", self.start_navigation),
-            ("边走边建图", self.start_active_mapping),
-            ("边建图边导航", self.start_slam_navigation),
-            ("停止高级节点", self.stop_advanced),
+            ("Open Odometry RViz", self.open_odom_rviz),
+            ("Start Mapping", self.start_mapping),
+            ("Start Navigation", self.start_navigation),
+            ("Mapping While Driving", self.start_active_mapping),
+            ("SLAM + Navigation", self.start_slam_navigation),
+            ("Stop Advanced Nodes", self.stop_advanced),
         ]
         for label_text, command in advanced:
             ttk.Button(right, text=label_text, command=command, style="Action.TButton").pack(fill="x", pady=4)
 
         note = (
-            "高级功能只负责启动节点和 RViz，不自动下发导航目标。切换高级功能前先停止高级节点。"
+            "Advanced actions only start ROS nodes and RViz. Stop advanced nodes before switching modes."
         )
         tk.Label(right, text=note, bg=panel_bg, fg=muted, wraplength=270, justify="left", font=("Arial", 11)).pack(fill="x", pady=(10, 0))
 
@@ -209,8 +212,8 @@ class LeaderDemo(tk.Tk):
 
         log_tools = tk.Frame(log_frame, bg=panel_bg)
         log_tools.pack(fill="x", pady=(0, 6))
-        tk.Label(log_tools, text="运行日志", bg=panel_bg, fg=text_color, font=("Arial", 14, "bold")).pack(side="left")
-        ttk.Button(log_tools, text="清空日志", command=self.clear_log, style="Action.TButton").pack(side="right")
+        tk.Label(log_tools, text="Runtime Log", bg=panel_bg, fg=text_color, font=("Arial", 14, "bold")).pack(side="left")
+        ttk.Button(log_tools, text="Clear Log", command=self.clear_log, style="Action.TButton").pack(side="right")
 
         self.log_text = tk.Text(
             log_frame,
@@ -251,7 +254,7 @@ class LeaderDemo(tk.Tk):
             with self.proc_lock:
                 existing = self.processes.get(name)
             if existing is not None and existing.poll() is None:
-                self.log(f"{name} 已在运行，跳过重复启动")
+                self.log(f"{name} is already running; skipping duplicate start")
                 return existing
 
         full = bash_env_prefix() + command
@@ -265,7 +268,7 @@ class LeaderDemo(tk.Tk):
                 preexec_fn=os.setsid,
             )
         except Exception as exc:
-            self.log(f"启动失败: {exc}")
+            self.log(f"Failed to start: {exc}")
             return None
 
         if name:
@@ -289,10 +292,10 @@ class LeaderDemo(tk.Tk):
         ]
         if running_advanced:
             if name in running_advanced:
-                self.log(f"{label} 已在启动或运行，跳过重复点击")
+                self.log(f"{label} is already starting or running; skipping duplicate click")
             else:
-                self.log("已有高级功能正在启动或运行，请先点“停止高级节点”再切换。")
-                messagebox.showinfo("高级功能正在运行", "请先点“停止高级节点”，等 2-3 秒后再启动另一个高级功能。")
+                self.log("Another advanced action is running. Stop advanced nodes before switching modes.")
+                messagebox.showinfo("Advanced action running", "Press Stop Advanced Nodes, wait 2-3 seconds, then start another advanced action.")
             return
 
         self.status_vars["action"].set(label)
@@ -308,9 +311,9 @@ class LeaderDemo(tk.Tk):
             if proc.poll() is None:
                 try:
                     os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
-                    self.log(f"已停止 {name}")
+                    self.log(f"Stopped {name}")
                 except Exception as exc:
-                    self.log(f"停止 {name} 失败: {exc}")
+                    self.log(f"Failed to stop {name}: {exc}")
             with self.proc_lock:
                 if self.processes.get(name) is proc:
                     self.processes.pop(name, None)
@@ -325,28 +328,28 @@ class LeaderDemo(tk.Tk):
                 if self.processes.get(name) is proc:
                     self.processes.pop(name, None)
         if name:
-            self.log(f"{name} 已退出 code={code}")
+            self.log(f"{name} exited code={code}")
 
     def check_status(self) -> None:
-        self.status_vars["action"].set("状态检查")
+        self.status_vars["action"].set("Checking status")
         serial_exists = Path(DEFAULT_PORT).exists()
         setup_exists = Path(DEFAULT_WS, "install", "setup.bash").exists()
-        self.status_vars["vehicle"].set("串口存在" if serial_exists else "串口未找到")
-        self.status_vars["ros"].set("工作区 OK" if setup_exists else "工作区未找到")
-        self.log(f"车辆串口 {DEFAULT_PORT}: {'OK' if serial_exists else 'MISSING'}")
-        self.log(f"ROS 工作区 {DEFAULT_WS}: {'OK' if setup_exists else 'MISSING'}")
-        self.log("遥控器无需开机才能 ROS 演示；底层遥控器仍保留急停/接管用途。")
-        self.log("如果遥控器关闭时看到 RC failsafe，这不是 ROS 演示阻塞条件。")
+        self.status_vars["vehicle"].set("Port found" if serial_exists else "Port missing")
+        self.status_vars["ros"].set("Workspace OK" if setup_exists else "Workspace missing")
+        self.log(f"Vehicle port {DEFAULT_PORT}: {'OK' if serial_exists else 'MISSING'}")
+        self.log(f"ROS workspace {DEFAULT_WS}: {'OK' if setup_exists else 'MISSING'}")
+        self.log("RC does not need to be powered on for ROS demos; it remains an emergency override path.")
+        self.log("RC failsafe messages with the transmitter off are not a ROS demo blocker.")
         self.run_shell("ros2 topic list | head -40", keep=False)
 
     def start_vehicle_link(self) -> None:
-        self.status_vars["action"].set("启动车辆链路")
+        self.status_vars["action"].set("Starting vehicle link")
         if "vehicle" in self.processes and self.processes["vehicle"].poll() is None:
-            self.log("车辆链路已在运行")
+            self.log("Vehicle link is already running")
             return
         cmd = script_cmd("start_basic_demo.sh")
         self.run_shell(cmd, name="vehicle", keep=True)
-        self.status_vars["vehicle"].set("启动中")
+        self.status_vars["vehicle"].set("Starting")
 
     def run_motion(self, demo: str) -> None:
         running_motion = [
@@ -354,21 +357,21 @@ class LeaderDemo(tk.Tk):
             if name.startswith(self.motion_prefix)
         ]
         if running_motion:
-            messagebox.showinfo("动作正在执行", "当前已有动作正在执行，请先等待结束或点击紧急停车。")
+            messagebox.showinfo("Motion running", "A motion demo is already running. Wait for it to finish or press Emergency Stop.")
             return
 
         if demo == "warmup":
-            label = "暖机小动作"
+            label = "Warm-up Motion"
         elif demo == "showcase":
-            label = "直线+S弯展示"
+            label = "Line + S Turn"
         elif demo == "figure8":
-            label = "完整 8 字演示"
+            label = "Figure-8 Demo"
         elif demo == "circle":
-            label = "持续最小圈绕行"
+            label = "Continuous Tight Circle"
         else:
             label = demo
-        extra = "\n\n该动作会一直运行，直到点击“紧急停车”。" if demo == "circle" else ""
-        if not messagebox.askokcancel("开始动作", f"确认场地安全后开始：{label}{extra}"):
+        extra = "\n\nThis action keeps running until Emergency Stop is pressed." if demo == "circle" else ""
+        if not messagebox.askokcancel("Start motion", f"Confirm the field is safe, then start: {label}{extra}"):
             return
         self.status_vars["action"].set(label)
         cmd = motion_cmd(demo)
@@ -377,53 +380,56 @@ class LeaderDemo(tk.Tk):
         self.run_shell(cmd, name=f"motion-{demo}")
 
     def emergency_stop(self) -> None:
-        self.status_vars["action"].set("紧急停车")
-        self.log("发送紧急停车")
-        self.run_shell(script_cmd("stop_all_demo.sh"), name="stop")
-        self.terminate_processes(names=self.advanced_names, prefix=self.motion_prefix)
+        self.status_vars["action"].set("Emergency stop")
+        self.status_vars["vehicle"].set("Stopping")
+        self.log("Sending emergency stop and cleaning demo ROS processes")
+        self.run_shell(script_cmd("stop_all_demo.sh"))
+        self.terminate_processes(names=self.advanced_names | {"vehicle"}, prefix=self.motion_prefix)
 
     def open_odom_rviz(self) -> None:
         self.start_advanced_once(
             "odom-rviz",
-            "打开里程计 RViz",
+            "Open Odometry RViz",
             script_cmd("open_odom_rviz.sh"),
         )
 
     def start_mapping(self) -> None:
         self.start_advanced_once(
             "mapping",
-            "建图演示",
+            "Mapping",
             script_cmd("start_mapping_demo.sh"),
         )
 
     def start_navigation(self) -> None:
         self.start_advanced_once(
             "navigation",
-            "导航演示",
+            "Navigation",
             script_cmd("start_navigation_demo.sh"),
         )
 
     def start_active_mapping(self) -> None:
         self.start_advanced_once(
             "active-mapping",
-            "边走边建图",
+            "Mapping While Driving",
             script_cmd("start_active_mapping_demo.sh"),
         )
 
     def start_slam_navigation(self) -> None:
         self.start_advanced_once(
             "slam-navigation",
-            "边建图边导航",
+            "SLAM + Navigation",
             script_cmd("start_slam_navigation_demo.sh"),
         )
 
     def stop_advanced(self) -> None:
-        self.log("停止高级节点")
-        self.run_shell(script_cmd("stop_all_demo.sh"), name="stop-advanced")
-        self.terminate_processes(names=self.advanced_names)
+        self.status_vars["action"].set("Stopping advanced nodes")
+        self.status_vars["vehicle"].set("Stopping")
+        self.log("Stopping advanced nodes and demo ROS background processes")
+        self.run_shell(script_cmd("stop_all_demo.sh"))
+        self.terminate_processes(names=self.advanced_names | {"vehicle"})
 
     def on_close(self) -> None:
-        if messagebox.askokcancel("退出", "退出前会发送停车命令并停止由本界面启动的进程。"):
+        if messagebox.askokcancel("Exit", "Exiting will send stop commands and stop processes launched by this panel."):
             self.emergency_stop()
             with self.proc_lock:
                 procs = list(self.processes.values())
