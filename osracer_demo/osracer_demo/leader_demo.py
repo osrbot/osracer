@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Tkinter control panel for local OSRacer demos."""
+"""OSRacer demo GUI.
+
+This GUI runs on the Orin Nano itself. It does not change firmware control
+priority: RC remains available as an emergency override; the demo only publishes
+ROS /cmd_vel commands and stop commands.
+"""
 
 from __future__ import annotations
 
@@ -13,15 +18,26 @@ import tkinter as tk
 from pathlib import Path
 from tkinter import messagebox, ttk
 
-from ament_index_python.packages import get_package_share_directory
-
-
+DEFAULT_WS = os.environ.get("OSRACER_WS", str(Path.home() / "osracer_ws"))
 DEFAULT_PORT = os.environ.get("OSRACER_PORT", "/dev/osrbot_base")
 DEFAULT_BAUD = os.environ.get("OSRACER_BAUD", "460800")
-DEFAULT_WS = os.environ.get("OSRACER_WS", str(Path.home() / "osracer_ws"))
 
 
-def shell_prefix() -> str:
+def resolve_runtime() -> tuple[Path, Path, bool]:
+    try:
+        from ament_index_python.packages import get_package_share_directory
+
+        share_dir = Path(get_package_share_directory("osracer_demo"))
+        return share_dir, share_dir / "scripts", True
+    except Exception:
+        root = Path(__file__).resolve().parents[1]
+        return root, root / "ros_demo" / "scripts", False
+
+
+ROOT, SCRIPTS, PACKAGE_MODE = resolve_runtime()
+
+
+def bash_env_prefix() -> str:
     return (
         "set +u; "
         "source /opt/ros/humble/setup.bash; "
@@ -30,22 +46,32 @@ def shell_prefix() -> str:
     )
 
 
+def script_cmd(name: str) -> str:
+    return str(SCRIPTS / name)
+
+
+def motion_cmd(demo: str) -> str:
+    if PACKAGE_MODE:
+        return f"ros2 run osracer_demo drive_demo {demo} --yes"
+    return f"cd {ROOT} && python3 ros_demo/scripts/drive_demo.py {demo} --yes"
+
+
 class LeaderDemo(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
         self.title("OSRacer 演示控制台")
-        self.geometry("980x720")
-        self.minsize(900, 640)
+        self.geometry("980x760")
+        self.minsize(900, 700)
 
-        share_dir = Path(get_package_share_directory("osracer_demo"))
-        self.scripts_dir = share_dir / "scripts"
         self.proc_lock = threading.Lock()
         self.processes: dict[str, subprocess.Popen] = {}
         self.log_queue: queue.Queue[str] = queue.Queue()
-
+        self.advanced_names = {"odom-rviz", "mapping", "navigation", "active-mapping", "slam-navigation"}
+        self.motion_prefix = "motion-"
         self.status_vars = {
             "vehicle": tk.StringVar(value="未检查"),
             "ros": tk.StringVar(value="未检查"),
+            "control": tk.StringVar(value="ROS 模式，遥控器保留急停/接管"),
             "action": tk.StringVar(value="空闲"),
         }
 
@@ -56,72 +82,83 @@ class LeaderDemo(tk.Tk):
     def _build_ui(self) -> None:
         style = ttk.Style()
         style.configure("Title.TLabel", font=("Arial", 20, "bold"))
-        style.configure("Big.TButton", font=("Arial", 13), padding=8)
-        style.configure("Stop.TButton", font=("Arial", 16, "bold"), padding=10)
+        style.configure("Big.TButton", font=("Arial", 14), padding=9)
+        style.configure("Stop.TButton", font=("Arial", 17, "bold"), padding=12)
+        style.configure("Status.TLabel", font=("Arial", 13))
 
-        header = ttk.Frame(self, padding=14)
+        header = ttk.Frame(self, padding=16)
         header.pack(fill="x")
         ttk.Label(header, text="OSRacer 演示控制台", style="Title.TLabel").pack(side="left")
-        ttk.Label(header, text=f"{DEFAULT_PORT} @ {DEFAULT_BAUD}").pack(side="right")
+        ttk.Label(header, text=f"端口 {DEFAULT_PORT} @ {DEFAULT_BAUD}", style="Status.TLabel").pack(side="right")
 
-        status = ttk.LabelFrame(self, text="状态", padding=10)
-        status.pack(fill="x", padx=14, pady=(0, 10))
-        for idx, (key, label) in enumerate((("vehicle", "车辆"), ("ros", "ROS"), ("action", "当前动作"))):
-            ttk.Label(status, text=f"{label}:").grid(row=0, column=idx * 2, sticky="w", padx=(0, 4))
-            ttk.Label(status, textvariable=self.status_vars[key]).grid(row=0, column=idx * 2 + 1, sticky="w", padx=(0, 24))
+        status = ttk.LabelFrame(self, text="状态", padding=12)
+        status.pack(fill="x", padx=16, pady=(0, 12))
+        for idx, (name, label) in enumerate([
+            ("vehicle", "车辆连接"),
+            ("ros", "ROS 环境"),
+            ("control", "控制模式"),
+            ("action", "当前动作"),
+        ]):
+            ttk.Label(status, text=f"{label}:", style="Status.TLabel").grid(row=0, column=idx * 2, sticky="w", padx=(0, 4))
+            ttk.Label(status, textvariable=self.status_vars[name], style="Status.TLabel").grid(row=0, column=idx * 2 + 1, sticky="w", padx=(0, 24))
 
-        buttons = ttk.Frame(self, padding=(14, 0, 14, 10))
-        buttons.pack(fill="x")
-        left = ttk.LabelFrame(buttons, text="基础流程", padding=10)
-        left.pack(side="left", fill="both", expand=True, padx=(0, 6))
-        right = ttk.LabelFrame(buttons, text="动作演示", padding=10)
-        right.pack(side="right", fill="both", expand=True, padx=(6, 0))
+        main = ttk.Frame(self, padding=(16, 0, 16, 8))
+        main.pack(fill="x", expand=False)
 
-        for label, command in (
-            ("状态检查", self.check_status),
-            ("启动车辆链路", self.start_chassis),
-            ("观察里程计", self.watch_odom),
-        ):
-            ttk.Button(left, text=label, command=command, style="Big.TButton").pack(fill="x", pady=4)
-        ttk.Button(left, text="紧急停车", command=self.emergency_stop, style="Stop.TButton").pack(fill="x", pady=(16, 4))
+        left = ttk.LabelFrame(main, text="基础展示", padding=12)
+        left.pack(side="left", fill="both", expand=True, padx=(0, 8))
+        right = ttk.LabelFrame(main, text="高级功能", padding=12)
+        right.pack(side="right", fill="both", expand=True, padx=(8, 0))
 
-        for label, demo in (
-            ("暖机小动作", "warmup"),
-            ("直线低速前进", "straight"),
-            ("左缓弯", "left"),
-            ("右缓弯", "right"),
-            ("8 字演示", "figure8"),
-            ("巡航演示", "patrol"),
-        ):
-            ttk.Button(right, text=label, command=lambda d=demo: self.run_motion(d), style="Big.TButton").pack(fill="x", pady=4)
+        buttons = [
+            ("1. 状态检查", self.check_status),
+            ("2. 启动车辆链路", self.start_vehicle_link),
+            ("3. 暖机小动作", lambda: self.run_motion("warmup")),
+            ("4. 直线+S弯展示", lambda: self.run_motion("showcase")),
+            ("5. 完整 8 字演示", lambda: self.run_motion("figure8")),
+            ("6. 持续最小圈绕行", lambda: self.run_motion("circle")),
+        ]
+        for text, command in buttons:
+            ttk.Button(left, text=text, command=command, style="Big.TButton").pack(fill="x", pady=4)
 
-        advanced = ttk.LabelFrame(self, text="高级演示", padding=10)
-        advanced.pack(fill="x", padx=14, pady=(0, 10))
-        for label, script, name in (
-            ("基础 RViz", "start_basic_demo.sh", "advanced-basic"),
-            ("建图演示", "start_mapping_demo.sh", "advanced-mapping"),
-            ("导航演示", "start_navigation_demo.sh", "advanced-navigation"),
-            ("边走边建图", "start_active_mapping_demo.sh", "advanced-active-mapping"),
-            ("边建图边导航", "start_slam_navigation_demo.sh", "advanced-slam-navigation"),
-            ("停止全部演示", "stop_all_demo.sh", "advanced-stop"),
-        ):
-            ttk.Button(
-                advanced,
-                text=label,
-                command=lambda s=script, n=name: self.run_script(s, n),
-                style="Big.TButton",
-            ).pack(side="left", fill="x", expand=True, padx=4)
+        ttk.Button(left, text="紧急停车", command=self.emergency_stop, style="Stop.TButton").pack(fill="x", pady=(14, 4))
+
+        advanced = [
+            ("打开里程计 RViz", self.open_odom_rviz),
+            ("打开建图演示", self.start_mapping),
+            ("打开导航演示", self.start_navigation),
+            ("边走边建图", self.start_active_mapping),
+            ("边建图边导航", self.start_slam_navigation),
+            ("停止高级节点", self.stop_advanced),
+        ]
+        for text, command in advanced:
+            ttk.Button(right, text=text, command=command, style="Big.TButton").pack(fill="x", pady=4)
+
+        note = (
+            "说明：本界面不抢占底层遥控器。ROS 演示通过 /cmd_vel 发命令；"
+            "遥控器仍可作为现场急停/接管手段。"
+        )
+        ttk.Label(right, text=note, wraplength=380, justify="left").pack(fill="x", pady=(10, 0))
 
         log_frame = ttk.LabelFrame(self, text="日志", padding=8)
-        log_frame.pack(fill="both", expand=True, padx=14, pady=(0, 14))
+        log_frame.pack(fill="both", expand=True, padx=16, pady=(0, 16))
+
+        log_tools = ttk.Frame(log_frame)
+        log_tools.pack(fill="x", pady=(0, 6))
+        ttk.Button(log_tools, text="清空日志", command=self.clear_log).pack(side="right")
+
         self.log_text = tk.Text(log_frame, height=12, wrap="word")
         self.log_text.pack(side="left", fill="both", expand=True)
-        scroll = ttk.Scrollbar(log_frame, orient="vertical", command=self.log_text.yview)
-        scroll.pack(side="right", fill="y")
-        self.log_text.configure(yscrollcommand=scroll.set)
+        log_scroll = ttk.Scrollbar(log_frame, orient="vertical", command=self.log_text.yview)
+        log_scroll.pack(side="right", fill="y")
+        self.log_text.configure(yscrollcommand=log_scroll.set)
+
+    def clear_log(self) -> None:
+        self.log_text.delete("1.0", "end")
 
     def log(self, text: str) -> None:
-        self.log_queue.put(f"[{time.strftime('%H:%M:%S')}] {text}")
+        stamp = time.strftime("%H:%M:%S")
+        self.log_queue.put(f"[{stamp}] {text}")
 
     def _drain_logs(self) -> None:
         while True:
@@ -133,15 +170,15 @@ class LeaderDemo(tk.Tk):
             self.log_text.see("end")
         self.after(100, self._drain_logs)
 
-    def run_shell(self, command: str, name: str | None = None) -> subprocess.Popen | None:
+    def run_shell(self, command: str, name: str | None = None, keep: bool = False) -> subprocess.Popen | None:
         if name:
             with self.proc_lock:
                 existing = self.processes.get(name)
             if existing is not None and existing.poll() is None:
-                self.log(f"{name} 已在运行")
+                self.log(f"{name} 已在运行，跳过重复启动")
                 return existing
 
-        full = shell_prefix() + command
+        full = bash_env_prefix() + command
         self.log(f"$ {command}")
         try:
             proc = subprocess.Popen(
@@ -158,10 +195,51 @@ class LeaderDemo(tk.Tk):
         if name:
             with self.proc_lock:
                 self.processes[name] = proc
-        threading.Thread(target=self._watch_process, args=(proc, name), daemon=True).start()
+
+        threading.Thread(target=self._watch_process, args=(proc, name, keep), daemon=True).start()
         return proc
 
-    def _watch_process(self, proc: subprocess.Popen, name: str | None) -> None:
+    def running_process_names(self) -> list[str]:
+        with self.proc_lock:
+            return [
+                name for name, proc in self.processes.items()
+                if proc.poll() is None
+            ]
+
+    def start_advanced_once(self, name: str, label: str, command: str) -> None:
+        running_advanced = [
+            proc_name for proc_name in self.running_process_names()
+            if proc_name in self.advanced_names
+        ]
+        if running_advanced:
+            if name in running_advanced:
+                self.log(f"{label} 已在启动或运行，跳过重复点击")
+            else:
+                self.log("已有高级功能正在启动或运行，请先点“停止高级节点”再切换。")
+                messagebox.showinfo("高级功能正在运行", "请先点“停止高级节点”，等 2-3 秒后再启动另一个高级功能。")
+            return
+
+        self.status_vars["action"].set(label)
+        self.run_shell(command, name=name, keep=True)
+
+    def terminate_processes(self, names: set[str] | None = None, prefix: str | None = None) -> None:
+        with self.proc_lock:
+            selected = [
+                (name, proc) for name, proc in self.processes.items()
+                if (names is not None and name in names) or (prefix is not None and name.startswith(prefix))
+            ]
+        for name, proc in selected:
+            if proc.poll() is None:
+                try:
+                    os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+                    self.log(f"已停止 {name}")
+                except Exception as exc:
+                    self.log(f"停止 {name} 失败: {exc}")
+            with self.proc_lock:
+                if self.processes.get(name) is proc:
+                    self.processes.pop(name, None)
+
+    def _watch_process(self, proc: subprocess.Popen, name: str | None, keep: bool) -> None:
         assert proc.stdout is not None
         for line in proc.stdout:
             self.log(line.rstrip())
@@ -170,83 +248,116 @@ class LeaderDemo(tk.Tk):
             with self.proc_lock:
                 if self.processes.get(name) is proc:
                     self.processes.pop(name, None)
+        if name:
             self.log(f"{name} 已退出 code={code}")
 
     def check_status(self) -> None:
         self.status_vars["action"].set("状态检查")
-        self.status_vars["vehicle"].set("串口存在" if Path(DEFAULT_PORT).exists() else "串口未找到")
-        self.status_vars["ros"].set("工作区存在" if Path(DEFAULT_WS, "install", "setup.bash").exists() else "工作区未找到")
-        self.run_shell(f"{self.scripts_dir}/check_osracer.sh {DEFAULT_PORT}", name="check")
+        serial_exists = Path(DEFAULT_PORT).exists()
+        setup_exists = Path(DEFAULT_WS, "install", "setup.bash").exists()
+        self.status_vars["vehicle"].set("串口存在" if serial_exists else "串口未找到")
+        self.status_vars["ros"].set("工作区 OK" if setup_exists else "工作区未找到")
+        self.log(f"车辆串口 {DEFAULT_PORT}: {'OK' if serial_exists else 'MISSING'}")
+        self.log(f"ROS 工作区 {DEFAULT_WS}: {'OK' if setup_exists else 'MISSING'}")
+        self.log("遥控器无需开机才能 ROS 演示；底层遥控器仍保留急停/接管用途。")
+        self.log("如果遥控器关闭时看到 RC failsafe，这不是 ROS 演示阻塞条件。")
+        self.run_shell("ros2 topic list | head -40", keep=False)
 
-    def start_chassis(self) -> None:
+    def start_vehicle_link(self) -> None:
         self.status_vars["action"].set("启动车辆链路")
-        self.run_shell(f"{self.scripts_dir}/start_chassis.sh {DEFAULT_PORT}", name="chassis")
-
-    def watch_odom(self) -> None:
-        self.status_vars["action"].set("观察里程计")
-        self.run_shell("ros2 run osracer_demo odom_watch", name="odom-watch")
-
-    def run_script(self, script_name: str, process_name: str) -> None:
-        if script_name != "stop_all_demo.sh":
-            running = [name for name in self.running_process_names() if name.startswith("advanced-")]
-            if running:
-                messagebox.showinfo("高级演示", "请先点击“停止全部演示”，再启动另一个高级功能。")
-                return
-        self.status_vars["action"].set(process_name)
-        self.run_shell(f"{self.scripts_dir}/{script_name}", name=process_name)
-
-    def running_process_names(self) -> list[str]:
-        with self.proc_lock:
-            return [name for name, proc in self.processes.items() if proc.poll() is None]
+        if "vehicle" in self.processes and self.processes["vehicle"].poll() is None:
+            self.log("车辆链路已在运行")
+            return
+        cmd = script_cmd("start_basic_demo.sh")
+        self.run_shell(cmd, name="vehicle", keep=True)
+        self.status_vars["vehicle"].set("启动中")
 
     def run_motion(self, demo: str) -> None:
-        if demo != "stop" and not messagebox.askokcancel("开始动作", f"确认场地安全后开始：{demo}"):
+        running_motion = [
+            name for name in self.running_process_names()
+            if name.startswith(self.motion_prefix)
+        ]
+        if running_motion:
+            messagebox.showinfo("动作正在执行", "当前已有动作正在执行，请先等待结束或点击紧急停车。")
             return
-        self.status_vars["action"].set(demo)
-        extra = " --loops 1" if demo == "figure8" else ""
-        self.run_shell(f"ros2 run osracer_demo drive_demo {demo} --yes{extra}", name=f"motion-{demo}")
+
+        if demo == "warmup":
+            label = "暖机小动作"
+        elif demo == "showcase":
+            label = "直线+S弯展示"
+        elif demo == "figure8":
+            label = "完整 8 字演示"
+        elif demo == "circle":
+            label = "持续最小圈绕行"
+        else:
+            label = demo
+        extra = "\n\n该动作会一直运行，直到点击“紧急停车”。" if demo == "circle" else ""
+        if not messagebox.askokcancel("开始动作", f"确认场地安全后开始：{label}{extra}"):
+            return
+        self.status_vars["action"].set(label)
+        cmd = motion_cmd(demo)
+        if demo == "figure8":
+            cmd += " --loops 1 --duration 14.0 --speed 0.55"
+        self.run_shell(cmd, name=f"motion-{demo}")
 
     def emergency_stop(self) -> None:
-        self.status_vars["action"].set("停车")
-        self.run_shell(f"{self.scripts_dir}/stop_all_demo.sh", name="stop")
-        self.terminate_motion()
-        self.terminate_advanced()
+        self.status_vars["action"].set("紧急停车")
+        self.log("发送紧急停车")
+        self.run_shell(script_cmd("stop_all_demo.sh"), name="stop")
+        self.terminate_processes(names=self.advanced_names, prefix=self.motion_prefix)
 
-    def terminate_motion(self) -> None:
-        with self.proc_lock:
-            selected = [(name, proc) for name, proc in self.processes.items() if name.startswith("motion-")]
-        for name, proc in selected:
-            if proc.poll() is None:
-                try:
-                    os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
-                    self.log(f"已停止 {name}")
-                except Exception as exc:
-                    self.log(f"停止 {name} 失败: {exc}")
+    def open_odom_rviz(self) -> None:
+        self.start_advanced_once(
+            "odom-rviz",
+            "打开里程计 RViz",
+            script_cmd("open_odom_rviz.sh"),
+        )
 
-    def terminate_advanced(self) -> None:
-        with self.proc_lock:
-            selected = [(name, proc) for name, proc in self.processes.items() if name.startswith("advanced-")]
-        for name, proc in selected:
-            if proc.poll() is None:
-                try:
-                    os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
-                    self.log(f"已停止 {name}")
-                except Exception as exc:
-                    self.log(f"停止 {name} 失败: {exc}")
+    def start_mapping(self) -> None:
+        self.start_advanced_once(
+            "mapping",
+            "建图演示",
+            script_cmd("start_mapping_demo.sh"),
+        )
+
+    def start_navigation(self) -> None:
+        self.start_advanced_once(
+            "navigation",
+            "导航演示",
+            script_cmd("start_navigation_demo.sh"),
+        )
+
+    def start_active_mapping(self) -> None:
+        self.start_advanced_once(
+            "active-mapping",
+            "边走边建图",
+            script_cmd("start_active_mapping_demo.sh"),
+        )
+
+    def start_slam_navigation(self) -> None:
+        self.start_advanced_once(
+            "slam-navigation",
+            "边建图边导航",
+            script_cmd("start_slam_navigation_demo.sh"),
+        )
+
+    def stop_advanced(self) -> None:
+        self.log("停止高级节点")
+        self.run_shell(script_cmd("stop_all_demo.sh"), name="stop-advanced")
+        self.terminate_processes(names=self.advanced_names)
 
     def on_close(self) -> None:
-        if not messagebox.askokcancel("退出", "退出前会发送停车命令并关闭演示进程，确认退出？"):
-            return
-        self.emergency_stop()
-        with self.proc_lock:
-            procs = list(self.processes.values())
-        for proc in procs:
-            if proc.poll() is None:
-                try:
-                    os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
-                except Exception:
-                    pass
-        self.after(500, self.destroy)
+        if messagebox.askokcancel("退出", "退出前会发送停车命令并停止由本界面启动的进程。"):
+            self.emergency_stop()
+            with self.proc_lock:
+                procs = list(self.processes.values())
+            for proc in procs:
+                if proc.poll() is None:
+                    try:
+                        os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+                    except Exception:
+                        pass
+            self.after(600, self.destroy)
 
 
 def main() -> int:
