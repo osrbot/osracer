@@ -24,6 +24,9 @@
   the truncated `lakibeam1_scan_` process name plus rqt/RViz helper tools.
 - Added post-cleanup diagnostics to `stop_all_demo.sh` so remaining demo-like
   processes are printed with PID and command when cleanup is incomplete.
+- Installed the shared `lib_osracer_demo.sh` helper with `osracer_demo` scripts
+  and realigned all GUI-launched advanced scripts with the standalone demo
+  source so installed advanced actions no longer fail with a missing helper.
 - Hardened the `osracer_demo` desktop launcher so it logs Orin Nano double-click
   startup failures, supports common workspace install paths, and reports missing
   `osracer_demo` package setup clearly.

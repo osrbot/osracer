@@ -2,8 +2,46 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=lib_osracer_demo.sh
-source "${SCRIPT_DIR}/lib_osracer_demo.sh"
+if [[ -f "${SCRIPT_DIR}/lib_osracer_demo.sh" ]]; then
+  # shellcheck source=lib_osracer_demo.sh
+  source "${SCRIPT_DIR}/lib_osracer_demo.sh"
+else
+  echo "WARN: lib_osracer_demo.sh not found; using stop cleanup fallback"
+  source_osracer_env() {
+    if [[ -f /opt/ros/humble/setup.bash ]]; then
+      set +u
+      # shellcheck disable=SC1091
+      source /opt/ros/humble/setup.bash
+      set -u
+    fi
+
+    if [[ -n "${OSRACER_WS:-}" && -f "${OSRACER_WS}/install/setup.bash" ]]; then
+      set +u
+      # shellcheck disable=SC1090
+      source "${OSRACER_WS}/install/setup.bash"
+      set -u
+    elif [[ -f "$HOME/osracer_ws/install/setup.bash" ]]; then
+      set +u
+      # shellcheck disable=SC1090
+      source "$HOME/osracer_ws/install/setup.bash"
+      set -u
+    elif [[ -f "$HOME/osracer/install/setup.bash" ]]; then
+      set +u
+      # shellcheck disable=SC1090
+      source "$HOME/osracer/install/setup.bash"
+      set -u
+    fi
+  }
+
+  stop_vehicle_once() {
+    if command -v ros2 >/dev/null 2>&1; then
+      timeout 2 ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist \
+        "{linear: {x: 0.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}" >/dev/null 2>&1 || true
+      timeout 2 ros2 topic pub --once /ackermann_cmd ackermann_msgs/msg/AckermannDrive \
+        "{speed: 0.0, steering_angle: 0.0}" >/dev/null 2>&1 || true
+    fi
+  }
+fi
 
 source_osracer_env
 echo "Publishing stop commands"

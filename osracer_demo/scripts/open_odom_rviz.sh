@@ -1,26 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ -f /opt/ros/humble/setup.bash ]]; then
-  set +u
-  # shellcheck disable=SC1091
-  source /opt/ros/humble/setup.bash
-  set -u
-else
-  echo "ERROR: /opt/ros/humble/setup.bash not found"
-  exit 1
-fi
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib_osracer_demo.sh
+source "${SCRIPT_DIR}/lib_osracer_demo.sh"
 
-if [[ -n "${OSRACER_WS:-}" && -f "${OSRACER_WS}/install/setup.bash" ]]; then
-  set +u
-  # shellcheck disable=SC1090
-  source "${OSRACER_WS}/install/setup.bash"
-  set -u
-elif [[ -f "$HOME/osracer_ws/install/setup.bash" ]]; then
-  set +u
-  # shellcheck disable=SC1090
-  source "$HOME/osracer_ws/install/setup.bash"
-  set -u
-fi
-
-ros2 launch osracer_debug debug_odom.launch.py
+source_osracer_env
+open_rviz_exclusive \
+  "odometry" \
+  "ros2 launch osracer_debug debug_odom.launch.py" \
+  ros2 launch osracer_debug debug_odom.launch.py
