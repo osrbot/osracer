@@ -13,6 +13,12 @@
   layout, clearer status cards, grouped actions, and a darker log console.
 - Hardened `osracer_demo` stop cleanup by repeating zero-speed commands, then
   terminating and force-killing only demo-related ROS launch/node processes.
+- Hardened the `osracer_demo` desktop launcher so it logs Orin Nano double-click
+  startup failures, supports common workspace install paths, and reports missing
+  `osracer_demo` package setup clearly.
+- Fixed the refreshed `osracer_demo` GUI layout to avoid tuple `pady` on
+  `tk.Frame` construction, which fails on the Tk version used by the Orin Nano
+  Ubuntu image.
 - Reduced the `fw version` startup query timeout to `0.3s`; missing
   `ProjectVer` only warns and does not block ROS bringup.
 - Documented the auxiliary `diag` command path for unified firmware diagnostic

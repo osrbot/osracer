@@ -145,8 +145,8 @@ class LeaderDemo(tk.Tk):
             tk.Label(card, text=label, bg=panel_bg, fg=muted, font=("Arial", 10, "bold")).pack(anchor="w")
             tk.Label(card, textvariable=self.status_vars[name], bg=panel_bg, fg=text, font=("Arial", 13, "bold")).pack(anchor="w", pady=(4, 0))
 
-        main = tk.Frame(self, bg=bg, padx=16, pady=(0, 12))
-        main.pack(fill="x")
+        main = tk.Frame(self, bg=bg, padx=16)
+        main.pack(fill="x", pady=(0, 12))
 
         def section(parent: tk.Widget, title: str) -> tk.Frame:
             outer = tk.Frame(parent, bg=panel_bg, highlightbackground=border, highlightthickness=1, padx=14, pady=12)

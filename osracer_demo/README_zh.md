@@ -28,6 +28,15 @@ $(ros2 pkg prefix osracer_demo)/share/osracer_demo/scripts/install_desktop_short
 
 安装后桌面会出现 `OSRacer Demo`，双击即可打开图形控制台。
 
+如果双击后没有窗口，查看启动日志：
+
+```bash
+tail -n 120 ~/osracer_demo_logs/osracer-demo-launch.log
+```
+
+如果工作区不在 `~/osracer_ws`、`~/osracer` 或 `~/Desktop/osracer/osracer`，
+设置 `OSRACER_WS=/path/to/workspace` 后重新运行安装桌面图标命令。
+
 编译工作区：
 
 ```bash
