@@ -7,6 +7,8 @@
 - Added best-effort osrcore host-link commands in the chassis serial node:
   `link up ros` after `stream sync`, `link ping ros` every second while
   connected, and `link down ros` before normal serial close.
+- Hardened `osracer_demo` stop cleanup by repeating zero-speed commands, then
+  terminating and force-killing only demo-related ROS launch/node processes.
 - Reduced the `fw version` startup query timeout to `0.3s`; missing
   `ProjectVer` only warns and does not block ROS bringup.
 - Documented the auxiliary `diag` command path for unified firmware diagnostic

@@ -81,7 +81,7 @@ ros2 run osracer_demo drive_demo stop --yes
 - 默认通过 `/cmd_vel` 控制，走当前 `osracer_bringup` 链路。
 - 动作开始前默认需要确认，`--yes` 才会跳过确认。
 - `Ctrl-C` 或退出时会重复发布停车命令。
-- `stop_all_demo.sh` 会同时向 `/cmd_vel` 和 `/ackermann_cmd` 发布停车，并停止常见 Nav2、SLAM、RViz 和底盘演示进程。
+- `stop_all_demo.sh` 会重复向 `/cmd_vel` 和 `/ackermann_cmd` 发布停车，再清理 demo 相关 Nav2、SLAM、RViz、底盘和传感器节点；不会按全局 `ros` 关键字杀掉其它 ROS 任务。
 - 遥控器仍保留底层急停/接管价值。
 
 ## 建议演示流程

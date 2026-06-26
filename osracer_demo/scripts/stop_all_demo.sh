@@ -29,34 +29,50 @@ for _ in 1 2 3 4 5; do
   sleep 0.05
 done
 
+patterns=(
+  "ros2 launch osracer_bringup bringup.launch.py"
+  "ros2 launch osracer_bringup chassis_ackermann.launch.py"
+  "ros2 launch osracer_bringup usb_cam.launch.py"
+  "ros2 launch osracer_bringup led_matrix.launch.py"
+  "ros2 launch osracer_description robot_description_tf.launch.py"
+  "ros2 launch osracer_description osracer_description.launch.py"
+  "ros2 launch osracer_bringup lidar.launch.py"
+  "ros2 launch osracer_debug"
+  "ros2 launch osracer_navigation"
+  "ros2 launch osracer_slam"
+  "ros2 run osracer_demo drive_demo"
+  "ros2 run osracer_demo odom_watch"
+  "chassis_ackermann.py"
+  "twist_bridge.py"
+  "nav2_"
+  "bt_navigator"
+  "controller_server"
+  "planner_server"
+  "behavior_server"
+  "map_server"
+  "amcl"
+  "lifecycle_manager"
+  "component_container"
+  "robot_state_publisher"
+  "usb_cam_node"
+  "ydlidar_ros2_driver"
+  "slam_toolbox"
+  "slam_gmapping"
+  "cartographer"
+  "rviz2"
+)
+
+stop_patterns() {
+  local signal="$1"
+  local pattern
+  for pattern in "${patterns[@]}"; do
+    pkill "-${signal}" -f "${pattern}" 2>/dev/null || true
+  done
+}
+
 echo "Stopping common demo ROS processes"
-pkill -f "ros2 launch osracer_bringup bringup.launch.py" 2>/dev/null || true
-pkill -f "ros2 launch osracer_bringup chassis_ackermann.launch.py" 2>/dev/null || true
-pkill -f "ros2 launch osracer_bringup usb_cam.launch.py" 2>/dev/null || true
-pkill -f "ros2 launch osracer_bringup led_matrix.launch.py" 2>/dev/null || true
-pkill -f "ros2 launch osracer_description robot_description_tf.launch.py" 2>/dev/null || true
-pkill -f "ros2 launch osracer_description osracer_description.launch.py" 2>/dev/null || true
-pkill -f "ros2 launch osracer_bringup lidar.launch.py" 2>/dev/null || true
-pkill -f "ros2 launch osracer_debug" 2>/dev/null || true
-pkill -f "ros2 launch osracer_navigation" 2>/dev/null || true
-pkill -f "ros2 launch osracer_slam" 2>/dev/null || true
-pkill -f "nav2_" 2>/dev/null || true
-pkill -f "bt_navigator" 2>/dev/null || true
-pkill -f "controller_server" 2>/dev/null || true
-pkill -f "planner_server" 2>/dev/null || true
-pkill -f "behavior_server" 2>/dev/null || true
-pkill -f "map_server" 2>/dev/null || true
-pkill -f "amcl" 2>/dev/null || true
-pkill -f "lifecycle_manager" 2>/dev/null || true
-pkill -f "component_container" 2>/dev/null || true
-pkill -f "robot_state_publisher" 2>/dev/null || true
-pkill -f "usb_cam_node" 2>/dev/null || true
-pkill -f "ydlidar_ros2_driver" 2>/dev/null || true
-pkill -f "slam_toolbox" 2>/dev/null || true
-pkill -f "slam_gmapping" 2>/dev/null || true
-pkill -f "cartographer" 2>/dev/null || true
-pkill -f "rviz2" 2>/dev/null || true
-pkill -f "ros2 run osracer_demo drive_demo" 2>/dev/null || true
-pkill -f "ros2 run osracer_demo odom_watch" 2>/dev/null || true
+stop_patterns TERM
+sleep 1
+stop_patterns KILL
 
 echo "Done"
