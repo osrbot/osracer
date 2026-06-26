@@ -8,6 +8,9 @@ from the launch and demo commands after the vehicle has been deployed.
 
 ## 1. Installation & Setup
 
+<details>
+<summary>Click to expand</summary>
+
 ### 1.1 System Requirements
 - **OS**: Ubuntu 22.04 (Jammy Jellyfish)
 - **ROS Version**: [ROS 2 Humble](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debs.html)
@@ -97,6 +100,8 @@ git submodule update --init --recursive
 ```
 ---
 
+</details>
+
 ## 2. Quick Start (Bringup)
 
 Launch the complete robot system (Chassis, Sensors, TF):
@@ -121,6 +126,9 @@ run on the Jetson.
 ---
 
 ## 3. Hardware Modules
+
+<details>
+<summary>Click to expand</summary>
 
 ### 3.1 Chassis Control
 Launch the Ackermann chassis driver. You can choose between raw odometry or EKF-fused odometry (IMU + Encoders).
@@ -440,11 +448,17 @@ tools/policy_replay_summary.py /tmp/osracer_policy_replay.csv \
 The recorder subscribes to `/odometry/filtered`, `/imu_filter`, and `/ackermann_cmd`, then writes the 14-value drift observation CSV used by `osracer_lab`.
 The inference node subscribes to `/odometry/filtered` and `/imu_filter`, builds the same observation order, and publishes `ackermann_msgs/msg/AckermannDrive` to `/ackermann_cmd`.
 
+</details>
+
 ---
 
 ## 4. Magnetometer Soft-Iron / Hard-Iron Calibration
 
 The OSRacer uses a two-layer magnetometer calibration system. The **ROS layer** (`osracer_calib`) fits an ellipsoid to raw sensor data and publishes the result as a latched topic. The **MCU layer** (`osrbot_tool.py`) stores the same calibration in the microcontroller's non-volatile flash so the firmware can apply corrections at the hardware level.
+
+
+<details>
+<summary>Click to expand</summary>
 
 ### 4.1 Calibration Concept
 
@@ -538,6 +552,8 @@ mc set 0.000008 -0.000020 0.000015  0.998 0.002 -0.001  0.002 1.001 0.000  -0.00
 
 After step 3, the ROS EKF/heading pipeline uses the calibration automatically (latched topic). After step 5, the MCU firmware also applies the correction at the hardware level.
 
+</details>
+
 ---
 
 ## 5. SLAM & Mapping
@@ -581,21 +597,8 @@ ros2 launch osracer_slam map_save_cartographer.launch.xml
 
 ### 6.1 Navigation with SLAM (Recommended)
 Launch navigation while building a map simultaneously. Default planner: **TEB** (optimized for Ackermann steering).
-```bash
-ros2 launch osracer_navigation bringup_launch.py slam:=True
-```
 
-### 6.2 Navigation with Existing Map
-Navigate within a pre-built map using localization (AMCL).
-```bash
-ros2 launch osracer_navigation bringup_launch.py map:=/path/to/your/map.yaml
-```
-Or use the default map:
-```bash
-ros2 launch osracer_navigation bringup_launch.py
-```
-
-### 6.3 Switch Local Planner
+#### Switch Local Planner
 **Use DWB Planner:**
 ```bash
 ros2 launch osracer_navigation bringup_launch.py slam:=True planner:=dwb
@@ -610,6 +613,27 @@ ros2 launch osracer_navigation bringup_launch.py slam:=True planner:=teb
 ```bash
 ros2 launch osracer_navigation bringup_launch.py slam:=True params_file:=/path/to/custom_params.yaml
 ```
+
+#### Nav with Rviz2
+```bash
+ros2 launch osracer_debug debug_navigation.launch.py
+```
+
+### 6.2 Navigation with Existing Map
+Navigate within a pre-built map using localization (AMCL) without online SLAM.
+```bash
+ros2 launch osracer_navigation nav2.launch.py use_planner:=teb use_map:=/path/to/your/map.yaml  # teb
+
+ros2 launch osracer_navigation nav2.launch.py use_planner:=dwb use_map:=/path/to/your/map.yaml  # dwb
+```
+
+Or use the default map with dwb local planner:
+```bash
+ros2 launch osracer_navigation nav2.launch.py use_planner:=teb
+
+ros2 launch osracer_navigation nav2.launch.py use_planner:=dwb
+```
+
 
 > **Note:** TEB is recommended for Ackermann vehicles due to its kinematic constraint support (`min_turning_radius`, `wheelbase`).
 
