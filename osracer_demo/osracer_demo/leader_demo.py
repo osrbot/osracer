@@ -80,48 +80,113 @@ class LeaderDemo(tk.Tk):
         self.protocol("WM_DELETE_WINDOW", self.on_close)
 
     def _build_ui(self) -> None:
+        bg = "#f3f4f6"
+        panel_bg = "#ffffff"
+        text = "#111827"
+        muted = "#6b7280"
+        border = "#d1d5db"
+        accent = "#2563eb"
+        danger = "#dc2626"
+        dark = "#111827"
+
+        self.configure(bg=bg)
         style = ttk.Style()
-        style.configure("Title.TLabel", font=("Arial", 20, "bold"))
-        style.configure("Big.TButton", font=("Arial", 14), padding=9)
-        style.configure("Stop.TButton", font=("Arial", 17, "bold"), padding=12)
-        style.configure("Status.TLabel", font=("Arial", 13))
+        try:
+            style.theme_use("clam")
+        except tk.TclError:
+            pass
+        style.configure("Primary.TButton", font=("Arial", 13, "bold"), padding=(14, 10))
+        style.configure("Action.TButton", font=("Arial", 12), padding=(12, 9))
+        style.configure("Stop.TButton", font=("Arial", 18, "bold"), padding=(16, 14))
+        style.map("Primary.TButton", foreground=[("active", "#ffffff")], background=[("active", "#1d4ed8")])
+        style.configure("Primary.TButton", foreground="#ffffff", background=accent, bordercolor=accent)
+        style.configure("Stop.TButton", foreground="#ffffff", background=danger, bordercolor=danger)
+        style.map("Stop.TButton", foreground=[("active", "#ffffff")], background=[("active", "#b91c1c")])
 
-        header = ttk.Frame(self, padding=16)
+        header = tk.Frame(self, bg=dark, padx=24, pady=18)
         header.pack(fill="x")
-        ttk.Label(header, text="OSRacer 演示控制台", style="Title.TLabel").pack(side="left")
-        ttk.Label(header, text=f"端口 {DEFAULT_PORT} @ {DEFAULT_BAUD}", style="Status.TLabel").pack(side="right")
+        title_block = tk.Frame(header, bg=dark)
+        title_block.pack(side="left", fill="x", expand=True)
+        tk.Label(
+            title_block,
+            text="OSRacer 演示控制台",
+            bg=dark,
+            fg="#ffffff",
+            font=("Arial", 22, "bold"),
+        ).pack(anchor="w")
+        tk.Label(
+            title_block,
+            text="现场低速演示 / 建图 / 导航控制",
+            bg=dark,
+            fg="#cbd5e1",
+            font=("Arial", 12),
+        ).pack(anchor="w", pady=(4, 0))
+        tk.Label(
+            header,
+            text=f"{DEFAULT_PORT}  |  {DEFAULT_BAUD} baud",
+            bg="#1f2937",
+            fg="#e5e7eb",
+            font=("Arial", 12, "bold"),
+            padx=14,
+            pady=8,
+        ).pack(side="right")
 
-        status = ttk.LabelFrame(self, text="状态", padding=12)
-        status.pack(fill="x", padx=16, pady=(0, 12))
+        status = tk.Frame(self, bg=bg, padx=16, pady=14)
+        status.pack(fill="x")
         for idx, (name, label) in enumerate([
             ("vehicle", "车辆连接"),
             ("ros", "ROS 环境"),
             ("control", "控制模式"),
             ("action", "当前动作"),
         ]):
-            ttk.Label(status, text=f"{label}:", style="Status.TLabel").grid(row=0, column=idx * 2, sticky="w", padx=(0, 4))
-            ttk.Label(status, textvariable=self.status_vars[name], style="Status.TLabel").grid(row=0, column=idx * 2 + 1, sticky="w", padx=(0, 24))
+            card = tk.Frame(status, bg=panel_bg, highlightbackground=border, highlightthickness=1, padx=14, pady=10)
+            card.grid(row=0, column=idx, sticky="ew", padx=(0, 10))
+            status.columnconfigure(idx, weight=1)
+            tk.Label(card, text=label, bg=panel_bg, fg=muted, font=("Arial", 10, "bold")).pack(anchor="w")
+            tk.Label(card, textvariable=self.status_vars[name], bg=panel_bg, fg=text, font=("Arial", 13, "bold")).pack(anchor="w", pady=(4, 0))
 
-        main = ttk.Frame(self, padding=(16, 0, 16, 8))
-        main.pack(fill="x", expand=False)
+        main = tk.Frame(self, bg=bg, padx=16, pady=(0, 12))
+        main.pack(fill="x")
 
-        left = ttk.LabelFrame(main, text="基础展示", padding=12)
-        left.pack(side="left", fill="both", expand=True, padx=(0, 8))
-        right = ttk.LabelFrame(main, text="高级功能", padding=12)
-        right.pack(side="right", fill="both", expand=True, padx=(8, 0))
+        def section(parent: tk.Widget, title: str) -> tk.Frame:
+            outer = tk.Frame(parent, bg=panel_bg, highlightbackground=border, highlightthickness=1, padx=14, pady=12)
+            tk.Label(outer, text=title, bg=panel_bg, fg=text, font=("Arial", 14, "bold")).pack(anchor="w", pady=(0, 8))
+            return outer
+
+        left = section(main, "基础流程")
+        middle = section(main, "动作演示")
+        right = section(main, "高级功能")
+        left.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
+        middle.grid(row=0, column=1, sticky="nsew", padx=(0, 10))
+        right.grid(row=0, column=2, sticky="nsew")
+        for idx in range(3):
+            main.columnconfigure(idx, weight=1, uniform="main")
 
         buttons = [
-            ("1. 状态检查", self.check_status),
-            ("2. 启动车辆链路", self.start_vehicle_link),
-            ("3. 暖机小动作", lambda: self.run_motion("warmup")),
-            ("4. 直线+S弯展示", lambda: self.run_motion("showcase")),
-            ("5. 完整 8 字演示", lambda: self.run_motion("figure8")),
-            ("6. 持续最小圈绕行", lambda: self.run_motion("circle")),
+            ("状态检查", self.check_status),
+            ("启动车辆链路", self.start_vehicle_link),
         ]
         for text, command in buttons:
-            ttk.Button(left, text=text, command=command, style="Big.TButton").pack(fill="x", pady=4)
+            ttk.Button(left, text=text, command=command, style="Primary.TButton").pack(fill="x", pady=4)
+        tk.Label(
+            left,
+            text="先检查环境，再启动底盘链路。遥控器仍保留现场接管价值。",
+            bg=panel_bg,
+            fg=muted,
+            wraplength=270,
+            justify="left",
+            font=("Arial", 11),
+        ).pack(anchor="w", pady=(10, 0))
 
-        ttk.Button(left, text="紧急停车", command=self.emergency_stop, style="Stop.TButton").pack(fill="x", pady=(14, 4))
+        motion_buttons = [
+            ("暖机小动作", lambda: self.run_motion("warmup")),
+            ("直线+S弯展示", lambda: self.run_motion("showcase")),
+            ("完整 8 字演示", lambda: self.run_motion("figure8")),
+            ("持续最小圈绕行", lambda: self.run_motion("circle")),
+        ]
+        for text, command in motion_buttons:
+            ttk.Button(middle, text=text, command=command, style="Action.TButton").pack(fill="x", pady=4)
+        ttk.Button(middle, text="紧急停车", command=self.emergency_stop, style="Stop.TButton").pack(fill="x", pady=(14, 4))
 
         advanced = [
             ("打开里程计 RViz", self.open_odom_rviz),
@@ -132,22 +197,33 @@ class LeaderDemo(tk.Tk):
             ("停止高级节点", self.stop_advanced),
         ]
         for text, command in advanced:
-            ttk.Button(right, text=text, command=command, style="Big.TButton").pack(fill="x", pady=4)
+            ttk.Button(right, text=text, command=command, style="Action.TButton").pack(fill="x", pady=4)
 
         note = (
-            "说明：本界面不抢占底层遥控器。ROS 演示通过 /cmd_vel 发命令；"
-            "遥控器仍可作为现场急停/接管手段。"
+            "高级功能只负责启动节点和 RViz，不自动下发导航目标。切换高级功能前先停止高级节点。"
         )
-        ttk.Label(right, text=note, wraplength=380, justify="left").pack(fill="x", pady=(10, 0))
+        tk.Label(right, text=note, bg=panel_bg, fg=muted, wraplength=270, justify="left", font=("Arial", 11)).pack(fill="x", pady=(10, 0))
 
-        log_frame = ttk.LabelFrame(self, text="日志", padding=8)
+        log_frame = tk.Frame(self, bg=panel_bg, highlightbackground=border, highlightthickness=1, padx=12, pady=10)
         log_frame.pack(fill="both", expand=True, padx=16, pady=(0, 16))
 
-        log_tools = ttk.Frame(log_frame)
+        log_tools = tk.Frame(log_frame, bg=panel_bg)
         log_tools.pack(fill="x", pady=(0, 6))
-        ttk.Button(log_tools, text="清空日志", command=self.clear_log).pack(side="right")
+        tk.Label(log_tools, text="运行日志", bg=panel_bg, fg=text, font=("Arial", 14, "bold")).pack(side="left")
+        ttk.Button(log_tools, text="清空日志", command=self.clear_log, style="Action.TButton").pack(side="right")
 
-        self.log_text = tk.Text(log_frame, height=12, wrap="word")
+        self.log_text = tk.Text(
+            log_frame,
+            height=12,
+            wrap="word",
+            bg="#0f172a",
+            fg="#e5e7eb",
+            insertbackground="#e5e7eb",
+            relief="flat",
+            font=("Menlo", 11),
+            padx=10,
+            pady=10,
+        )
         self.log_text.pack(side="left", fill="both", expand=True)
         log_scroll = ttk.Scrollbar(log_frame, orient="vertical", command=self.log_text.yview)
         log_scroll.pack(side="right", fill="y")
