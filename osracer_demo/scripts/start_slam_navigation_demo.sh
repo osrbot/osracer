@@ -1,53 +1,51 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ -f /opt/ros/humble/setup.bash ]]; then
-  set +u
-  # shellcheck disable=SC1091
-  source /opt/ros/humble/setup.bash
-  set -u
-else
-  echo "ERROR: /opt/ros/humble/setup.bash not found"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib_osracer_demo.sh
+source "${SCRIPT_DIR}/lib_osracer_demo.sh"
+
+source_osracer_env
+start_robot_base_bg
+sleep 5
+
+if ! ros2 pkg prefix slam_toolbox >/dev/null 2>&1; then
+  echo "ERROR: Nav2 online-SLAM navigation needs slam_toolbox."
+  echo "Cartographer/GMapping are useful for mapping display, but this osracer Nav2 launch connects online navigation through slam_toolbox."
   exit 1
 fi
 
-if [[ -n "${OSRACER_WS:-}" && -f "${OSRACER_WS}/install/setup.bash" ]]; then
-  set +u
-  # shellcheck disable=SC1090
-  source "${OSRACER_WS}/install/setup.bash"
-  set -u
-elif [[ -f "$HOME/osracer_ws/install/setup.bash" ]]; then
-  set +u
-  # shellcheck disable=SC1090
-  source "$HOME/osracer_ws/install/setup.bash"
-  set -u
+echo "Starting Nav2 online SLAM navigation"
+PARAMS_FILE="$("${SCRIPT_DIR}/make_slow_nav_params.sh")"
+echo "Using low-speed Nav2 params: ${PARAMS_FILE}"
+if process_running "ros2 launch osracer_navigation bringup_launch.py"; then
+  echo "Nav2 bringup is already running; skip duplicate start."
+else
+  ros2 launch osracer_navigation bringup_launch.py \
+    slam:=True \
+    planner:=teb \
+    params_file:="${PARAMS_FILE}" \
+    use_composition:=False \
+    use_rviz:=False &
 fi
 
-cleanup() {
-  "$(ros2 pkg prefix osracer_demo)/share/osracer_demo/scripts/stop_all_demo.sh" || true
-}
-trap cleanup EXIT INT TERM
-
-SCRIPTS_DIR="$(ros2 pkg prefix osracer_demo)/share/osracer_demo/scripts"
-PARAMS_FILE="$("${SCRIPTS_DIR}/make_slow_nav_params.sh")"
-
-echo "Starting SLAM navigation demo"
-ros2 launch osracer_bringup bringup.launch.py &
-sleep 5
-ros2 launch osracer_navigation bringup_launch.py \
-  slam:=True \
-  planner:=teb \
-  params_file:="${PARAMS_FILE}" \
-  use_composition:=False &
-sleep 5
-ros2 launch osracer_navigation rviz_launch.py \
-  rviz_config:="$(ros2 pkg prefix osracer_debug)/share/osracer_debug/config/navigation.rviz" &
+sleep 6
+open_rviz_exclusive \
+  "online SLAM navigation" \
+  "ros2 launch osracer_navigation rviz_launch.py" \
+  ros2 launch osracer_navigation rviz_launch.py \
+    rviz_config:="$(ros2 pkg prefix osracer_debug)/share/osracer_debug/config/navigation.rviz"
 
 cat <<'EOF'
 
-边建图边导航已启动。
-在 RViz 中先设置 2D Pose Estimate，再使用 Nav2 Goal 给近距离安全目标。
+Online SLAM navigation demo started.
+
+How to show it:
+1. Let RViz show /map, /scan, TF and Nav2 status.
+2. Click "Nav2 Goal" and choose a nearby safe target.
+3. The car can navigate while SLAM updates the map. Low-speed params limit max_vel_x to 0.60m/s.
+4. Keep a hand near STOP or the RC emergency takeover.
 
 EOF
 
-wait
+wait_forever_with_stop

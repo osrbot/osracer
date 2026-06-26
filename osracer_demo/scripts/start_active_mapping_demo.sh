@@ -1,53 +1,52 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ -f /opt/ros/humble/setup.bash ]]; then
-  set +u
-  # shellcheck disable=SC1091
-  source /opt/ros/humble/setup.bash
-  set -u
-else
-  echo "ERROR: /opt/ros/humble/setup.bash not found"
-  exit 1
-fi
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib_osracer_demo.sh
+source "${SCRIPT_DIR}/lib_osracer_demo.sh"
 
-if [[ -n "${OSRACER_WS:-}" && -f "${OSRACER_WS}/install/setup.bash" ]]; then
-  set +u
-  # shellcheck disable=SC1090
-  source "${OSRACER_WS}/install/setup.bash"
-  set -u
-elif [[ -f "$HOME/osracer_ws/install/setup.bash" ]]; then
-  set +u
-  # shellcheck disable=SC1090
-  source "$HOME/osracer_ws/install/setup.bash"
-  set -u
-fi
-
-cleanup() {
-  "$(ros2 pkg prefix osracer_demo)/share/osracer_demo/scripts/stop_all_demo.sh" || true
-}
-trap cleanup EXIT INT TERM
-
-echo "Starting active mapping demo"
-ros2 launch osracer_bringup bringup.launch.py &
+source_osracer_env
+start_robot_base_bg
 sleep 5
 
 if ros2 pkg prefix cartographer_ros >/dev/null 2>&1; then
-  ros2 launch osracer_slam cartographer.launch.py &
-elif ros2 pkg prefix slam_toolbox >/dev/null 2>&1; then
-  ros2 launch osracer_slam slam_toolbox.launch.py &
-else
-  ros2 launch osracer_slam gmapping.launch.py &
-fi
+  echo "Starting Cartographer mapping"
+  if process_running "ros2 launch osracer_slam cartographer.launch.py"; then
+    echo "Cartographer launch is already running; skip duplicate start."
+  else
+    ros2 launch osracer_slam cartographer.launch.py use_sim_time:=false &
+  fi
 
-sleep 3
-ros2 launch osracer_debug debug_mapping.launch.py &
+  sleep 3
+  open_rviz_exclusive \
+    "cartographer mapping" \
+    "ros2 launch osracer_debug debug_cartographer.launch.py" \
+    ros2 launch osracer_debug debug_cartographer.launch.py
+else
+  echo "Cartographer is not installed; falling back to GMapping."
+  if process_running "ros2 launch osracer_slam gmapping.launch.py"; then
+    echo "GMapping launch is already running; skip duplicate start."
+  else
+    ros2 launch osracer_slam gmapping.launch.py &
+  fi
+
+  sleep 3
+  open_rviz_exclusive \
+    "gmapping" \
+    "ros2 launch osracer_debug debug_mapping.launch.py" \
+    ros2 launch osracer_debug debug_mapping.launch.py
+fi
 
 cat <<'EOF'
 
-边走边建图已启动。
-建议先用 GUI 的低速动作或遥控器慢速移动，小范围确认 /scan、/tf、/map 正常。
+Active mapping demo started.
+
+How to show it:
+1. Keep the car in an open area.
+2. Use the demo control panel "showcase" / "figure 8", or drive manually at low speed.
+3. Watch the map grow in RViz.
+4. Stop the car before saving a map.
 
 EOF
 
-wait
+wait_forever_with_stop

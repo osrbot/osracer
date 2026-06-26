@@ -1,51 +1,52 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ -f /opt/ros/humble/setup.bash ]]; then
-  set +u
-  # shellcheck disable=SC1091
-  source /opt/ros/humble/setup.bash
-  set -u
-else
-  echo "ERROR: /opt/ros/humble/setup.bash not found"
-  exit 1
-fi
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib_osracer_demo.sh
+source "${SCRIPT_DIR}/lib_osracer_demo.sh"
 
-if [[ -n "${OSRACER_WS:-}" && -f "${OSRACER_WS}/install/setup.bash" ]]; then
-  set +u
-  # shellcheck disable=SC1090
-  source "${OSRACER_WS}/install/setup.bash"
-  set -u
-elif [[ -f "$HOME/osracer_ws/install/setup.bash" ]]; then
-  set +u
-  # shellcheck disable=SC1090
-  source "$HOME/osracer_ws/install/setup.bash"
-  set -u
-fi
-
-cleanup() {
-  "$(ros2 pkg prefix osracer_demo)/share/osracer_demo/scripts/stop_all_demo.sh" || true
-}
-trap cleanup EXIT INT TERM
-
-SCRIPTS_DIR="$(ros2 pkg prefix osracer_demo)/share/osracer_demo/scripts"
-PARAMS_FILE="$("${SCRIPTS_DIR}/make_slow_nav_params.sh")"
-
-echo "Starting OSRacer bringup and Nav2"
-ros2 launch osracer_bringup bringup.launch.py &
+source_osracer_env
+start_robot_base_bg
 sleep 5
-ros2 launch osracer_navigation nav2.launch.py \
-  use_rviz:=true \
-  params_file:="${PARAMS_FILE}" &
+
+MAP_FILE="${OSRACER_MAP:-}"
+if [[ -z "${MAP_FILE}" ]]; then
+  NAV_PREFIX="$(ros2 pkg prefix osracer_navigation)"
+  MAP_FILE="${NAV_PREFIX}/share/osracer_navigation/maps/map.yaml"
+fi
+
+echo "Starting Nav2 with map: ${MAP_FILE}"
+PARAMS_FILE="$("${SCRIPT_DIR}/make_slow_nav_params.sh")"
+echo "Using low-speed Nav2 params: ${PARAMS_FILE}"
+if process_running "ros2 launch osracer_navigation bringup_launch.py"; then
+  echo "Nav2 bringup is already running; skip duplicate start."
+else
+  ros2 launch osracer_navigation bringup_launch.py \
+    slam:=False \
+    map:="${MAP_FILE}" \
+    planner:=teb \
+    params_file:="${PARAMS_FILE}" \
+    use_composition:=False \
+    use_rviz:=False &
+fi
+
+sleep 5
+open_rviz_exclusive \
+  "navigation" \
+  "ros2 launch osracer_navigation rviz_launch.py" \
+  ros2 launch osracer_navigation rviz_launch.py \
+    rviz_config:="$(ros2 pkg prefix osracer_debug)/share/osracer_debug/config/navigation.rviz"
 
 cat <<'EOF'
 
-导航演示已启动。
-在 RViz 中：
-1. 使用 "2D Pose Estimate" 设置当前位置。
-2. 使用 "Nav2 Goal" 选择近距离安全目标。
-3. 先用短距离目标确认方向和避障行为。
+Navigation demo started.
+
+How to show it:
+1. In RViz, click "2D Pose Estimate" and set the current car pose.
+2. Click "Nav2 Goal" and choose a nearby safe target.
+3. This demo uses low-speed Nav2 params: max_vel_x=0.60m/s.
+4. Press Ctrl-C in this terminal to stop the demo and publish zero speed.
 
 EOF
 
-wait
+wait_forever_with_stop

@@ -24,10 +24,10 @@ mkdir -p "$LOG_DIR"
 notify_error() {
   local message="$1"
   if command -v notify-send >/dev/null 2>&1; then
-    notify-send "OSRacer Demo 启动失败" "$message" >/dev/null 2>&1 || true
+    notify-send "OSRacer Demo failed to start" "$message" >/dev/null 2>&1 || true
   fi
   if command -v zenity >/dev/null 2>&1; then
-    zenity --error --title="OSRacer Demo 启动失败" --text="$message\n\n日志：$LOG_FILE" >/dev/null 2>&1 || true
+    zenity --error --title="OSRacer Demo failed to start" --text="$message\n\nLog: $LOG_FILE" >/dev/null 2>&1 || true
   fi
 }
 
@@ -58,20 +58,20 @@ source_setup() {
   echo "DISPLAY=${DISPLAY:-}"
   echo "XDG_SESSION_TYPE=${XDG_SESSION_TYPE:-}"
 
-  source_setup /opt/ros/humble/setup.bash || fail "未找到 ROS 2 Humble：/opt/ros/humble/setup.bash"
+  source_setup /opt/ros/humble/setup.bash || fail "ROS 2 Humble setup was not found: /opt/ros/humble/setup.bash"
 
   if [[ -n "${OSRACER_WS:-}" ]]; then
-    source_setup "${OSRACER_WS}/install/setup.bash" || fail "OSRACER_WS 已设置，但未找到 ${OSRACER_WS}/install/setup.bash"
+    source_setup "${OSRACER_WS}/install/setup.bash" || fail "OSRACER_WS is set, but ${OSRACER_WS}/install/setup.bash was not found"
   else
     source_setup "$HOME/osracer_ws/install/setup.bash" ||
       source_setup "$HOME/osracer/install/setup.bash" ||
       source_setup "$HOME/Documents/osracer/osracer/install/setup.bash" ||
       source_setup "$HOME/Desktop/osracer/osracer/install/setup.bash" ||
-      fail "未找到 OSRacer 工作区 install/setup.bash。可设置 OSRACER_WS=/path/to/osracer_ws 后重新安装桌面图标。"
+      fail "OSRacer workspace install/setup.bash was not found. Set OSRACER_WS=/path/to/workspace and reinstall the desktop launcher."
   fi
 
-  command -v ros2 >/dev/null 2>&1 || fail "ros2 命令不可用，ROS 环境未正确加载。"
-  ros2 pkg prefix osracer_demo >/dev/null 2>&1 || fail "当前 ROS 环境找不到 osracer_demo 包，请重新 colcon build 并 source install/setup.bash。"
+  command -v ros2 >/dev/null 2>&1 || fail "ros2 is not available; the ROS environment was not loaded correctly."
+  ros2 pkg prefix osracer_demo >/dev/null 2>&1 || fail "The osracer_demo package was not found. Rebuild with colcon and source install/setup.bash."
 
   echo "Launching: ros2 run osracer_demo leader_demo"
   ros2 run osracer_demo leader_demo
@@ -79,7 +79,7 @@ source_setup() {
 
 status=$?
 if [[ "$status" -ne 0 ]]; then
-  notify_error "启动命令退出，状态码：$status"
+  notify_error "Launch command exited with status: $status"
 fi
 exit "$status"
 EOF

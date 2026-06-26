@@ -20,6 +20,10 @@
   camera, LED, TF, EKF, Nav2, SLAM, and RViz process names, and made GUI STOP
   actions re-run cleanup on every click instead of skipping while an older stop
   command is still tracked.
+- Kept GUI-visible demo script logs in English and added cleanup coverage for
+  the truncated `lakibeam1_scan_` process name plus rqt/RViz helper tools.
+- Added post-cleanup diagnostics to `stop_all_demo.sh` so remaining demo-like
+  processes are printed with PID and command when cleanup is incomplete.
 - Hardened the `osracer_demo` desktop launcher so it logs Orin Nano double-click
   startup failures, supports common workspace install paths, and reports missing
   `osracer_demo` package setup clearly.

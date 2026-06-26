@@ -51,7 +51,9 @@ patterns=(
   "osrbot_led_matrix"
   "led_matrix.py"
   "richbeam_lidar_node0"
+  "__node:=richbeam_lidar_node0"
   "lakibeam1_scan_node"
+  "lakibeam1_scan_"
   "lakibeam1"
   "nav2_"
   "bt_navigator"
@@ -68,6 +70,17 @@ patterns=(
   "slam_gmapping"
   "cartographer"
   "rviz2"
+  "rqt_gui"
+  "rqt_image_view"
+  "rqt_topic"
+)
+
+process_names=(
+  "lakibeam1_scan_"
+  "lakibeam1_scan_node"
+  "rviz2"
+  "rqt_gui"
+  "rqt_image_view"
 )
 
 stop_patterns() {
@@ -76,11 +89,26 @@ stop_patterns() {
   for pattern in "${patterns[@]}"; do
     pkill "-${signal}" -f "${pattern}" 2>/dev/null || true
   done
+  for pattern in "${process_names[@]}"; do
+    pkill "-${signal}" -x "${pattern}" 2>/dev/null || true
+  done
 }
 
 echo "Stopping common demo ROS processes"
 stop_patterns TERM
+sleep 2
+stop_patterns KILL
 sleep 1
 stop_patterns KILL
+
+remaining="$(
+  pgrep -af "lakibeam|richbeam|rviz2|rqt_|osracer_chassis|cartographer|slam_toolbox|slam_gmapping|nav2_|bt_navigator|controller_server|planner_server|behavior_server|map_server|amcl|lifecycle_manager|usb_cam_node|osrbot_led_matrix" 2>/dev/null || true
+)"
+if [[ -n "${remaining}" ]]; then
+  echo "WARNING: matching demo processes still remain after cleanup:"
+  echo "${remaining}"
+else
+  echo "No matching demo processes remain"
+fi
 
 echo "Done"
