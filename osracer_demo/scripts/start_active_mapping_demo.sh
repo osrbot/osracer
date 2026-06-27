@@ -8,10 +8,27 @@ source "${SCRIPT_DIR}/lib_osracer_demo.sh"
 source_osracer_env
 require_ros_pkg osracer_debug
 require_ros_pkg osracer_slam
+
+mode="${1:-auto}"
+case "${mode}" in
+  auto|cartographer|gmapping)
+    ;;
+  *)
+    echo "ERROR: unknown active mapping mode: ${mode}"
+    echo "Use: auto, cartographer, or gmapping."
+    exit 1
+    ;;
+esac
+
+if [[ "${mode}" == "cartographer" ]] && ! ros2 pkg prefix cartographer_ros >/dev/null 2>&1; then
+  echo "ERROR: Cartographer mode needs cartographer_ros."
+  exit 1
+fi
+
 start_robot_base_bg
 sleep 5
 
-if ros2 pkg prefix cartographer_ros >/dev/null 2>&1; then
+if [[ "${mode}" == "cartographer" ]] || { [[ "${mode}" == "auto" ]] && ros2 pkg prefix cartographer_ros >/dev/null 2>&1; }; then
   echo "Starting Cartographer mapping"
   if process_running "ros2 launch osracer_slam cartographer.launch.py"; then
     echo "Cartographer launch is already running; skip duplicate start."
@@ -25,7 +42,11 @@ if ros2 pkg prefix cartographer_ros >/dev/null 2>&1; then
     "ros2 launch osracer_debug debug_cartographer.launch.py" \
     ros2 launch osracer_debug debug_cartographer.launch.py
 else
-  echo "Cartographer is not installed; falling back to GMapping."
+  if [[ "${mode}" == "auto" ]]; then
+    echo "Cartographer is not installed; falling back to GMapping."
+  else
+    echo "Starting GMapping"
+  fi
   if process_running "ros2 launch osracer_slam gmapping.launch.py"; then
     echo "GMapping launch is already running; skip duplicate start."
   else

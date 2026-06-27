@@ -40,6 +40,8 @@
 - Added preflight package/map checks before advanced demo scripts start chassis,
   TF, LiDAR, SLAM, Nav2, or RViz processes, and declared the direct
   `osracer_demo` runtime dependencies used by those scripts.
+- Added GUI map-save actions, explicit Idle status after STOP cleanup finishes,
+  and separate drive-while-mapping controls for GMapping and Cartographer.
 - Fixed the refreshed `osracer_demo` GUI layout to avoid tuple `pady` on
   `tk.Frame` construction, which fails on the Tk version used by the Orin Nano
   Ubuntu image.

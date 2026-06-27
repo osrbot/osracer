@@ -66,7 +66,7 @@ class LeaderDemo(tk.Tk):
         self.proc_lock = threading.Lock()
         self.processes: dict[str, subprocess.Popen] = {}
         self.log_queue: queue.Queue[str] = queue.Queue()
-        self.advanced_names = {"odom-rviz", "mapping", "navigation", "active-mapping", "slam-navigation"}
+        self.advanced_names = {"odom-rviz", "mapping", "navigation", "active-gmapping", "active-cartographer", "slam-navigation"}
         self.motion_prefix = "motion-"
         self.status_vars = {
             "vehicle": tk.StringVar(value="Not checked"),
@@ -191,16 +191,19 @@ class LeaderDemo(tk.Tk):
             ttk.Button(middle, text=label_text, command=command, style="Action.TButton").pack(fill="x", pady=4)
         ttk.Button(middle, text="Emergency Stop", command=self.emergency_stop, style="Stop.TButton").pack(fill="x", pady=(14, 4))
 
-        advanced = [
-            ("Open Odometry RViz", self.open_odom_rviz),
-            ("Start Mapping", self.start_mapping),
-            ("Start Navigation", self.start_navigation),
-            ("Mapping While Driving", self.start_active_mapping),
-            ("SLAM + Navigation", self.start_slam_navigation),
-            ("Stop Advanced Nodes", self.stop_advanced),
-        ]
-        for label_text, command in advanced:
-            ttk.Button(right, text=label_text, command=command, style="Action.TButton").pack(fill="x", pady=4)
+        def action_row(items: list[tuple[str, object]]) -> None:
+            row = tk.Frame(right, bg=panel_bg)
+            row.pack(fill="x", pady=4)
+            for idx, (label_text, command) in enumerate(items):
+                ttk.Button(row, text=label_text, command=command, style="Action.TButton").grid(row=0, column=idx, sticky="ew", padx=(0, 6 if idx == 0 else 0))
+                row.columnconfigure(idx, weight=1, uniform="action")
+
+        action_row([("Open Odometry RViz", self.open_odom_rviz)])
+        action_row([("Start Mapping", self.start_mapping), ("Save Map", self.save_map)])
+        action_row([("Start Navigation", self.start_navigation)])
+        action_row([("Drive + GMapping", self.start_active_gmapping), ("Drive + Cartographer", self.start_active_cartographer)])
+        action_row([("SLAM + Navigation", self.start_slam_navigation), ("Save Cartographer Map", self.save_cartographer_map)])
+        action_row([("Stop Advanced Nodes", self.stop_advanced)])
 
         note = (
             "Advanced actions only start ROS nodes and RViz. Stop advanced nodes before switching modes."
@@ -329,6 +332,26 @@ class LeaderDemo(tk.Tk):
                     self.processes.pop(name, None)
         if name:
             self.log(f"{name} exited code={code}")
+            self.after(0, self._after_process_exit, name, code)
+
+    def _after_process_exit(self, name: str, code: int) -> None:
+        if name == "cleanup":
+            self.status_vars["action"].set("Idle")
+            self.status_vars["vehicle"].set("Stopped")
+            self.log("Cleanup finished; console is idle.")
+            return
+        if name == "save-map":
+            if any(proc_name in self.advanced_names for proc_name in self.running_process_names()):
+                self.status_vars["action"].set("Mapping running")
+            else:
+                self.status_vars["action"].set("Idle")
+            return
+        if name.startswith(self.motion_prefix):
+            self.status_vars["action"].set("Idle")
+            return
+        if name in self.advanced_names:
+            if not any(proc_name in self.advanced_names for proc_name in self.running_process_names()):
+                self.status_vars["action"].set("Idle")
 
     def check_status(self) -> None:
         self.status_vars["action"].set("Checking status")
@@ -383,7 +406,7 @@ class LeaderDemo(tk.Tk):
         self.status_vars["action"].set("Emergency stop")
         self.status_vars["vehicle"].set("Stopping")
         self.log("Sending emergency stop and cleaning demo ROS processes")
-        self.run_shell(script_cmd("stop_all_demo.sh"))
+        self.run_shell(script_cmd("stop_all_demo.sh"), name="cleanup")
         self.terminate_processes(names=self.advanced_names | {"vehicle"}, prefix=self.motion_prefix)
 
     def open_odom_rviz(self) -> None:
@@ -407,11 +430,26 @@ class LeaderDemo(tk.Tk):
             script_cmd("start_navigation_demo.sh"),
         )
 
-    def start_active_mapping(self) -> None:
+    def save_map(self) -> None:
+        self.status_vars["action"].set("Saving map")
+        self.run_shell(f"{script_cmd('save_map_demo.sh')} default", name="save-map")
+
+    def save_cartographer_map(self) -> None:
+        self.status_vars["action"].set("Saving cartographer map")
+        self.run_shell(f"{script_cmd('save_map_demo.sh')} cartographer", name="save-map")
+
+    def start_active_gmapping(self) -> None:
         self.start_advanced_once(
-            "active-mapping",
-            "Mapping While Driving",
-            script_cmd("start_active_mapping_demo.sh"),
+            "active-gmapping",
+            "Driving with GMapping",
+            f"{script_cmd('start_active_mapping_demo.sh')} gmapping",
+        )
+
+    def start_active_cartographer(self) -> None:
+        self.start_advanced_once(
+            "active-cartographer",
+            "Driving with Cartographer",
+            f"{script_cmd('start_active_mapping_demo.sh')} cartographer",
         )
 
     def start_slam_navigation(self) -> None:
@@ -425,7 +463,7 @@ class LeaderDemo(tk.Tk):
         self.status_vars["action"].set("Stopping advanced nodes")
         self.status_vars["vehicle"].set("Stopping")
         self.log("Stopping advanced nodes and demo ROS background processes")
-        self.run_shell(script_cmd("stop_all_demo.sh"))
+        self.run_shell(script_cmd("stop_all_demo.sh"), name="cleanup")
         self.terminate_processes(names=self.advanced_names | {"vehicle"})
 
     def on_close(self) -> None:

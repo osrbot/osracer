@@ -72,12 +72,15 @@ $(ros2 pkg prefix osracer_demo)/share/osracer_demo/scripts/start_basic_demo.sh
 $(ros2 pkg prefix osracer_demo)/share/osracer_demo/scripts/open_odom_rviz.sh
 $(ros2 pkg prefix osracer_demo)/share/osracer_demo/scripts/start_mapping_demo.sh
 $(ros2 pkg prefix osracer_demo)/share/osracer_demo/scripts/start_navigation_demo.sh
-$(ros2 pkg prefix osracer_demo)/share/osracer_demo/scripts/start_active_mapping_demo.sh
+$(ros2 pkg prefix osracer_demo)/share/osracer_demo/scripts/start_active_mapping_demo.sh gmapping
+$(ros2 pkg prefix osracer_demo)/share/osracer_demo/scripts/start_active_mapping_demo.sh cartographer
 $(ros2 pkg prefix osracer_demo)/share/osracer_demo/scripts/start_slam_navigation_demo.sh
+$(ros2 pkg prefix osracer_demo)/share/osracer_demo/scripts/save_map_demo.sh default
+$(ros2 pkg prefix osracer_demo)/share/osracer_demo/scripts/save_map_demo.sh cartographer
 $(ros2 pkg prefix osracer_demo)/share/osracer_demo/scripts/stop_all_demo.sh
 ```
 
-导航和边建图边导航脚本会自动生成演示用低速 TEB 参数到 `~/osracer_demo/logs/runtime/teb_slow_nav2_params.yaml`，不修改 `osracer_navigation` 包内的正式参数。运行日志、后台 PID 状态和临时参数都集中在 `~/osracer_demo/logs/` 下，方便现场排查和清理。
+导航和边建图边导航脚本会自动生成演示用低速 TEB 参数到 `~/osracer_demo/logs/runtime/teb_slow_nav2_params.yaml`，不修改 `osracer_navigation` 包内的正式参数。运行日志、后台 PID 状态和临时参数都集中在 `~/osracer_demo/logs/` 下，方便现场排查和清理。保存地图时默认使用 `osracer_slam` 包现有 map-save launch 文件里的默认 maps 目录。
 
 低速动作：
 
@@ -96,6 +99,7 @@ ros2 run osracer_demo drive_demo stop --yes
 - `Ctrl-C` 或退出时会重复发布停车命令。
 - `stop_all_demo.sh` 会重复向 `/cmd_vel` 和 `/ackermann_cmd` 发布停车，再清理 demo 相关 Nav2、SLAM、RViz、底盘和传感器节点；不会按全局 `ros` 关键字杀掉其它 ROS 任务。
 - 如果清理后仍有 demo 相关进程残留，`stop_all_demo.sh` 会在日志中打印匹配到的 PID 和命令，便于现场继续排查。
+- 图形控制台提供 `Save Map` / `Save Cartographer Map`，并把边走边建图拆成 GMapping 和 Cartographer 两个入口。
 - 高级功能会在启动底盘、TF、雷达、SLAM、Nav2、RViz 前先检查必需 ROS 包和导航地图，缺失时直接报错退出。
 - 遥控器仍保留底层急停/接管价值。
 

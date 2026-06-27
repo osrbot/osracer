@@ -15,6 +15,7 @@
   <depend>ackermann_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>nav_msgs</depend>
+  <depend>nav2_map_server</depend>
 
   <exec_depend>python3-tk</exec_depend>
   <exec_depend>ros2launch</exec_depend>
