@@ -96,6 +96,7 @@ ros2 run osracer_demo drive_demo stop --yes
 - `Ctrl-C` 或退出时会重复发布停车命令。
 - `stop_all_demo.sh` 会重复向 `/cmd_vel` 和 `/ackermann_cmd` 发布停车，再清理 demo 相关 Nav2、SLAM、RViz、底盘和传感器节点；不会按全局 `ros` 关键字杀掉其它 ROS 任务。
 - 如果清理后仍有 demo 相关进程残留，`stop_all_demo.sh` 会在日志中打印匹配到的 PID 和命令，便于现场继续排查。
+- 高级功能会在启动底盘、TF、雷达、SLAM、Nav2、RViz 前先检查必需 ROS 包和导航地图，缺失时直接报错退出。
 - 遥控器仍保留底层急停/接管价值。
 
 ## 建议演示流程

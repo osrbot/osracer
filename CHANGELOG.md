@@ -37,6 +37,9 @@
   so STOP can terminate tracked processes before falling back to pattern based
   ROS cleanup, and moved generated slow Nav2 demo params into the same runtime
   directory.
+- Added preflight package/map checks before advanced demo scripts start chassis,
+  TF, LiDAR, SLAM, Nav2, or RViz processes, and declared the direct
+  `osracer_demo` runtime dependencies used by those scripts.
 - Fixed the refreshed `osracer_demo` GUI layout to avoid tuple `pady` on
   `tk.Frame` construction, which fails on the Tk version used by the Orin Nano
   Ubuntu image.

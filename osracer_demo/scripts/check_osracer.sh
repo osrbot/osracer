@@ -48,9 +48,30 @@ ros2 --version || true
 
 echo
 echo "Packages:"
-ros2 pkg prefix osracer_bringup >/dev/null 2>&1 && echo "OK osracer_bringup" || echo "MISSING osracer_bringup"
-ros2 pkg prefix ackermann_msgs >/dev/null 2>&1 && echo "OK ackermann_msgs" || echo "MISSING ackermann_msgs"
-ros2 pkg prefix robot_localization >/dev/null 2>&1 && echo "OK robot_localization" || echo "MISSING robot_localization"
+required_packages=(
+  ackermann_msgs
+  geometry_msgs
+  nav_msgs
+  osracer_bringup
+  osracer_debug
+  osracer_description
+  osracer_navigation
+  osracer_slam
+  robot_localization
+)
+for pkg in "${required_packages[@]}"; do
+  ros2 pkg prefix "${pkg}" >/dev/null 2>&1 && echo "OK ${pkg}" || echo "MISSING ${pkg}"
+done
+if ros2 pkg prefix slam_toolbox >/dev/null 2>&1; then
+  echo "OK slam_toolbox"
+else
+  echo "MISSING slam_toolbox (only required for SLAM + Navigation)"
+fi
+if ros2 pkg prefix cartographer_ros >/dev/null 2>&1; then
+  echo "OK cartographer_ros"
+else
+  echo "MISSING cartographer_ros (optional; active mapping falls back to GMapping)"
+fi
 
 echo
 echo "Serial device:"

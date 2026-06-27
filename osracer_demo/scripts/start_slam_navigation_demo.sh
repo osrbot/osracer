@@ -6,8 +6,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/lib_osracer_demo.sh"
 
 source_osracer_env
-start_robot_base_bg
-sleep 5
+require_ros_pkg osracer_debug
+require_ros_pkg osracer_navigation
 
 if ! ros2 pkg prefix slam_toolbox >/dev/null 2>&1; then
   echo "ERROR: Nav2 online-SLAM navigation needs slam_toolbox."
@@ -18,6 +18,9 @@ fi
 echo "Starting Nav2 online SLAM navigation"
 PARAMS_FILE="$("${SCRIPT_DIR}/make_slow_nav_params.sh")"
 echo "Using low-speed Nav2 params: ${PARAMS_FILE}"
+
+start_robot_base_bg
+sleep 5
 if process_running "ros2 launch osracer_navigation bringup_launch.py"; then
   echo "Nav2 bringup is already running; skip duplicate start."
 else

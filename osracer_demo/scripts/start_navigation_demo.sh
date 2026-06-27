@@ -6,18 +6,26 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/lib_osracer_demo.sh"
 
 source_osracer_env
-start_robot_base_bg
-sleep 5
+require_ros_pkg osracer_debug
+require_ros_pkg osracer_navigation
 
 MAP_FILE="${OSRACER_MAP:-}"
 if [[ -z "${MAP_FILE}" ]]; then
   NAV_PREFIX="$(ros2 pkg prefix osracer_navigation)"
   MAP_FILE="${NAV_PREFIX}/share/osracer_navigation/maps/map.yaml"
 fi
+if [[ ! -f "${MAP_FILE}" ]]; then
+  echo "ERROR: navigation map file not found: ${MAP_FILE}"
+  echo "Set OSRACER_MAP=/path/to/map.yaml or provide the default map."
+  exit 1
+fi
 
 echo "Starting Nav2 with map: ${MAP_FILE}"
 PARAMS_FILE="$("${SCRIPT_DIR}/make_slow_nav_params.sh")"
 echo "Using low-speed Nav2 params: ${PARAMS_FILE}"
+
+start_robot_base_bg
+sleep 5
 if process_running "ros2 launch osracer_navigation bringup_launch.py"; then
   echo "Nav2 bringup is already running; skip duplicate start."
 else

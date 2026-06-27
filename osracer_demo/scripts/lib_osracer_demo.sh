@@ -51,6 +51,15 @@ process_running() {
   pgrep -f "${pattern}" >/dev/null 2>&1
 }
 
+require_ros_pkg() {
+  local pkg="$1"
+  if ! ros2 pkg prefix "${pkg}" >/dev/null 2>&1; then
+    echo "ERROR: required ROS package '${pkg}' was not found."
+    echo "Build/source the OSRacer workspace, then rerun this demo."
+    exit 1
+  fi
+}
+
 record_demo_pid() {
   local label="$1"
   local pid="$2"
@@ -137,6 +146,9 @@ start_chassis_node_bg() {
 }
 
 start_robot_base_bg() {
+  require_ros_pkg osracer_bringup
+  require_ros_pkg osracer_description
+
   start_chassis_node_bg
   sleep 1
 

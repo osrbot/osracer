@@ -6,6 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/lib_osracer_demo.sh"
 
 source_osracer_env
+require_ros_pkg osracer_debug
 start_robot_base_bg
 sleep 3
 
