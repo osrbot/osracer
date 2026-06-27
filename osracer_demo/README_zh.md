@@ -33,8 +33,10 @@ $(ros2 pkg prefix osracer_demo)/share/osracer_demo/scripts/install_desktop_short
 如果双击后没有窗口，查看启动日志：
 
 ```bash
-tail -n 120 ~/osracer_demo_logs/osracer-demo-launch.log
+tail -n 120 ~/osracer_demo/logs/osracer-demo-launch.log
 ```
+
+如需临时改到其它目录，可设置 `OSRACER_DEMO_LOG_DIR=/path/to/logs` 后重新运行安装桌面图标命令。
 
 如果工作区不在 `~/osracer_ws`、`~/osracer` 或 `~/Desktop/osracer/osracer`，
 设置 `OSRACER_WS=/path/to/workspace` 后重新运行安装桌面图标命令。

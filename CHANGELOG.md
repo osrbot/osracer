@@ -30,6 +30,9 @@
 - Hardened the `osracer_demo` desktop launcher so it logs Orin Nano double-click
   startup failures, supports common workspace install paths, and reports missing
   `osracer_demo` package setup clearly.
+- Moved `osracer_demo` desktop-launch runtime logs into
+  `~/osracer_demo/logs` by default, with `OSRACER_DEMO_LOG_DIR` available for
+  field overrides.
 - Fixed the refreshed `osracer_demo` GUI layout to avoid tuple `pady` on
   `tk.Frame` construction, which fails on the Tk version used by the Orin Nano
   Ubuntu image.
