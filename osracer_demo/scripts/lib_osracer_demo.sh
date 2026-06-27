@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
+OSRACER_DEMO_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+OSRACER_DEMO_ROOT="$(cd "${OSRACER_DEMO_SCRIPT_DIR}/../.." && pwd)"
+OSRACER_DEMO_LOG_DIR="${OSRACER_DEMO_LOG_DIR:-${OSRACER_DEMO_ROOT}/logs}"
+OSRACER_DEMO_RUNTIME_DIR="${OSRACER_DEMO_RUNTIME_DIR:-${OSRACER_DEMO_LOG_DIR}/runtime}"
+OSRACER_DEMO_PID_FILE="${OSRACER_DEMO_PID_FILE:-${OSRACER_DEMO_RUNTIME_DIR}/demo_pids.txt}"
+
+mkdir -p "${OSRACER_DEMO_RUNTIME_DIR}"
+
 source_osracer_env() {
   if [[ -f /opt/ros/humble/setup.bash ]]; then
     set +u
@@ -43,6 +51,39 @@ process_running() {
   pgrep -f "${pattern}" >/dev/null 2>&1
 }
 
+record_demo_pid() {
+  local label="$1"
+  local pid="$2"
+  printf '%s %s %s\n' "${pid}" "${label}" "$(date '+%F %T')" >> "${OSRACER_DEMO_PID_FILE}"
+}
+
+start_demo_bg() {
+  local label="$1"
+  shift
+  "$@" &
+  local pid=$!
+  record_demo_pid "${label}" "${pid}"
+  echo "Started ${label} pid=${pid}"
+}
+
+stop_tracked_demo_pids() {
+  local signal="${1:-TERM}"
+  [[ -f "${OSRACER_DEMO_PID_FILE}" ]] || return 0
+
+  local pid label rest
+  while read -r pid label rest; do
+    [[ "${pid}" =~ ^[0-9]+$ ]] || continue
+    if kill -0 "${pid}" 2>/dev/null; then
+      echo "Stopping tracked ${label:-process} pid=${pid} with ${signal}"
+      kill "-${signal}" "${pid}" 2>/dev/null || true
+    fi
+  done < "${OSRACER_DEMO_PID_FILE}"
+}
+
+clear_demo_pid_file() {
+  : > "${OSRACER_DEMO_PID_FILE}"
+}
+
 close_existing_rviz() {
   pkill -f "ros2 launch osracer_debug debug_odom.launch.py" 2>/dev/null || true
   pkill -f "ros2 launch osracer_debug debug_mapping.launch.py" 2>/dev/null || true
@@ -64,7 +105,7 @@ open_rviz_exclusive() {
 
   echo "Opening ${label} RViz"
   close_existing_rviz
-  "$@" &
+  start_demo_bg "rviz" "$@"
 }
 
 start_chassis_node_bg() {
@@ -83,15 +124,15 @@ start_chassis_node_bg() {
   fi
 
   if grep -q "port_name" "${launch_file}"; then
-    ros2 launch osracer_bringup chassis_ackermann.launch.py \
+    start_demo_bg "chassis" ros2 launch osracer_bringup chassis_ackermann.launch.py \
       port_name:="${port}" \
       baud_rate:="${baud}" \
-      log_level:=info &
+      log_level:=info
   else
-    ros2 launch osracer_bringup chassis_ackermann.launch.py \
+    start_demo_bg "chassis" ros2 launch osracer_bringup chassis_ackermann.launch.py \
       serial_port:="${port}" \
       serial_baudrate:="${baud}" \
-      log_level:=info &
+      log_level:=info
   fi
 }
 
@@ -103,7 +144,7 @@ start_robot_base_bg() {
   if process_running "ros2 launch osracer_description robot_description_tf.launch.py"; then
     echo "Robot TF launch is already running; skip duplicate start."
   else
-    ros2 launch osracer_description robot_description_tf.launch.py &
+    start_demo_bg "robot-tf" ros2 launch osracer_description robot_description_tf.launch.py
   fi
 
   sleep 1
@@ -111,7 +152,7 @@ start_robot_base_bg() {
   if process_running "ros2 launch osracer_bringup lidar.launch.py"; then
     echo "Lidar launch is already running; skip duplicate start."
   else
-    ros2 launch osracer_bringup lidar.launch.py &
+    start_demo_bg "lidar" ros2 launch osracer_bringup lidar.launch.py
   fi
 }
 
@@ -127,7 +168,7 @@ stop_vehicle_once() {
 wait_forever_with_stop() {
   echo
   echo "Running. Close this terminal or press Ctrl-C to stop related demo processes."
-  trap 'echo; echo "Stopping demo..."; stop_vehicle_once; pids="$(jobs -pr)"; if [[ -n "${pids}" ]]; then kill ${pids} 2>/dev/null || true; fi; wait 2>/dev/null || true; exit 0' INT TERM EXIT
+  trap 'echo; echo "Stopping demo..."; stop_vehicle_once; stop_tracked_demo_pids TERM; pids="$(jobs -pr)"; if [[ -n "${pids}" ]]; then kill ${pids} 2>/dev/null || true; fi; wait 2>/dev/null || true; exit 0' INT TERM EXIT
   while true; do
     sleep 2
   done

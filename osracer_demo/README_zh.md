@@ -77,7 +77,7 @@ $(ros2 pkg prefix osracer_demo)/share/osracer_demo/scripts/start_slam_navigation
 $(ros2 pkg prefix osracer_demo)/share/osracer_demo/scripts/stop_all_demo.sh
 ```
 
-导航和边建图边导航脚本会自动生成演示用低速 TEB 参数到 `/tmp/osracer_demo_teb_slow_nav2_params.yaml`，不修改 `osracer_navigation` 包内的正式参数。
+导航和边建图边导航脚本会自动生成演示用低速 TEB 参数到 `~/osracer_demo/logs/runtime/teb_slow_nav2_params.yaml`，不修改 `osracer_navigation` 包内的正式参数。运行日志、后台 PID 状态和临时参数都集中在 `~/osracer_demo/logs/` 下，方便现场排查和清理。
 
 低速动作：
 

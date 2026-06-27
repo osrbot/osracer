@@ -21,12 +21,12 @@ echo "Using low-speed Nav2 params: ${PARAMS_FILE}"
 if process_running "ros2 launch osracer_navigation bringup_launch.py"; then
   echo "Nav2 bringup is already running; skip duplicate start."
 else
-  ros2 launch osracer_navigation bringup_launch.py \
+  start_demo_bg "nav2-slam" ros2 launch osracer_navigation bringup_launch.py \
     slam:=True \
     planner:=teb \
     params_file:="${PARAMS_FILE}" \
     use_composition:=False \
-    use_rviz:=False &
+    use_rviz:=False
 fi
 
 sleep 6

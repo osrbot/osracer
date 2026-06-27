@@ -33,6 +33,10 @@
 - Moved `osracer_demo` desktop-launch runtime logs into
   `~/osracer_demo/logs` by default, with `OSRACER_DEMO_LOG_DIR` available for
   field overrides.
+- Recorded demo-launched ROS background PIDs under `~/osracer_demo/logs/runtime`
+  so STOP can terminate tracked processes before falling back to pattern based
+  ROS cleanup, and moved generated slow Nav2 demo params into the same runtime
+  directory.
 - Fixed the refreshed `osracer_demo` GUI layout to avoid tuple `pady` on
   `tk.Frame` construction, which fails on the Tk version used by the Orin Nano
   Ubuntu image.

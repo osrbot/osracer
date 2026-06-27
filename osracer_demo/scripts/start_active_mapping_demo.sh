@@ -14,7 +14,7 @@ if ros2 pkg prefix cartographer_ros >/dev/null 2>&1; then
   if process_running "ros2 launch osracer_slam cartographer.launch.py"; then
     echo "Cartographer launch is already running; skip duplicate start."
   else
-    ros2 launch osracer_slam cartographer.launch.py use_sim_time:=false &
+    start_demo_bg "cartographer" ros2 launch osracer_slam cartographer.launch.py use_sim_time:=false
   fi
 
   sleep 3
@@ -27,7 +27,7 @@ else
   if process_running "ros2 launch osracer_slam gmapping.launch.py"; then
     echo "GMapping launch is already running; skip duplicate start."
   else
-    ros2 launch osracer_slam gmapping.launch.py &
+    start_demo_bg "gmapping" ros2 launch osracer_slam gmapping.launch.py
   fi
 
   sleep 3

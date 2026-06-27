@@ -22,7 +22,10 @@ fi
 
 NAV_PREFIX="$(ros2 pkg prefix osracer_navigation)"
 SOURCE_FILE="${NAV_PREFIX}/share/osracer_navigation/params/teb_nav2_params.yaml"
-OUT_FILE="${OSRACER_SLOW_NAV_PARAMS:-/tmp/osracer_demo_teb_slow_nav2_params.yaml}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib_osracer_demo.sh
+source "${SCRIPT_DIR}/lib_osracer_demo.sh"
+OUT_FILE="${OSRACER_SLOW_NAV_PARAMS:-${OSRACER_DEMO_RUNTIME_DIR}/teb_slow_nav2_params.yaml}"
 
 python3 - "${SOURCE_FILE}" "${OUT_FILE}" <<'PY'
 from pathlib import Path

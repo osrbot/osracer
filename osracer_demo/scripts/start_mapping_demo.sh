@@ -14,13 +14,13 @@ if ros2 pkg prefix slam_toolbox >/dev/null 2>&1; then
   if process_running "ros2 launch osracer_navigation slam_launch.py"; then
     echo "SLAM toolbox launch is already running; skip duplicate start."
   else
-    ros2 launch osracer_navigation slam_launch.py use_sim_time:=false &
+    start_demo_bg "slam-toolbox" ros2 launch osracer_navigation slam_launch.py use_sim_time:=false
   fi
 else
   if process_running "ros2 launch osracer_slam gmapping.launch.py"; then
     echo "GMapping launch is already running; skip duplicate start."
   else
-    ros2 launch osracer_slam gmapping.launch.py &
+    start_demo_bg "gmapping" ros2 launch osracer_slam gmapping.launch.py
   fi
 fi
 

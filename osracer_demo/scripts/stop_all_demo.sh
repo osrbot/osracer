@@ -41,6 +41,14 @@ else
         "{speed: 0.0, steering_angle: 0.0}" >/dev/null 2>&1 || true
     fi
   }
+
+  stop_tracked_demo_pids() {
+    return 0
+  }
+
+  clear_demo_pid_file() {
+    return 0
+  }
 fi
 
 source_osracer_env
@@ -49,6 +57,11 @@ for _ in 1 2 3 4 5; do
   stop_vehicle_once
   sleep 0.05
 done
+
+echo "Stopping tracked demo process IDs"
+stop_tracked_demo_pids TERM
+sleep 1
+stop_tracked_demo_pids KILL
 
 patterns=(
   "ros2 launch osracer_bringup bringup.launch.py"
@@ -138,6 +151,7 @@ sleep 2
 stop_patterns KILL
 sleep 1
 stop_patterns KILL
+clear_demo_pid_file
 
 remaining="$(
   pgrep -af "lakibeam|richbeam|rviz2|rqt_|osracer_chassis|cartographer|slam_toolbox|slam_gmapping|nav2_|bt_navigator|controller_server|planner_server|behavior_server|map_server|amcl|lifecycle_manager|usb_cam_node|osrbot_led_matrix" 2>/dev/null || true
