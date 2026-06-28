@@ -219,7 +219,7 @@ class LeaderDemo(tk.Tk):
         action_row([("Drive + GMapping", self.start_active_gmapping, "mode"), ("Drive + Cartographer", self.start_active_cartographer, "mode")])
         action_heading("Navigation")
         action_row([("Start Navigation", self.start_navigation, "mode")])
-        action_row([("SLAM + Navigation", self.start_slam_navigation, "mode"), ("Save Cartographer Map", self.save_cartographer_map, "save")])
+        action_row([("SLAM + Navigation", self.start_slam_navigation, "mode")])
         action_heading("Cleanup")
         action_row([("Stop Advanced Nodes", self.stop_advanced, "cleanup")])
 
@@ -517,11 +517,7 @@ class LeaderDemo(tk.Tk):
 
     def save_map(self) -> None:
         self.set_action("Saving map")
-        self.run_shell(f"{script_cmd('save_map_demo.sh')} default", name="save-map")
-
-    def save_cartographer_map(self) -> None:
-        self.set_action("Saving cartographer map")
-        self.run_shell(f"{script_cmd('save_map_demo.sh')} cartographer", name="save-map")
+        self.run_shell(script_cmd("save_map_demo.sh"), name="save-map")
 
     def start_active_gmapping(self) -> None:
         self.start_advanced_once(

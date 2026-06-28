@@ -48,6 +48,9 @@
 - Unified demo navigation with map saving by reading the default Nav2 map from
   `osracer_slam/maps/map.yaml`, and removed the unsupported `ros2 --version`
   check from demo status output.
+- Simplified map saving to one GUI `Save Map` action that auto-selects the
+  Cartographer or default map saver, updates `osracer_slam/maps/map.yaml`, and
+  keeps timestamped map archives.
 - Fixed the refreshed `osracer_demo` GUI layout to avoid tuple `pady` on
   `tk.Frame` construction, which fails on the Tk version used by the Orin Nano
   Ubuntu image.
