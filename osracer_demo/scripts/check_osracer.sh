@@ -44,7 +44,12 @@ fi
 
 echo
 echo "ROS:"
-ros2 --version || true
+if command -v ros2 >/dev/null 2>&1; then
+  echo "OK ros2 CLI: $(command -v ros2)"
+  echo "ROS_DISTRO: ${ROS_DISTRO:-unknown}"
+else
+  echo "MISSING ros2 CLI"
+fi
 
 echo
 echo "Packages:"

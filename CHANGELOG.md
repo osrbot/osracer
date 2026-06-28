@@ -45,6 +45,9 @@
   buttons while advanced actions run, keeping STOP/map-save controls available,
   showing staged cleanup status, checking `/map` before saving, printing the
   resolved default map-save path, and waiting for cleanup before window close.
+- Unified demo navigation with map saving by reading the default Nav2 map from
+  `osracer_slam/maps/map.yaml`, and removed the unsupported `ros2 --version`
+  check from demo status output.
 - Fixed the refreshed `osracer_demo` GUI layout to avoid tuple `pady` on
   `tk.Frame` construction, which fails on the Tk version used by the Orin Nano
   Ubuntu image.

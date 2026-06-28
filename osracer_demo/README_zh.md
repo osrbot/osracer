@@ -79,7 +79,7 @@ $(ros2 pkg prefix osracer_demo)/share/osracer_demo/scripts/save_map_demo.sh cart
 $(ros2 pkg prefix osracer_demo)/share/osracer_demo/scripts/stop_all_demo.sh
 ```
 
-导航和边建图边导航脚本会自动生成演示用低速 TEB 参数到 `~/osracer_demo/logs/runtime/teb_slow_nav2_params.yaml`，不修改 `osracer_navigation` 包内的正式参数。运行日志、后台 PID 状态和临时参数都集中在 `~/osracer_demo/logs/` 下，方便现场排查和清理。保存地图时默认使用 `osracer_slam` 包现有 map-save launch 文件里的默认 maps 目录。
+导航和边建图边导航脚本会自动生成演示用低速 TEB 参数到 `~/osracer_demo/logs/runtime/teb_slow_nav2_params.yaml`，不修改 `osracer_navigation` 包内的正式参数。运行日志、后台 PID 状态和临时参数都集中在 `~/osracer_demo/logs/` 下，方便现场排查和清理。保存地图时默认使用 `osracer_slam` 包现有 map-save launch 文件里的默认 maps 目录，导航默认也读取同一个 `osracer_slam/maps/map.yaml`。
 
 低速动作：
 

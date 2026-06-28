@@ -8,15 +8,22 @@ source "${SCRIPT_DIR}/lib_osracer_demo.sh"
 source_osracer_env
 require_ros_pkg osracer_debug
 require_ros_pkg osracer_navigation
+require_ros_pkg osracer_slam
 
 MAP_FILE="${OSRACER_MAP:-}"
 if [[ -z "${MAP_FILE}" ]]; then
-  NAV_PREFIX="$(ros2 pkg prefix osracer_navigation)"
-  MAP_FILE="${NAV_PREFIX}/share/osracer_navigation/maps/map.yaml"
+  SLAM_PREFIX="$(ros2 pkg prefix osracer_slam)"
+  MAP_FILE="$(python3 - "${SLAM_PREFIX}/../../src/osracer/osracer_slam/maps/map.yaml" <<'PY'
+from pathlib import Path
+import sys
+
+print(Path(sys.argv[1]).resolve())
+PY
+)"
 fi
 if [[ ! -f "${MAP_FILE}" ]]; then
   echo "ERROR: navigation map file not found: ${MAP_FILE}"
-  echo "Set OSRACER_MAP=/path/to/map.yaml or provide the default map."
+  echo "Set OSRACER_MAP=/path/to/map.yaml or save/provide the default osracer_slam map."
   exit 1
 fi
 
