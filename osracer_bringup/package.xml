@@ -1,8 +1,8 @@
 <?xml version='1.0' encoding='utf-8'?>
 <package format="3">
   <name>osracer_bringup</name>
-  <version>0.0.0</version>
-  <description>The osracer_bringup package</description>
+  <version>0.1.0</version>
+  <description>OSRacer chassis, sensor, and robot bringup launch files and nodes.</description>
   <maintainer email="osrbot@osrbot.com">osrbot</maintainer>
   <license>MIT</license>
   <buildtool_depend>ament_cmake</buildtool_depend>
@@ -10,10 +10,6 @@
   <build_depend>rclpy</build_depend>
   <build_depend>sensor_msgs</build_depend>
   <build_depend>std_msgs</build_depend>
-  <exec_depend>ackermann_msgs</exec_depend>
-  <exec_depend>geometry_msgs</exec_depend>
-  <exec_depend>nav_msgs</exec_depend>
-  <exec_depend>sensor_msgs</exec_depend>
   <build_export_depend>rclcpp</build_export_depend>
   <build_export_depend>rclpy</build_export_depend>
   <build_export_depend>sensor_msgs</build_export_depend>

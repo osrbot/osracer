@@ -8,7 +8,7 @@ from launch_ros.actions import Node
 def generate_launch_description():
     serial_port = "/dev/osrbot_led_matrix"
     serial_baudrate = "115200"
-    
+
     # Serial port and baud rate for LED driver
     serial_port_arg = DeclareLaunchArgument(
         'serial_port',

@@ -2,7 +2,7 @@
 <package format="3">
   <name>osracer_description</name>
   <version>1.0.0</version>
-  <description>The osracer_description package</description>
+  <description>URDF, meshes, TF, and RViz description resources for OSRacer.</description>
 
   <maintainer email="osrbot@osrbot.com">osrbot</maintainer>
 

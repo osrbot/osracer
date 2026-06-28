@@ -83,11 +83,11 @@ def launch_setup(context, *args, **kwargs):
             ],
         )
     )
-            
+
     return return_node
 
 def generate_launch_description():
-    
+
     declared_args = []
 
     return LaunchDescription(

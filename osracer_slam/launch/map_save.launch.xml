@@ -3,7 +3,7 @@
 <launch>
     <arg name="map_file" default="map" />
     <arg name="map_path" default="$(find-pkg-prefix osracer_slam)/../../src/osracer/osracer_slam/maps" />
-    <node pkg="nav2_map_server" exec="map_saver_cli" name="map_saver_cli" 
+    <node pkg="nav2_map_server" exec="map_saver_cli" name="map_saver_cli"
         args="-t map -f $(var map_path)/$(var map_file)"
         output="screen">
         <param name="save_map_timeout" value="1000.0" />

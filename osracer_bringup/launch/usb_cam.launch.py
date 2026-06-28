@@ -28,7 +28,7 @@ def generate_launch_description():
         default_value="camera_link",
         description='Frame ID for the camera'
     )
-    
+
     camera_params = []
     # Add inline parameters
     camera_params.append({
@@ -36,7 +36,7 @@ def generate_launch_description():
         'video_device': '/dev/video0',
         'image_width': 640,
         'image_height': 480,
-        'framerate': 120.0, 
+        'framerate': 120.0,
         'pixel_format': 'mjpeg2rgb',
         'io_method': 'mmap',
         'camera_name': camera_name,
@@ -44,11 +44,11 @@ def generate_launch_description():
         'buffersize': 3,
         'num_image_buffers': 4,
     })
-    
+
     camera_nodes = [
         Node(
-            package='usb_cam', 
-            executable='usb_cam_node_exe', 
+            package='usb_cam',
+            executable='usb_cam_node_exe',
             output='screen',
             name=camera_name,  # This sets the node name
             parameters=camera_params,

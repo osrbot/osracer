@@ -4,9 +4,8 @@
 
 ### Bringup
 
-- Added best-effort osrcore host-link commands in the chassis serial node:
-  `link up ros` after `stream sync`, `link ping ros` every second while
-  connected, and `link down ros` before normal serial close.
+- Added best-effort host connection-state maintenance in the chassis serial
+  node, without blocking ROS bringup on older firmware.
 - Aligned `osracer_demo` leader GUI with the standalone demo source so the same
   code can run from a local folder or from the installed ROS package scripts.
 - Refreshed the `osracer_demo` leader GUI with a lightweight built-in Tkinter
@@ -51,10 +50,10 @@
   Ubuntu image.
 - Fixed the refreshed `osracer_demo` GUI color variable so button-label loops
   cannot overwrite it and pass labels such as `停止高级节点` as Tk color names.
-- Reduced the `fw version` startup query timeout to `0.3s`; missing
-  `ProjectVer` only warns and does not block ROS bringup.
-- Documented the auxiliary `diag` command path for unified firmware diagnostic
-  status without changing `s/i/o/m/r/b` frame parsing.
+- Reduced the firmware version metadata startup timeout to `0.3s`; missing
+  metadata only warns and does not block ROS bringup.
+- Kept firmware diagnostic handling best effort without changing ROS-side
+  odometry, IMU, magnetometer, RC, or battery parsing.
 
 ### Simulation
 
@@ -253,11 +252,10 @@
 
 ### ROS interface and TF
 
-- No motion telemetry frame changes. The chassis node still consumes the
-  current osrcore `stream sync` telemetry:
-  `s px py pz vx vy vz yaw qx qy qz qw ax ay az gx gy gz`.
+- No motion telemetry behavior changes. The chassis node still consumes the
+  factory firmware odometry, attitude, and IMU telemetry stream.
 - Added configurable odometry twist covariance as ROS `nav_msgs/Odometry`
-  metadata only; this does not change the osrcore serial frame.
+  metadata only; this does not change firmware behavior.
 - Limited OSRacer front steering joints in the URDF to the measured steering
   range (`±0.5236 rad`) while keeping wheel rotation joints continuous.
 - Added non-zero default covariance values to the ROS IMU messages published by

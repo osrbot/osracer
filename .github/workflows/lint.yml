@@ -2,9 +2,9 @@ name: Lint
 
 on:
   push:
-    branches: [main, dev]
+    branches: [main, dev, feat-demo]
   pull_request:
-    branches: [main, dev]
+    branches: [main, dev, feat-demo]
 
 jobs:
   python-lint:

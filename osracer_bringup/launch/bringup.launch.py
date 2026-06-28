@@ -39,7 +39,7 @@ def generate_launch_description():
                 get_package_share_directory("osracer_bringup"),
                 'launch', 'lidar.launch.py'))
         ),
-        
+
         # USB Driver
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(

@@ -1,8 +1,8 @@
 <?xml version='1.0' encoding='utf-8'?>
 <package format="3">
   <name>osracer_slam</name>
-  <version>0.0.0</version>
-  <description>The osracer_slam package</description>
+  <version>0.1.0</version>
+  <description>SLAM launch files, parameters, and map-save helpers for OSRacer.</description>
   <maintainer email="osrbot@osrbot.com">osrbot</maintainer>
   <license>MIT</license>
   <buildtool_depend>ament_cmake</buildtool_depend>
