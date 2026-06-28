@@ -110,3 +110,4 @@ echo "  ${LAUNCHER}"
 echo
 echo "If Ubuntu asks whether to trust the launcher, choose 'Trust and Launch'."
 echo "If double-click does nothing, inspect: ${OSRACER_DEMO_LOG_DIR:-${HOME}/osracer_demo/logs}/osracer-demo-launch.log"
+echo "Rerun this installer after demo updates to refresh desktop launchers."

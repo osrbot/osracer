@@ -68,6 +68,10 @@ class LeaderDemo(tk.Tk):
         self.log_queue: queue.Queue[str] = queue.Queue()
         self.advanced_names = {"odom-rviz", "mapping", "navigation", "active-gmapping", "active-cartographer", "slam-navigation"}
         self.motion_prefix = "motion-"
+        self.mode_buttons: list[ttk.Button] = []
+        self.save_buttons: list[ttk.Button] = []
+        self.close_requested = False
+        self.status_cards: dict[str, tk.Frame] = {}
         self.status_vars = {
             "vehicle": tk.StringVar(value="Not checked"),
             "ros": tk.StringVar(value="Not checked"),
@@ -76,6 +80,7 @@ class LeaderDemo(tk.Tk):
         }
 
         self._build_ui()
+        self.set_action("Idle")
         self.after(100, self._drain_logs)
         self.protocol("WM_DELETE_WINDOW", self.on_close)
 
@@ -144,6 +149,7 @@ class LeaderDemo(tk.Tk):
         ]):
             card = tk.Frame(status, bg=panel_bg, highlightbackground=border, highlightthickness=1, padx=14, pady=10)
             card.grid(row=0, column=idx, sticky="ew", padx=(0, 10))
+            self.status_cards[name] = card
             status.columnconfigure(idx, weight=1)
             tk.Label(card, text=label, bg=panel_bg, fg=muted, font=("Arial", 10, "bold")).pack(anchor="w")
             tk.Label(card, textvariable=self.status_vars[name], bg=panel_bg, fg=text_color, font=("Arial", 13, "bold")).pack(anchor="w", pady=(4, 0))
@@ -191,19 +197,31 @@ class LeaderDemo(tk.Tk):
             ttk.Button(middle, text=label_text, command=command, style="Action.TButton").pack(fill="x", pady=4)
         ttk.Button(middle, text="Emergency Stop", command=self.emergency_stop, style="Stop.TButton").pack(fill="x", pady=(14, 4))
 
-        def action_row(items: list[tuple[str, object]]) -> None:
+        def action_heading(text: str) -> None:
+            tk.Label(right, text=text, bg=panel_bg, fg=muted, font=("Arial", 10, "bold")).pack(anchor="w", pady=(8, 0))
+
+        def action_row(items: list[tuple[str, object, str]]) -> None:
             row = tk.Frame(right, bg=panel_bg)
             row.pack(fill="x", pady=4)
-            for idx, (label_text, command) in enumerate(items):
-                ttk.Button(row, text=label_text, command=command, style="Action.TButton").grid(row=0, column=idx, sticky="ew", padx=(0, 6 if idx == 0 else 0))
+            for idx, (label_text, command, role) in enumerate(items):
+                btn = ttk.Button(row, text=label_text, command=command, style="Action.TButton")
+                btn.grid(row=0, column=idx, sticky="ew", padx=(0, 6 if idx == 0 else 0))
+                if role == "mode":
+                    self.mode_buttons.append(btn)
+                elif role == "save":
+                    self.save_buttons.append(btn)
                 row.columnconfigure(idx, weight=1, uniform="action")
 
-        action_row([("Open Odometry RViz", self.open_odom_rviz)])
-        action_row([("Start Mapping", self.start_mapping), ("Save Map", self.save_map)])
-        action_row([("Start Navigation", self.start_navigation)])
-        action_row([("Drive + GMapping", self.start_active_gmapping), ("Drive + Cartographer", self.start_active_cartographer)])
-        action_row([("SLAM + Navigation", self.start_slam_navigation), ("Save Cartographer Map", self.save_cartographer_map)])
-        action_row([("Stop Advanced Nodes", self.stop_advanced)])
+        action_heading("View")
+        action_row([("Open Odometry RViz", self.open_odom_rviz, "mode")])
+        action_heading("Mapping")
+        action_row([("Start Mapping", self.start_mapping, "mode"), ("Save Map", self.save_map, "save")])
+        action_row([("Drive + GMapping", self.start_active_gmapping, "mode"), ("Drive + Cartographer", self.start_active_cartographer, "mode")])
+        action_heading("Navigation")
+        action_row([("Start Navigation", self.start_navigation, "mode")])
+        action_row([("SLAM + Navigation", self.start_slam_navigation, "mode"), ("Save Cartographer Map", self.save_cartographer_map, "save")])
+        action_heading("Cleanup")
+        action_row([("Stop Advanced Nodes", self.stop_advanced, "cleanup")])
 
         note = (
             "Advanced actions only start ROS nodes and RViz. Stop advanced nodes before switching modes."
@@ -237,6 +255,32 @@ class LeaderDemo(tk.Tk):
 
     def clear_log(self) -> None:
         self.log_text.delete("1.0", "end")
+
+    def set_action(self, text: str) -> None:
+        self.status_vars["action"].set(text)
+        lower = text.lower()
+        if lower == "idle":
+            bg = "#ecfdf3"
+        elif "stop" in lower or "cleanup" in lower:
+            bg = "#fff7ed"
+        elif "error" in lower or "missing" in lower:
+            bg = "#fef2f2"
+        elif "saving" in lower:
+            bg = "#eff6ff"
+        else:
+            bg = "#fffefa"
+        self._set_status_card_bg("action", bg)
+
+    def _set_status_card_bg(self, name: str, bg: str) -> None:
+        card = self.status_cards.get(name)
+        if card is None:
+            return
+        card.configure(bg=bg)
+        for child in card.winfo_children():
+            try:
+                child.configure(bg=bg)
+            except tk.TclError:
+                pass
 
     def log(self, text: str) -> None:
         stamp = time.strftime("%H:%M:%S")
@@ -272,12 +316,14 @@ class LeaderDemo(tk.Tk):
             )
         except Exception as exc:
             self.log(f"Failed to start: {exc}")
+            self.update_controls()
             return None
 
         if name:
             with self.proc_lock:
                 self.processes[name] = proc
 
+        self.update_controls()
         threading.Thread(target=self._watch_process, args=(proc, name, keep), daemon=True).start()
         return proc
 
@@ -287,6 +333,34 @@ class LeaderDemo(tk.Tk):
                 name for name, proc in self.processes.items()
                 if proc.poll() is None
             ]
+
+    def advanced_running(self) -> bool:
+        return any(name in self.advanced_names for name in self.running_process_names())
+
+    def process_running(self, name: str) -> bool:
+        with self.proc_lock:
+            proc = self.processes.get(name)
+        return proc is not None and proc.poll() is None
+
+    def update_controls(self) -> None:
+        mode_state = "disabled" if self.advanced_running() or self.process_running("cleanup") else "normal"
+        save_state = "disabled" if self.process_running("cleanup") or self.process_running("save-map") else "normal"
+        for btn in self.mode_buttons:
+            btn.configure(state=mode_state)
+        for btn in self.save_buttons:
+            btn.configure(state=save_state)
+
+    def _handle_process_line(self, name: str | None, line: str) -> None:
+        if name != "cleanup":
+            return
+        if "Publishing stop commands" in line:
+            self.set_action("Stopping: publishing zero speed")
+        elif "Stopping tracked demo process IDs" in line:
+            self.set_action("Stopping: stopping tracked nodes")
+        elif "Stopping common demo ROS processes" in line:
+            self.set_action("Stopping: cleaning ROS nodes")
+        elif "No matching demo processes remain" in line:
+            self.set_action("Stopping: verifying cleanup")
 
     def start_advanced_once(self, name: str, label: str, command: str) -> None:
         running_advanced = [
@@ -301,7 +375,7 @@ class LeaderDemo(tk.Tk):
                 messagebox.showinfo("Advanced action running", "Press Stop Advanced Nodes, wait 2-3 seconds, then start another advanced action.")
             return
 
-        self.status_vars["action"].set(label)
+        self.set_action(label)
         self.run_shell(command, name=name, keep=True)
 
     def terminate_processes(self, names: set[str] | None = None, prefix: str | None = None) -> None:
@@ -324,7 +398,9 @@ class LeaderDemo(tk.Tk):
     def _watch_process(self, proc: subprocess.Popen, name: str | None, keep: bool) -> None:
         assert proc.stdout is not None
         for line in proc.stdout:
-            self.log(line.rstrip())
+            stripped = line.rstrip()
+            self.log(stripped)
+            self.after(0, self._handle_process_line, name, stripped)
         code = proc.wait()
         if name:
             with self.proc_lock:
@@ -335,26 +411,35 @@ class LeaderDemo(tk.Tk):
             self.after(0, self._after_process_exit, name, code)
 
     def _after_process_exit(self, name: str, code: int) -> None:
+        self.update_controls()
         if name == "cleanup":
-            self.status_vars["action"].set("Idle")
+            self.set_action("Idle")
             self.status_vars["vehicle"].set("Stopped")
             self.log("Cleanup finished; console is idle.")
+            if self.close_requested:
+                self.destroy()
+            return
+        if code != 0:
+            self.set_action("Error - check log")
+            return
+        if name == "status-check":
+            self.set_action("Idle")
             return
         if name == "save-map":
             if any(proc_name in self.advanced_names for proc_name in self.running_process_names()):
-                self.status_vars["action"].set("Mapping running")
+                self.set_action("Mapping running")
             else:
-                self.status_vars["action"].set("Idle")
+                self.set_action("Idle")
             return
         if name.startswith(self.motion_prefix):
-            self.status_vars["action"].set("Idle")
+            self.set_action("Idle")
             return
         if name in self.advanced_names:
             if not any(proc_name in self.advanced_names for proc_name in self.running_process_names()):
-                self.status_vars["action"].set("Idle")
+                self.set_action("Idle")
 
     def check_status(self) -> None:
-        self.status_vars["action"].set("Checking status")
+        self.set_action("Checking status")
         serial_exists = Path(DEFAULT_PORT).exists()
         setup_exists = Path(DEFAULT_WS, "install", "setup.bash").exists()
         self.status_vars["vehicle"].set("Port found" if serial_exists else "Port missing")
@@ -363,10 +448,10 @@ class LeaderDemo(tk.Tk):
         self.log(f"ROS workspace {DEFAULT_WS}: {'OK' if setup_exists else 'MISSING'}")
         self.log("RC does not need to be powered on for ROS demos; it remains an emergency override path.")
         self.log("RC failsafe messages with the transmitter off are not a ROS demo blocker.")
-        self.run_shell("ros2 topic list | head -40", keep=False)
+        self.run_shell(script_cmd("check_osracer.sh"), name="status-check")
 
     def start_vehicle_link(self) -> None:
-        self.status_vars["action"].set("Starting vehicle link")
+        self.set_action("Starting vehicle link")
         if "vehicle" in self.processes and self.processes["vehicle"].poll() is None:
             self.log("Vehicle link is already running")
             return
@@ -396,14 +481,14 @@ class LeaderDemo(tk.Tk):
         extra = "\n\nThis action keeps running until Emergency Stop is pressed." if demo == "circle" else ""
         if not messagebox.askokcancel("Start motion", f"Confirm the field is safe, then start: {label}{extra}"):
             return
-        self.status_vars["action"].set(label)
+        self.set_action(label)
         cmd = motion_cmd(demo)
         if demo == "figure8":
             cmd += " --loops 1 --duration 14.0 --speed 0.55"
         self.run_shell(cmd, name=f"motion-{demo}")
 
     def emergency_stop(self) -> None:
-        self.status_vars["action"].set("Emergency stop")
+        self.set_action("Emergency stop")
         self.status_vars["vehicle"].set("Stopping")
         self.log("Sending emergency stop and cleaning demo ROS processes")
         self.run_shell(script_cmd("stop_all_demo.sh"), name="cleanup")
@@ -431,11 +516,11 @@ class LeaderDemo(tk.Tk):
         )
 
     def save_map(self) -> None:
-        self.status_vars["action"].set("Saving map")
+        self.set_action("Saving map")
         self.run_shell(f"{script_cmd('save_map_demo.sh')} default", name="save-map")
 
     def save_cartographer_map(self) -> None:
-        self.status_vars["action"].set("Saving cartographer map")
+        self.set_action("Saving cartographer map")
         self.run_shell(f"{script_cmd('save_map_demo.sh')} cartographer", name="save-map")
 
     def start_active_gmapping(self) -> None:
@@ -460,7 +545,7 @@ class LeaderDemo(tk.Tk):
         )
 
     def stop_advanced(self) -> None:
-        self.status_vars["action"].set("Stopping advanced nodes")
+        self.set_action("Stopping advanced nodes")
         self.status_vars["vehicle"].set("Stopping")
         self.log("Stopping advanced nodes and demo ROS background processes")
         self.run_shell(script_cmd("stop_all_demo.sh"), name="cleanup")
@@ -468,16 +553,23 @@ class LeaderDemo(tk.Tk):
 
     def on_close(self) -> None:
         if messagebox.askokcancel("Exit", "Exiting will send stop commands and stop processes launched by this panel."):
+            self.close_requested = True
             self.emergency_stop()
             with self.proc_lock:
-                procs = list(self.processes.values())
-            for proc in procs:
+                procs = [(name, proc) for name, proc in self.processes.items() if name != "cleanup"]
+            for _name, proc in procs:
                 if proc.poll() is None:
                     try:
                         os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
                     except Exception:
                         pass
-            self.after(600, self.destroy)
+            self.after(200, self._finish_close_when_cleanup_done, time.monotonic() + 5.0)
+
+    def _finish_close_when_cleanup_done(self, deadline: float) -> None:
+        if not self.process_running("cleanup") or time.monotonic() >= deadline:
+            self.destroy()
+            return
+        self.after(200, self._finish_close_when_cleanup_done, deadline)
 
 
 def main() -> int:

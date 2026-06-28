@@ -100,8 +100,12 @@ ros2 run osracer_demo drive_demo stop --yes
 - `stop_all_demo.sh` 会重复向 `/cmd_vel` 和 `/ackermann_cmd` 发布停车，再清理 demo 相关 Nav2、SLAM、RViz、底盘和传感器节点；不会按全局 `ros` 关键字杀掉其它 ROS 任务。
 - 如果清理后仍有 demo 相关进程残留，`stop_all_demo.sh` 会在日志中打印匹配到的 PID 和命令，便于现场继续排查。
 - 图形控制台提供 `Save Map` / `Save Cartographer Map`，并把边走边建图拆成 GMapping 和 Cartographer 两个入口。
+- 保存地图前会检查 `/map`，没有建图数据时会直接提示先启动建图。
+- 高级功能运行时会禁用其它模式切换按钮，保留保存地图、急停和停止高级节点。
+- 停止时状态栏会显示发布停车、停止跟踪节点、清理 ROS 节点等阶段，完成后回到 `Idle`。
 - 高级功能会在启动底盘、TF、雷达、SLAM、Nav2、RViz 前先检查必需 ROS 包和导航地图，缺失时直接报错退出。
 - 遥控器仍保留底层急停/接管价值。
+- 更新 demo 后建议重新运行桌面图标安装脚本，刷新双击入口。
 
 ## 建议演示流程
 
