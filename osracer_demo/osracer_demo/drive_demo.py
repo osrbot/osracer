@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """Beginner-friendly ROS 2 drive demos for OSRacer.
 
-Default output is /cmd_vel because osracer_bringup already starts
-twist_bridge.py to convert Twist commands into AckermannDrive commands. Use
---mode ackermann when only the chassis node is running and you want to publish
-directly to /ackermann_cmd.
+Default output is /cmd_vel because osracer_bringup's chassis node accepts
+Twist commands directly. Use --mode ackermann when you want to publish directly
+to /ackermann_cmd.
 """
 
 from __future__ import annotations

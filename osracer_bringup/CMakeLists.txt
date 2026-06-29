@@ -19,7 +19,6 @@ install(PROGRAMS
   script/led_matrix.py
   script/policy_inference.py
   script/policy_observation_recorder.py
-  script/twist_bridge.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

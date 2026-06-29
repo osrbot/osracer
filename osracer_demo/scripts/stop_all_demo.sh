@@ -86,7 +86,6 @@ patterns=(
   "python3 ros_demo/scripts/odom_watch.py"
   "osracer_chassis"
   "chassis_ackermann.py"
-  "twist_bridge.py"
   "base_footprint2base_link"
   "base_link2laser"
   "base_link2imu"
