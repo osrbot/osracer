@@ -172,7 +172,7 @@ def main():
     print("  stream off                   Disable periodic telemetry")
     print("  stream legacy                Enable legacy periodic telemetry (i/o/m/r/b)")
     print("  sn get                       Query ESP32-S3 hardware serial number")
-    print("  fw version                   Query firmware version and ProjectVer")
+    print("  fw version                   Query firmware version metadata")
     print("  link up ros                  Mark ROS host link up")
     print("  link ping ros                Refresh ROS host link heartbeat")
     print("  link down ros                Mark ROS host link down")
