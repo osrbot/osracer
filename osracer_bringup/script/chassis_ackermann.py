@@ -176,7 +176,7 @@ class OsrbotCore(Node):
                 )
                 return False
 
-        self.query_firmware_metadata()
+        self.log_firmware_project_version()
 
         if not self.write_serial("stream sync\n"):
             return False
@@ -188,12 +188,12 @@ class OsrbotCore(Node):
         self.start_read_thread()
         return True
 
-    def query_firmware_metadata(self):
+    def log_firmware_project_version(self):
         with self.serial_lock:
             serial_conn = self.serial
 
         if not serial_conn or not serial_conn.is_open:
-            return None
+            return
 
         try:
             serial_conn.reset_input_buffer()
@@ -209,42 +209,27 @@ class OsrbotCore(Node):
                 line = serial_conn.readline().decode('utf-8', errors='ignore').strip()
                 if not line:
                     continue
-                metadata = self.parse_fw_version(line)
-                if metadata:
+                project_ver = self.parse_project_version(line)
+                if project_ver:
                     self.get_logger().info(
-                        "OSRCORE firmware: "
-                        f"product={metadata.get('Product', 'unknown')}, "
-                        f"hardware={metadata.get('Hardware', 'unknown')}, "
-                        f"version={metadata.get('Version', 'unknown')}, "
-                        f"build={metadata.get('BuildID', 'unknown')}, "
-                        f"dirty={metadata.get('Dirty', 'unknown')}, "
-                        f"proto={metadata.get('Proto', 'unknown')}"
+                        f"OSRCORE ProjectVer: {project_ver}, port: {self.port_name}"
                     )
-                    return metadata
+                    return
         except (serial.SerialException, OSError, ValueError, TypeError, termios.error) as e:
-            self.get_logger().warning(f"Could not query OSRCORE firmware metadata: {e}")
-            return None
+            self.get_logger().warning(f"Could not query OSRCORE ProjectVer: {e}")
+            return
 
-        self.get_logger().warning("OSRCORE firmware metadata unavailable")
-        return None
+        self.get_logger().warning("OSRCORE ProjectVer unavailable; firmware may be older")
 
     @staticmethod
-    def parse_fw_version(line: str):
-        if not line.startswith("FW_VERSION:"):
-            return None
-
-        metadata = {}
-        payload = line.split(":", 1)[1]
-        for item in payload.split(","):
-            if "=" not in item:
-                continue
-            key, value = item.split("=", 1)
-            key = key.strip()
-            value = value.strip()
-            if key:
-                metadata[key] = value
-
-        return metadata or None
+    def parse_project_version(line: str):
+        match = re.search(r'\bProjectVer\s*[:=]\s*([^,\s]+)', line)
+        if match:
+            return match.group(1)
+        match = re.search(r'\bProjectVer\s+([^,\s]+)', line)
+        if match:
+            return match.group(1)
+        return None
 
     def send_link_command(self, state: str):
         if not self.link_status_enabled:
