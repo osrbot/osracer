@@ -2,7 +2,6 @@ import serial
 import serial.tools.list_ports
 import threading
 import time
-import sys
 
 class SimpleSerialFilter:
     def __init__(self):

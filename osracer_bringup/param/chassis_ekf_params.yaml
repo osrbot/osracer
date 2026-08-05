@@ -23,7 +23,7 @@
     # unspecified.
         transform_time_offset: 0.1
 
-    # Use this parameter to provide specify how long the tf listener should wait for a transform to become available. 
+    # Use this parameter to provide specify how long the tf listener should wait for a transform to become available.
     # Defaults to 0.0 if unspecified.
         transform_timeout: 0.0
 

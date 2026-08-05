@@ -141,7 +141,7 @@ class MagCalibrationNode(Node):
             '  1. Start the chassis node so magnetometer_data is publishing.',
             '  2. Begin sample collection:',
             f'       ros2 service call /{node}/start_calibration std_srvs/srv/Trigger',
-            f'  3. Slowly rotate the robot to cover all orientations',
+            '  3. Slowly rotate the robot to cover all orientations',
             f'     (roll, pitch, yaw) until >= {self._min_samples} samples are collected.',
             '  4. Stop collection and compute result:',
             f'       ros2 service call /{node}/stop_calibration std_srvs/srv/Trigger',

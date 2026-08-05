@@ -48,9 +48,9 @@ slam_toolbox:
     # ===== Global Loop Closure =====
     do_loop_closing: true
     loop_search_maximum_distance: 8.0             # Search for loops up to 8 m away (good for 25 m lidar)
-    loop_match_minimum_chain_size: 10             
-    loop_match_maximum_variance_coarse: 3.0  
-    loop_match_minimum_response_coarse: 0.35    
+    loop_match_minimum_chain_size: 10
+    loop_match_maximum_variance_coarse: 3.0
+    loop_match_minimum_response_coarse: 0.35
     loop_match_minimum_response_fine: 0.45
 
     # ===== Correlation Search (Tightened for precise odometry) =====
@@ -67,8 +67,8 @@ slam_toolbox:
     # ===== Penalty Parameters (trust odometry more) =====
     # Lower penalties mean we rely less on the scan matcher to correct large errors,
     # because the odometry is already extremely trustworthy.
-    distance_variance_penalty: 0.3                
-    angle_variance_penalty: 0.5                  
+    distance_variance_penalty: 0.3
+    angle_variance_penalty: 0.5
 
     # ===== Angle Search Parameters =====
     fine_search_angle_offset: 0.00349             # ~0.2° – fine angular resolution
