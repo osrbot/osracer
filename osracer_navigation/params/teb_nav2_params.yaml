@@ -173,9 +173,9 @@ controller_server:
       yaw_goal_tolerance: 0.35
       free_goal_vel: False
       complete_global_plan: True
-          
+
       # Obstacles
-          
+
       min_obstacle_dist: 0.25
       inflation_dist: 0.45
       include_costmap_obstacles: True
@@ -190,7 +190,7 @@ controller_server:
       costmap_converter_rate: 5
 
       # Optimization
-          
+
       no_inner_iterations: 3
       no_outer_iterations: 2
       optimization_activate: True
@@ -243,7 +243,7 @@ controller_server:
       oscillation_omega_eps: 0.1
       oscillation_recovery_min_duration: 10.0
       oscillation_filter_duration: 10.0
-      
+
 controller_server_rclcpp_node:
   ros__parameters:
     use_sim_time: False

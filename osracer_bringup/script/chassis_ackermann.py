@@ -531,7 +531,7 @@ class OsrbotCore(Node):
 def main(args=None):
     rclpy.init(args=args)
     node = OsrbotCore()
-    watchdog_timer = node.create_timer(0.1, node.watchdog_check)
+    node.create_timer(0.1, node.watchdog_check)
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:

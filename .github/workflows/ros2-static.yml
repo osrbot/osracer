@@ -119,6 +119,5 @@ jobs:
             --check \
             --remove-unused-variables \
             --remove-all-unused-imports \
-            osracer_bringup/script/twist_bridge.py \
             osracer_bringup/script/led_matrix.py \
             osracer_bringup/script/chassis_ackermann.py

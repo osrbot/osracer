@@ -1,6 +1,4 @@
-import os
 
-from ament_index_python.packages import get_package_share_directory
 from launch.substitutions import LaunchConfiguration
 from launch.actions import DeclareLaunchArgument
 from launch import LaunchDescription
@@ -18,8 +16,6 @@ remappings = [
 ]
 
 def generate_launch_description():
-    pkg_share = get_package_share_directory("osracer_bringup")
-
     frame_id = LaunchConfiguration('cam_frame_id')
     ld = LaunchDescription()
 
