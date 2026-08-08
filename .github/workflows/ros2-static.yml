@@ -155,6 +155,7 @@ jobs:
       - name: Build and parse the integrated Humble launch
         run: |
           source /opt/ros/humble/setup.bash
+          rosdep update
           rosdep install \
             --from-paths "$RUNNER_TEMP/osracer_ws/src/osracer_base" \
             --ignore-src --rosdistro humble -r -y
