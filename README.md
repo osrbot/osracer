@@ -49,7 +49,7 @@ source ~/.bashrc
 Install necessary ROS 2 packages and tools:
 
 ```bash
-sudo apt install python3-pip python3-serial python3-tk libsuitesparse-dev
+sudo apt install python3-pip python3-serial python3-tk python3-vcstool libsuitesparse-dev
 sudo apt install ros-humble-nav2-bringup \
                  ros-humble-libg2o \
                  ros-humble-imu-tools \
@@ -98,6 +98,22 @@ empty folder to remove. If it is missing after cloning, run:
 ```bash
 git submodule update --init --recursive
 ```
+
+The chassis runtime is maintained separately and pinned by `osracer.repos` to
+the annotated `osracer_base` tag `v0.1.0` (commit
+`c7ba366084a56de32cb994048edd1e633090b69e`). Import it beside this repository
+before building the workspace:
+
+```bash
+cd ~/your_workspace/src
+vcs import . < osracer/osracer.repos
+test "$(git -C osracer_base rev-parse HEAD)" = \
+  "c7ba366084a56de32cb994048edd1e633090b69e"
+```
+
+The VCS dependency is source-only at build time; no `osracer_base` business
+code is copied into this repository.
+
 ---
 
 </details>
@@ -164,6 +180,11 @@ graph TD
    ros2 launch osracer_bringup chassis_ackermann.launch.py use_ekf:=true
    ```
 
+This existing launch entry now starts the pinned `osracer_base/chassis_driver`
+while preserving the OSRacer product defaults and topic interface. The legacy
+`osracer_bringup/script/chassis_ackermann.py` remains installed for the staged
+migration, but it is not started by the default entry.
+
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `use_ekf` | `false` | Enable/Disable Robot Localization (EKF) |
@@ -174,6 +195,10 @@ graph TD
 | `link_status_enabled` | `true` | Maintain the ROS host connection state on supported firmware |
 | `link_ping_period_s` | `1.0` | Connection-state refresh period while the serial port is connected |
 | `wheelbase` | `0.285` | Distance between front and rear axles (m) |
+| `max_speed` | `4.64` | ROS-side chassis speed ceiling from the tracked vehicle model; real tests retain their lower policy limit |
+| `max_steering_angle_deg` | `30.0` | Maximum steering angle, converted to radians for `osracer_base` |
+| `cmd_watchdog_timeout_s` | `0.5` | Stop-command watchdog timeout |
+| `reconnect_interval_s` | `2.0` | Serial reconnect interval |
 | `odom_twist_covariance` | `[0.02, 0.20, 1.0, 1.0, 1.0, 0.30]` | Odometry twist covariance diagonal `[vx, vy, vz, vroll, vpitch, vyaw]` for EKF consumers |
 
 The chassis node consumes the factory firmware telemetry stream for odometry,

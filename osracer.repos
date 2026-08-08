@@ -1,0 +1,9 @@
+{
+  "repositories": {
+    "osracer_base": {
+      "type": "git",
+      "url": "https://github.com/osrbot/osracer_base.git",
+      "version": "v0.1.0"
+    }
+  }
+}

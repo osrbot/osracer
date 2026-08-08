@@ -11,10 +11,14 @@ It is intentionally conservative. Do not skip gates after a failure.
 - Battery, steering linkage, and wheel fasteners are checked.
 - `policy.pt` has already passed offline export validation.
 - The car workspace is built and sourced.
+- `osracer_base` was imported from `osracer.repos` and still resolves to the
+  approved `v0.1.0` commit.
 
 ```bash
 source /opt/ros/humble/setup.bash
-colcon build --packages-select osracer_bringup
+test "$(git -C src/osracer_base rev-parse HEAD)" = \
+  "c7ba366084a56de32cb994048edd1e633090b69e"
+colcon build --packages-up-to osracer_bringup
 source install/setup.bash
 ```
 
