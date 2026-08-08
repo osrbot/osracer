@@ -51,6 +51,8 @@ class OsracerBaseIntegrationTests(unittest.TestCase):
         package_root = ET.parse(ROOT / "osracer_bringup" / "package.xml").getroot()
         dependencies = {element.text for element in package_root.findall("exec_depend")}
         self.assertIn("osracer_base", dependencies)
+        self.assertNotIn("geometry_msgs", dependencies)
+        self.assertNotIn("tf2_ros", dependencies)
 
     def test_product_launch_defaults_remain_explicit(self):
         defaults = {}
@@ -139,11 +141,19 @@ class OsracerBaseIntegrationTests(unittest.TestCase):
         self.assertIn("LaunchConfiguration('use_ekf')", remappings)
         self.assertEqual(self.launch_source.count("'.lower() == 'true'"), 3)
 
-    def test_legacy_driver_is_retained_but_not_the_default(self):
+    def test_legacy_driver_is_removed_from_source_and_install_manifest(self):
         legacy = ROOT / "osracer_bringup" / "script" / "chassis_ackermann.py"
-        self.assertTrue(legacy.is_file())
+        self.assertFalse(legacy.exists())
+
+        duplicate_drivers = []
+        for path in (ROOT / "osracer_bringup" / "script").glob("*.py"):
+            source = path.read_text(encoding="utf-8")
+            if "serial.Serial" in source and "AckermannDrive" in source:
+                duplicate_drivers.append(path.relative_to(ROOT).as_posix())
+        self.assertEqual(duplicate_drivers, [])
+
         cmake = (ROOT / "osracer_bringup" / "CMakeLists.txt").read_text(encoding="utf-8")
-        self.assertIn("script/chassis_ackermann.py", cmake)
+        self.assertNotIn("script/chassis_ackermann.py", cmake)
         self.assertNotIn("executable='chassis_ackermann.py'", self.launch_source)
         bringup = (ROOT / "osracer_bringup" / "launch" / "bringup.launch.py").read_text(encoding="utf-8")
         self.assertEqual(bringup.count("chassis_ackermann.launch.py"), 1)

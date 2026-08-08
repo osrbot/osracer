@@ -120,7 +120,6 @@ jobs:
             --remove-unused-variables \
             --remove-all-unused-imports \
             osracer_bringup/script/led_matrix.py \
-            osracer_bringup/script/chassis_ackermann.py \
             tests/test_osracer_base_integration.py
 
   osracer-base-integration:
@@ -158,5 +157,7 @@ jobs:
           ln -s "$GITHUB_WORKSPACE" "$RUNNER_TEMP/osracer_ws/src/osracer"
           cd "$RUNNER_TEMP/osracer_ws"
           colcon build --packages-select osracer_base osracer_bringup
+          test -x install/osracer_base/lib/osracer_base/chassis_driver
+          test -z "$(find install/osracer_bringup -type f -name chassis_ackermann.py -print -quit)"
           source install/setup.bash
           ros2 launch osracer_bringup chassis_ackermann.launch.py --show-args

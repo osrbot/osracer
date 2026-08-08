@@ -78,7 +78,7 @@ def measure(args):
     pattern = re.compile(args.response_regex)
     samples = []
     warnings = [
-        "Stop chassis_ackermann or any other process using the same serial port before running this probe.",
+        "Stop the osracer_chassis node or any other process using the same serial port before running this probe.",
         "The default command is read-only: sn get. This tool does not send velocity or steering commands.",
     ]
     with serial.Serial(args.port, args.baud, timeout=args.timeout, write_timeout=args.timeout) as conn:

@@ -1,6 +1,6 @@
 mag_calibration_node:
   ros__parameters:
-    # Raw magnetometer topic published by chassis_ackermann.py
+    # Raw magnetometer topic published by osracer_base/chassis_driver
     mag_topic: magnetometer_data
 
     # Calibration result topic (consumed by magnetometer_pipeline/bias_remover)
