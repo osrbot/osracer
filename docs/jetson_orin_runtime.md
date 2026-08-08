@@ -214,7 +214,9 @@ Build and source the OSRacer workspace:
 
 ```bash
 source /opt/ros/humble/setup.bash
-colcon build --packages-select osracer_bringup
+test "$(git -C src/osracer_base rev-parse HEAD)" = \
+  "c7ba366084a56de32cb994048edd1e633090b69e"
+colcon build --packages-up-to osracer_bringup
 source install/setup.bash
 ```
 

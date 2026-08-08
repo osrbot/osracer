@@ -2,6 +2,7 @@
 
 from launch import LaunchDescription
 from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
 from launch.substitutions import PathJoinSubstitution, LaunchConfiguration, PythonExpression
 from launch.actions import DeclareLaunchArgument, GroupAction
 from launch.conditions import IfCondition
@@ -44,6 +45,12 @@ def generate_launch_description():
         default_value='0.285',
         description='Vehicle wheelbase (meters)'
     )
+
+    max_speed_arg = DeclareLaunchArgument(
+        'max_speed',
+        default_value='4.64',
+        description='ROS-side chassis speed limit (meters/second)'
+    )
     
     max_steering_angle_arg = DeclareLaunchArgument(
         'max_steering_angle_deg',
@@ -57,6 +64,30 @@ def generate_launch_description():
         description='Command watchdog timeout (seconds)'
     )
 
+    reconnect_interval_arg = DeclareLaunchArgument(
+        'reconnect_interval_s',
+        default_value='2.0',
+        description='Serial reconnect interval (seconds)'
+    )
+
+    firmware_version_timeout_arg = DeclareLaunchArgument(
+        'firmware_version_timeout_s',
+        default_value='0.3',
+        description='Firmware version query timeout (seconds)'
+    )
+
+    link_status_enabled_arg = DeclareLaunchArgument(
+        'link_status_enabled',
+        default_value='true',
+        description='Maintain the supported firmware host connection state'
+    )
+
+    link_ping_period_arg = DeclareLaunchArgument(
+        'link_ping_period_s',
+        default_value='1.0',
+        description='Firmware connection-state refresh period (seconds)'
+    )
+
     # EKF related parameters
     use_ekf_arg = DeclareLaunchArgument(
         'use_ekf',
@@ -66,7 +97,11 @@ def generate_launch_description():
 
     publish_tf_arg = DeclareLaunchArgument(
         'publish_tf',
-        default_value=PythonExpression(["'False' if ", LaunchConfiguration('use_ekf'), " else 'True'"]),
+        default_value=PythonExpression([
+            "'False' if '",
+            LaunchConfiguration('use_ekf'),
+            "'.lower() == 'true' else 'True'"
+        ]),
         description='Whether the chassis node publishes TF'
     )    
     
@@ -99,27 +134,65 @@ def generate_launch_description():
 
     # Chassis node
     osracer_chassis_node = Node(
-        package='osracer_bringup', 
-        executable='chassis_ackermann.py',
+        package='osracer_base',
+        executable='chassis_driver',
         name='osracer_chassis',
         parameters=[{
-            'port_name': LaunchConfiguration('port_name'),
-            'baud_rate': LaunchConfiguration('baud_rate'),
-            'odom_frame': LaunchConfiguration('odom_frame'),
-            'base_frame': LaunchConfiguration('base_frame'),
-            'imu_frame': LaunchConfiguration('imu_frame'),
-            'wheelbase': LaunchConfiguration('wheelbase'),
-            'max_steering_angle_deg': LaunchConfiguration('max_steering_angle_deg'),
-            'cmd_watchdog_timeout_s': LaunchConfiguration('cmd_watchdog_timeout_s'),
-            'publish_tf': LaunchConfiguration('publish_tf'),
+            'port': LaunchConfiguration('port_name'),
+            'baudrate': ParameterValue(LaunchConfiguration('baud_rate'), value_type=int),
+            'odom_frame_id': LaunchConfiguration('odom_frame'),
+            'base_frame_id': LaunchConfiguration('base_frame'),
+            'imu_frame_id': LaunchConfiguration('imu_frame'),
+            'wheelbase': ParameterValue(LaunchConfiguration('wheelbase'), value_type=float),
+            'max_speed': ParameterValue(LaunchConfiguration('max_speed'), value_type=float),
+            'speed_mode': 'high',
+            'max_steering_angle': ParameterValue(
+                PythonExpression([
+                    LaunchConfiguration('max_steering_angle_deg'),
+                    ' * 0.017453292519943295'
+                ]),
+                value_type=float
+            ),
+            'cmd_timeout': ParameterValue(
+                LaunchConfiguration('cmd_watchdog_timeout_s'),
+                value_type=float
+            ),
+            'reconnect_interval': ParameterValue(
+                LaunchConfiguration('reconnect_interval_s'),
+                value_type=float
+            ),
+            'firmware_version_timeout': ParameterValue(
+                LaunchConfiguration('firmware_version_timeout_s'),
+                value_type=float
+            ),
+            'connection_status_enabled': ParameterValue(
+                LaunchConfiguration('link_status_enabled'),
+                value_type=bool
+            ),
+            'connection_refresh_period': ParameterValue(
+                LaunchConfiguration('link_ping_period_s'),
+                value_type=float
+            ),
+            'publish_tf': ParameterValue(
+                LaunchConfiguration('publish_tf'),
+                value_type=bool
+            ),
         }],
         output='screen',
         emulate_tty=True,
         remappings=[
             ('/cmd_vel', 'cmd_vel'),
             ('/ackermann_cmd', 'ackermann_cmd'),
-            ('/imu/data', PythonExpression(["'imu' if ", LaunchConfiguration('use_ekf'), " else 'imu_filter'"])),
-            ('/odom', PythonExpression(["'odom' if ", LaunchConfiguration('use_ekf'), " else '/odometry/filtered'"]))
+            ('/imu/data', PythonExpression([
+                "'imu' if '",
+                LaunchConfiguration('use_ekf'),
+                "'.lower() == 'true' else 'imu_filter'"
+            ])),
+            ('/odom', PythonExpression([
+                "'odom' if '",
+                LaunchConfiguration('use_ekf'),
+                "'.lower() == 'true' else '/odometry/filtered'"
+            ]))
         ]
     )
 
@@ -178,8 +251,13 @@ def generate_launch_description():
         base_frame_arg,
         imu_frame_arg,
         wheelbase_arg,
+        max_speed_arg,
         max_steering_angle_arg,
         cmd_timeout_arg,
+        reconnect_interval_arg,
+        firmware_version_timeout_arg,
+        link_status_enabled_arg,
+        link_ping_period_arg,
         use_ekf_arg,
         publish_tf_arg,
         use_respawn_arg,
