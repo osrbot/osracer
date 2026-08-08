@@ -5,7 +5,7 @@ Subscribes to raw magnetometer data, collects samples on demand, fits an
 ellipsoid, and publishes the calibration result as a latched MagneticField
 message compatible with magnetometer_pipeline/bias_remover.
 
-The chassis node (chassis_ackermann.py) publishes magnetometer data as:
+The pinned osracer_base/chassis_driver node publishes magnetometer data as:
   topic : magnetometer_data  (configurable via mag_topic parameter)
   frame : imu_link
   units : Tesla (converted from Gauss in the chassis driver)

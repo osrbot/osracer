@@ -181,9 +181,9 @@ graph TD
    ```
 
 This existing launch entry now starts the pinned `osracer_base/chassis_driver`
-while preserving the OSRacer product defaults and topic interface. The legacy
-`osracer_bringup/script/chassis_ackermann.py` remains installed for the staged
-migration, but it is not started by the default entry.
+while preserving the OSRacer product defaults and topic interface. The former
+in-repository serial chassis implementation has been removed; `osracer_base` is
+the only installed chassis driver on `main`.
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|

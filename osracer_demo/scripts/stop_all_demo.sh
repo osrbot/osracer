@@ -85,6 +85,7 @@ patterns=(
   "python3 ros_demo/scripts/drive_demo.py"
   "python3 ros_demo/scripts/odom_watch.py"
   "osracer_chassis"
+  # Stop-only cleanup for a legacy process left running across an upgrade.
   "chassis_ackermann.py"
   "base_footprint2base_link"
   "base_link2laser"

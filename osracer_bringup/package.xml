@@ -17,7 +17,6 @@
   <exec_depend>rclcpp</exec_depend>
   <exec_depend>rclpy</exec_depend>
   <exec_depend>ackermann_msgs</exec_depend>
-  <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>imu_complementary_filter</exec_depend>
   <exec_depend>lakibeam1</exec_depend>
   <exec_depend>launch</exec_depend>
@@ -28,7 +27,6 @@
   <exec_depend>robot_localization</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
   <exec_depend>std_msgs</exec_depend>
-  <exec_depend>tf2_ros</exec_depend>
   <exec_depend>tf_transformations</exec_depend>
   <exec_depend>usb_cam</exec_depend>
 
