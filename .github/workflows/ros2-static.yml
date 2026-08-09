@@ -2,9 +2,9 @@ name: ROS2 Static Checks
 
 on:
   push:
-    branches: [main, dev, feat-demo]
+    branches: [main]
   pull_request:
-    branches: [main, dev, feat-demo]
+    branches: [main]
 
 jobs:
   package-xml:
