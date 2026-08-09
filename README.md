@@ -9,9 +9,10 @@ starts from the launch and demo commands after the vehicle has been deployed.
 
 ## Current Maintenance Baseline
 
-- `main@88bf70b0aa3dc2a30cd2b2bdb26df46420358eda` is the active development
-  line. It pins `osracer_base/main@9b4e1a67ab755fa0a22dca7078b4b98c1b8cc3eb`
-  and no longer contains a duplicate serial chassis driver.
+- `main` is the active development line. Its code baseline reviewed on
+  2026-08-09 was `88bf70b0aa3dc2a30cd2b2bdb26df46420358eda`; it pins
+  `osracer_base/main@9b4e1a67ab755fa0a22dca7078b4b98c1b8cc3eb` and no longer
+  contains a duplicate serial chassis driver.
 - `product/neo@c329c21614f0335d9a8c7a12d2e638a70293052f` remains the complete,
   frozen Neo customer ROS delivery. It does not automatically adopt Base or
   mainline changes.
