@@ -100,15 +100,16 @@ git submodule update --init --recursive
 ```
 
 The chassis runtime is maintained separately and pinned by `osracer.repos` to
-the annotated `osracer_base` tag `v0.1.0` (commit
-`c7ba366084a56de32cb994048edd1e633090b69e`). Import it beside this repository
+the accepted `osracer_base/main` snapshot at commit
+`9b4e1a67ab755fa0a22dca7078b4b98c1b8cc3eb`. The full commit keeps builds
+reproducible without following a moving branch. Import it beside this repository
 before building the workspace:
 
 ```bash
 cd ~/your_workspace/src
 vcs import . < osracer/osracer.repos
 test "$(git -C osracer_base rev-parse HEAD)" = \
-  "c7ba366084a56de32cb994048edd1e633090b69e"
+  "9b4e1a67ab755fa0a22dca7078b4b98c1b8cc3eb"
 ```
 
 The VCS dependency is source-only at build time; no `osracer_base` business

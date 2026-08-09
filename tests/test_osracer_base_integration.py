@@ -11,8 +11,7 @@ import xml.etree.ElementTree as ET
 
 
 ROOT = Path(__file__).resolve().parents[1]
-BASE_TAG = "v0.1.0"
-BASE_SHA = "c7ba366084a56de32cb994048edd1e633090b69e"
+BASE_SHA = "9b4e1a67ab755fa0a22dca7078b4b98c1b8cc3eb"
 BASE_URL = "https://github.com/osrbot/osracer_base.git"
 
 
@@ -31,7 +30,7 @@ class OsracerBaseIntegrationTests(unittest.TestCase):
         cls.launch_source = cls.launch_path.read_text(encoding="utf-8")
         cls.launch_tree = ast.parse(cls.launch_source, filename=str(cls.launch_path))
 
-    def test_vcs_manifest_pins_annotated_release_tag(self):
+    def test_vcs_manifest_pins_exact_main_commit(self):
         manifest = json.loads((ROOT / "osracer.repos").read_text(encoding="utf-8"))
         self.assertEqual(
             manifest,
@@ -40,7 +39,7 @@ class OsracerBaseIntegrationTests(unittest.TestCase):
                     "osracer_base": {
                         "type": "git",
                         "url": BASE_URL,
-                        "version": BASE_TAG,
+                        "version": BASE_SHA,
                     }
                 }
             },
@@ -175,7 +174,7 @@ class OsracerBaseIntegrationTests(unittest.TestCase):
 
         package_root = ET.parse(source / "package.xml").getroot()
         self.assertEqual(package_root.findtext("name"), "osracer_base")
-        self.assertEqual(package_root.findtext("version"), "0.1.0")
+        self.assertEqual(package_root.findtext("version"), "0.2.0")
 
         declared_parameters = set()
         base_source = []
