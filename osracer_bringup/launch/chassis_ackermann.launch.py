@@ -140,6 +140,8 @@ def generate_launch_description():
         parameters=[{
             'port': LaunchConfiguration('port_name'),
             'baudrate': ParameterValue(LaunchConfiguration('baud_rate'), value_type=int),
+            'vehicle_profile': 'red',
+            'profile_schema': 1,
             'odom_frame_id': LaunchConfiguration('odom_frame'),
             'base_frame_id': LaunchConfiguration('base_frame'),
             'imu_frame_id': LaunchConfiguration('imu_frame'),

@@ -4,6 +4,18 @@
 
 ### Bringup
 
+- Recorded the 2026-08-09 mainline baseline: `main@88bf70b` pins
+  `osracer_base@9b4e1a6`, while `product/neo@c329c21` remains the frozen complete
+  Neo customer stack and the former dev history remains archive-only.
+- Removed the duplicated in-repository chassis driver and old install/dependency
+  entries; `osracer_base` is the single chassis implementation on `main`.
+- Selected the Red firmware profile and schema `1` explicitly in the mainline
+  chassis launch so current Base identity checks can pass before stream startup.
+- Extended CI from launch parsing to a missing-device runtime smoke and a
+  simulated firmware profile mismatch check. No real serial device is required
+  by these checks.
+- Updated the first-drive and Jetson runtime documents from historical
+  `osracer_base@v0.1.0` to the current pinned profile-aligned commit.
 - Added best-effort host connection-state maintenance in the chassis serial
   node, without blocking ROS bringup on older firmware.
 - Aligned `osracer_demo` leader GUI with the standalone demo source so the same

@@ -12,12 +12,12 @@ It is intentionally conservative. Do not skip gates after a failure.
 - `policy.pt` has already passed offline export validation.
 - The car workspace is built and sourced.
 - `osracer_base` was imported from `osracer.repos` and still resolves to the
-  approved `v0.1.0` commit.
+  current profile-aligned mainline commit.
 
 ```bash
 source /opt/ros/humble/setup.bash
 test "$(git -C src/osracer_base rev-parse HEAD)" = \
-  "c7ba366084a56de32cb994048edd1e633090b69e"
+  "9b4e1a67ab755fa0a22dca7078b4b98c1b8cc3eb"
 colcon build --packages-up-to osracer_bringup
 source install/setup.bash
 ```
@@ -47,7 +47,6 @@ Pass condition:
 - `ackermann_msgs`, `nav_msgs`, `sensor_msgs`, and `geometry_msgs` are available.
 - TorchScript load/run passes in the same Python environment used by ROS launch.
 - Offline replay smoke completes.
-
 
 For ONNX deployment packages, build the TensorRT engine on the Jetson after Stage 0:
 
@@ -172,6 +171,12 @@ Stop if:
 - The summary gate fails.
 
 ## Stage 4: MuJoCo Kinematic Replay
+
+This stage depends on the separate `osracer_lab` project; its scripts are not
+part of this repository or imported by `osracer.repos`. Run it only from a
+known, separately versioned `osracer_lab` checkout. If that project is not
+available, stop this policy-validation path instead of treating the missing
+script as an OSRacer runtime failure.
 
 From `osracer_lab`:
 

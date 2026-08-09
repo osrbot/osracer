@@ -13,6 +13,7 @@ import xml.etree.ElementTree as ET
 ROOT = Path(__file__).resolve().parents[1]
 BASE_SHA = "9b4e1a67ab755fa0a22dca7078b4b98c1b8cc3eb"
 BASE_URL = "https://github.com/osrbot/osracer_base.git"
+WORKFLOW_PATH = ROOT / ".github" / "workflows" / "ros2-static.yml"
 
 
 def _keyword(call, name):
@@ -115,6 +116,8 @@ class OsracerBaseIntegrationTests(unittest.TestCase):
             {
                 "port",
                 "baudrate",
+                "vehicle_profile",
+                "profile_schema",
                 "odom_frame_id",
                 "base_frame_id",
                 "imu_frame_id",
@@ -130,6 +133,13 @@ class OsracerBaseIntegrationTests(unittest.TestCase):
                 "publish_tf",
             },
         )
+        parameter_values = {
+            _constant_string(key): value
+            for key, value in zip(parameter_dict.keys, parameter_dict.values)
+        }
+        self.assertEqual(_constant_string(parameter_values["vehicle_profile"]), "red")
+        self.assertIsInstance(parameter_values["profile_schema"], ast.Constant)
+        self.assertEqual(parameter_values["profile_schema"].value, 1)
         self.assertIn("0.017453292519943295", ast.unparse(parameter_dict))
         self.assertIn("'speed_mode': 'high'", ast.unparse(parameter_dict))
 
@@ -195,6 +205,8 @@ class OsracerBaseIntegrationTests(unittest.TestCase):
             {
                 "port",
                 "baudrate",
+                "vehicle_profile",
+                "profile_schema",
                 "wheelbase",
                 "max_speed",
                 "speed_mode",
@@ -213,6 +225,18 @@ class OsracerBaseIntegrationTests(unittest.TestCase):
         joined_source = "\n".join(base_source)
         self.assertIn("AckermannDrive", joined_source)
         self.assertIn("ackermann_cmd", joined_source)
+
+    def test_ci_runs_runtime_smoke_and_simulated_profile_mismatch(self):
+        workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
+        self.assertIn(
+            "ConnectionLifecycleTests."
+            "test_unsupported_protocol_and_profile_mismatch_fail_before_stream",
+            workflow,
+        )
+        self.assertIn("timeout --signal=INT", workflow)
+        self.assertIn("port_name:=/dev/osracer_ci_missing", workflow)
+        self.assertIn('test "$smoke_status" -eq 124', workflow)
+        self.assertIn("vehicle_profile must be selected explicitly", workflow)
 
 
 if __name__ == "__main__":
