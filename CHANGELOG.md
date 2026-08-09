@@ -4,9 +4,10 @@
 
 ### Bringup
 
-- Recorded the 2026-08-09 mainline baseline: `main@88bf70b` pins
-  `osracer_base@9b4e1a6`, while `product/neo@c329c21` remains the frozen complete
-  Neo customer stack and the former dev history remains archive-only.
+- Recorded the 2026-08-09 mainline baseline: the Red profile launch was merged
+  as `8dd6cb1`, and the runtime pins `osracer_base@f2c89dc`; `product/neo@c329c21`
+  remains the frozen complete Neo customer stack and dev history remains
+  archive-only.
 - Removed the duplicated in-repository chassis driver and old install/dependency
   entries; `osracer_base` is the single chassis implementation on `main`.
 - Selected the Red firmware profile and schema `1` explicitly in the mainline
@@ -16,6 +17,8 @@
   by these checks.
 - Updated the first-drive and Jetson runtime documents from historical
   `osracer_base@v0.1.0` to the current pinned profile-aligned commit.
+- Pinned the Base commit containing the sanitized public firmware contract and
+  made the integration test require Proto 1.1 plus the Red profile schema.
 - Added best-effort host connection-state maintenance in the chassis serial
   node, without blocking ROS bringup on older firmware.
 - Aligned `osracer_demo` leader GUI with the standalone demo source so the same

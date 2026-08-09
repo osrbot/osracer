@@ -141,7 +141,7 @@ jobs:
           # The manifest contract test and exact post-import HEAD check validate the pin.
           vcs import "$RUNNER_TEMP/osracer_ws/src" < osracer.repos
           test "$(git -C "$RUNNER_TEMP/osracer_ws/src/osracer_base" rev-parse HEAD)" = \
-            "9b4e1a67ab755fa0a22dca7078b4b98c1b8cc3eb"
+            "f2c89dc300c407adb95b8b00bd1d828b6e95dbad"
 
       - name: Validate the product launch contract against the dependency
         env:

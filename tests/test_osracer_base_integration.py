@@ -11,7 +11,7 @@ import xml.etree.ElementTree as ET
 
 
 ROOT = Path(__file__).resolve().parents[1]
-BASE_SHA = "9b4e1a67ab755fa0a22dca7078b4b98c1b8cc3eb"
+BASE_SHA = "f2c89dc300c407adb95b8b00bd1d828b6e95dbad"
 BASE_URL = "https://github.com/osrbot/osracer_base.git"
 WORKFLOW_PATH = ROOT / ".github" / "workflows" / "ros2-static.yml"
 
@@ -185,6 +185,31 @@ class OsracerBaseIntegrationTests(unittest.TestCase):
         package_root = ET.parse(source / "package.xml").getroot()
         self.assertEqual(package_root.findtext("name"), "osracer_base")
         self.assertEqual(package_root.findtext("version"), "0.2.0")
+
+        firmware_contract = json.loads(
+            (
+                source
+                / "test/fixtures/proto_1_1/firmware_contract.json"
+            ).read_text(encoding="utf-8")
+        )
+        self.assertEqual(
+            set(firmware_contract),
+            {"schema_version", "protocol", "command", "profiles"},
+        )
+        self.assertEqual(firmware_contract["protocol"], "1.1")
+        self.assertEqual(
+            firmware_contract["command"],
+            {
+                "name": "v",
+                "linear_velocity_unit": "m/s",
+                "steering_angle_unit": "deg",
+            },
+        )
+        self.assertEqual(
+            firmware_contract["profiles"]["red"], {"profile_schema": 1}
+        )
+        for profile in firmware_contract["profiles"].values():
+            self.assertEqual(set(profile), {"profile_schema"})
 
         declared_parameters = set()
         base_source = []
