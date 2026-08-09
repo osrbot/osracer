@@ -137,7 +137,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y python3-colcon-common-extensions python3-vcstool
           mkdir -p "$RUNNER_TEMP/osracer_ws/src"
-          vcs validate < osracer.repos
+          # vcstool 0.3.0 validate crashes on immutable commit SHA versions.
+          # The manifest contract test and exact post-import HEAD check validate the pin.
           vcs import "$RUNNER_TEMP/osracer_ws/src" < osracer.repos
           test "$(git -C "$RUNNER_TEMP/osracer_ws/src/osracer_base" rev-parse HEAD)" = \
             "9b4e1a67ab755fa0a22dca7078b4b98c1b8cc3eb"
