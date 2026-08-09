@@ -140,7 +140,7 @@ jobs:
           vcs validate < osracer.repos
           vcs import "$RUNNER_TEMP/osracer_ws/src" < osracer.repos
           test "$(git -C "$RUNNER_TEMP/osracer_ws/src/osracer_base" rev-parse HEAD)" = \
-            "c7ba366084a56de32cb994048edd1e633090b69e"
+            "9b4e1a67ab755fa0a22dca7078b4b98c1b8cc3eb"
 
       - name: Validate the product launch contract against the dependency
         env:
