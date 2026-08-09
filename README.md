@@ -1,10 +1,28 @@
 # OSRacer - Autonomous Racing Car
 
-This repository is the ROS 2 runtime workspace for OSRacer vehicles. Delivered
-robots run it on the onboard Jetson Orin Nano with JetPack 6.x, Ubuntu 22.04,
-and ROS 2 Humble. The installation steps below are for rebuilding the robot
-workspace or preparing another ROS 2 Humble machine; normal field use starts
-from the launch and demo commands after the vehicle has been deployed.
+This repository is the ROS 2 runtime workspace for OSRacer vehicles. The
+documented AI runtime target is Jetson Orin Nano with JetPack 6.x, Ubuntu 22.04,
+and ROS 2 Humble; the chassis packages also support deployed Jetson systems
+running the same ROS 2 contract. The installation steps below are for rebuilding
+the robot workspace or preparing another ROS 2 Humble machine; normal field use
+starts from the launch and demo commands after the vehicle has been deployed.
+
+## Current Maintenance Baseline
+
+- `main` is the active development line. Its code baseline reviewed on
+  2026-08-09 was `88bf70b0aa3dc2a30cd2b2bdb26df46420358eda`; it pins
+  `osracer_base/main@9b4e1a67ab755fa0a22dca7078b4b98c1b8cc3eb` and no longer
+  contains a duplicate serial chassis driver.
+- `product/neo@c329c21614f0335d9a8c7a12d2e638a70293052f` remains the complete,
+  frozen Neo customer ROS delivery. It does not automatically adopt Base or
+  mainline changes.
+- The former main and dev histories remain available through
+  `archive/main-before-feat-demo-20260805@6843ab1` and
+  `archive/dev-before-cleanup-20260809@bb927c8`; there is no active dev branch.
+- New ROS application work goes to `main`. Chassis protocol/profile support is
+  developed in `osracer_base/main` and then pinned here by an explicit commit.
+
+See [CHANGELOG.md](CHANGELOG.md) for the development record.
 
 ## 1. Installation & Setup
 
@@ -85,10 +103,15 @@ Log out and back in after adding the user to `dialout`.
 ### 1.5 Update Source Code With Git
 
 ```bash
-cd ~/your_workspace/src/osracer && git add . && git stash && git pull --recurse-submodules
+cd ~/your_workspace/src/osracer
+git status --short
+git pull --ff-only --recurse-submodules
 
 # git clone --recursive https://github.com/osrbot/osracer.git
 ```
+
+If `git status` is not clean, preserve or commit the intended local work before
+pulling. Do not stage every file only to update the repository.
 
 `osracer_dependency` is a pinned submodule for OSR-controlled third-party ROS 2
 dependencies, including Lakibeam lidar, gmapping, camera calibration, and TEB
@@ -192,6 +215,8 @@ the only installed chassis driver on `main`.
 | `publish_tf` | `auto` | Auto-set to `true` if EKF is off, `false` if EKF is on |
 | `port_name` | `/dev/osrbot_base` | Serial device port |
 | `baud_rate` | `460800` | Serial baud rate for current osrcore firmware |
+| `vehicle_profile` | `red` | Required Base/firmware identity |
+| `profile_schema` | `1` | Required firmware profile schema |
 | `firmware_version_timeout_s` | `0.3` | Timeout for reading firmware version metadata during serial startup |
 | `link_status_enabled` | `true` | Maintain the ROS host connection state on supported firmware |
 | `link_ping_period_s` | `1.0` | Connection-state refresh period while the serial port is connected |
@@ -207,10 +232,11 @@ IMU, magnetometer, RC status, and battery voltage. Quaternion orientation is
 used directly for odometry pose/TF so roll and pitch remain available for slopes
 and 3D lidar use. Odometry covariance settings are ROS-side
 `nav_msgs/Odometry` metadata only and do not change firmware behavior.
-During serial startup, the node records firmware version metadata and maintains
-the host connection state when the installed firmware supports it. These
-diagnostic steps are best effort: failures are logged and do not block ROS
-bringup.
+During serial startup, the node verifies firmware version, Proto 1.1,
+ProfileID, schema, and motion-ready state before enabling the stream. Identity
+or protocol mismatch is fail-closed. After a valid connection is established,
+host-link status maintenance remains best effort and does not change motion or
+telemetry semantics.
 
 ### 3.1.1 Field Demo Tools
 

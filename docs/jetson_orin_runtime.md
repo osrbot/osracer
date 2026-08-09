@@ -158,13 +158,16 @@ tools/real_car_readiness_check.sh \
 
 On Jetson, prefer NVIDIA-provided or JetPack-compatible Python wheels for acceleration libraries.
 
-
 ## ONNX and TensorRT Path
 
 For the first MLP drift policy, TorchScript is the lowest-risk runtime. For
 visual policies or any deployment that starts competing with camera processing
 for the 8GB memory budget, export ONNX and build a TensorRT engine on the target
 Jetson.
+
+The exporter below belongs to the separate `osracer_lab` project and is not
+shipped or pinned by this repository. Use a known, separately versioned
+`osracer_lab` checkout.
 
 Export ONNX from `osracer_lab`:
 
@@ -215,7 +218,7 @@ Build and source the OSRacer workspace:
 ```bash
 source /opt/ros/humble/setup.bash
 test "$(git -C src/osracer_base rev-parse HEAD)" = \
-  "c7ba366084a56de32cb994048edd1e633090b69e"
+  "9b4e1a67ab755fa0a22dca7078b4b98c1b8cc3eb"
 colcon build --packages-up-to osracer_bringup
 source install/setup.bash
 ```
@@ -352,7 +355,6 @@ ros2 topic hz /ackermann_cmd
 ros2 topic hz /odom
 ros2 topic hz /imu_filter
 ```
-
 
 Run a local policy inference latency benchmark after applying the performance
 profile and before enabling live commands:

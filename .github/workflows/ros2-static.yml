@@ -148,13 +148,17 @@ jobs:
           OSRACER_BASE_SOURCE: ${{ runner.temp }}/osracer_ws/src/osracer_base
         run: python3 -m unittest discover -s tests -p 'test_osracer_base_integration.py' -v
 
-      - name: Build and parse the integrated Humble launch
+      - name: Build and smoke-test the integrated Humble launch
         run: |
           source /opt/ros/humble/setup.bash
           rosdep update
           rosdep install \
             --from-paths "$RUNNER_TEMP/osracer_ws/src/osracer_base" \
             --ignore-src --rosdistro humble -r -y
+          PYTHONDONTWRITEBYTECODE=1 python3 -B \
+            "$RUNNER_TEMP/osracer_ws/src/osracer_base/test/test_chassis_driver.py" \
+            ConnectionLifecycleTests.test_unsupported_protocol_and_profile_mismatch_fail_before_stream \
+            -v
           ln -s "$GITHUB_WORKSPACE" "$RUNNER_TEMP/osracer_ws/src/osracer"
           cd "$RUNNER_TEMP/osracer_ws"
           colcon build --packages-select osracer_base osracer_bringup
@@ -162,3 +166,21 @@ jobs:
           test -z "$(find install/osracer_bringup -type f -name chassis_ackermann.py -print -quit)"
           source install/setup.bash
           ros2 launch osracer_bringup chassis_ackermann.launch.py --show-args
+
+          test ! -e /dev/osracer_ci_missing
+          smoke_log="$RUNNER_TEMP/osracer_chassis_missing_device.log"
+          set +e
+          timeout --signal=INT --kill-after=2s 5s \
+            ros2 launch osracer_bringup chassis_ackermann.launch.py \
+              port_name:=/dev/osracer_ci_missing use_ekf:=False \
+              >"$smoke_log" 2>&1
+          smoke_status=$?
+          set -e
+          cat "$smoke_log"
+          test "$smoke_status" -eq 124
+          grep -F "Serial device not found: /dev/osracer_ci_missing" "$smoke_log"
+          if grep -E \
+            "Traceback|vehicle_profile must be selected explicitly|process has died" \
+            "$smoke_log"; then
+            exit 1
+          fi
