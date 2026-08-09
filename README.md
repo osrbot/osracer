@@ -9,9 +9,9 @@ starts from the launch and demo commands after the vehicle has been deployed.
 
 ## Current Maintenance Baseline
 
-- `main` is the active development line. Its code baseline reviewed on
-  2026-08-09 was `88bf70b0aa3dc2a30cd2b2bdb26df46420358eda`; it pins
-  `osracer_base/main@9b4e1a67ab755fa0a22dca7078b4b98c1b8cc3eb` and no longer
+- `main` is the active development line. Its Red profile launch baseline was
+  merged as `8dd6cb1f40937fbcd06aef8bd71d1d32ee28eaa7`; it pins
+  `osracer_base/main@f2c89dc300c407adb95b8b00bd1d828b6e95dbad` and no longer
   contains a duplicate serial chassis driver.
 - `product/neo@c329c21614f0335d9a8c7a12d2e638a70293052f` remains the complete,
   frozen Neo customer ROS delivery. It does not automatically adopt Base or
@@ -124,7 +124,7 @@ git submodule update --init --recursive
 
 The chassis runtime is maintained separately and pinned by `osracer.repos` to
 the accepted `osracer_base/main` snapshot at commit
-`9b4e1a67ab755fa0a22dca7078b4b98c1b8cc3eb`. The full commit keeps builds
+`f2c89dc300c407adb95b8b00bd1d828b6e95dbad`. The full commit keeps builds
 reproducible without following a moving branch. Import it beside this repository
 before building the workspace:
 
@@ -132,7 +132,7 @@ before building the workspace:
 cd ~/your_workspace/src
 vcs import . < osracer/osracer.repos
 test "$(git -C osracer_base rev-parse HEAD)" = \
-  "9b4e1a67ab755fa0a22dca7078b4b98c1b8cc3eb"
+  "f2c89dc300c407adb95b8b00bd1d828b6e95dbad"
 ```
 
 The VCS dependency is source-only at build time; no `osracer_base` business

@@ -17,7 +17,7 @@ It is intentionally conservative. Do not skip gates after a failure.
 ```bash
 source /opt/ros/humble/setup.bash
 test "$(git -C src/osracer_base rev-parse HEAD)" = \
-  "9b4e1a67ab755fa0a22dca7078b4b98c1b8cc3eb"
+  "f2c89dc300c407adb95b8b00bd1d828b6e95dbad"
 colcon build --packages-up-to osracer_bringup
 source install/setup.bash
 ```
