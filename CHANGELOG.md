@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Maintenance
+
+- Moved the version 0.1 firmware client into corrective-maintenance mode on
+  `main`; feature expansion requires a separately approved scope.
+- Updated the official checkout, Python setup, and artifact upload Actions to
+  Node.js 24 releases pinned by immutable commit SHA.
+
 ### Standalone firmware client
 
 - Added one Linux ARM64 client with a shared update core, CLI, and local-only

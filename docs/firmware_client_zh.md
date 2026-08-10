@@ -141,6 +141,8 @@ dist/firmware-client/osracer-firmware-client.sha256
 正式 Release 还需要干净的 Linux ARM64 构建，并在支持列表中的最旧 Jetson 上
 复核。B02 的验收结果不代表其他路径已经通过硬件验收。
 
+0.1 版本直接在 `main` 维护，只接受缺陷修复；新增功能必须另行确认开发范围。
+
 ## 6. 旧工具状态
 
 旧的 `osracer_firmware_update.py` 命令不再是正式入口，也不会随新客户端发布。
