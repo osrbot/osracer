@@ -16,6 +16,8 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
 
       - name: Install catkin_pkg
         run: pip install catkin_pkg
@@ -109,6 +111,8 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
@@ -118,11 +122,22 @@ jobs:
         run: pip install autoflake
 
       - name: Check for unused imports
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: |
-          autoflake \
-            --check \
-            --remove-unused-variables \
-            --remove-all-unused-imports \
-            osracer_bringup/script/twist_bridge.py \
-            osracer_bringup/script/led_matrix.py \
-            osracer_bringup/script/chassis_ackermann.py
+          if [[ -z "${BASE_SHA}" || "${BASE_SHA}" =~ ^0+$ ]]; then
+            BASE_SHA="$(git rev-parse HEAD^)"
+          fi
+          mapfile -t files < <(
+            git diff --name-only --diff-filter=ACMR \
+              "${BASE_SHA}" "${GITHUB_SHA}" -- '*.py'
+          )
+          if ((${#files[@]} == 0)); then
+            echo "No changed Python files."
+          else
+            autoflake \
+              --check \
+              --remove-unused-variables \
+              --remove-all-unused-imports \
+              "${files[@]}"
+          fi

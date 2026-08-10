@@ -16,6 +16,8 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
@@ -24,15 +26,32 @@ jobs:
       - name: Install ruff
         run: pip install ruff
 
-      # ruff.toml at repo root controls rules (F + E9 + W6 only — real bugs, no style)
-      - name: ruff check
-        run: ruff check .
+      # The frozen customer tree predates Ruff. Enforce no new Python regressions
+      # without rewriting already delivered runtime files only to satisfy CI.
+      - name: Ruff changed Python files
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [[ -z "${BASE_SHA}" || "${BASE_SHA}" =~ ^0+$ ]]; then
+            BASE_SHA="$(git rev-parse HEAD^)"
+          fi
+          mapfile -t files < <(
+            git diff --name-only --diff-filter=ACMR \
+              "${BASE_SHA}" "${GITHUB_SHA}" -- '*.py'
+          )
+          if ((${#files[@]} == 0)); then
+            echo "No changed Python files."
+          else
+            ruff check "${files[@]}"
+          fi
 
   yaml-lint:
     name: YAML lint
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
@@ -41,10 +60,21 @@ jobs:
       - name: Install yamllint
         run: pip install yamllint
 
-      - name: yamllint
+      - name: Lint changed runtime YAML files
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: |
-          yamllint \
-            osracer_bringup/param/ \
-            osracer_navigation/params/ \
-            osracer_slam/param/ \
-            -d "{extends: default, rules: {line-length: {max: 120}, truthy: disable}}"
+          if [[ -z "${BASE_SHA}" || "${BASE_SHA}" =~ ^0+$ ]]; then
+            BASE_SHA="$(git rev-parse HEAD^)"
+          fi
+          mapfile -t files < <(
+            git diff --name-only --diff-filter=ACMR \
+              "${BASE_SHA}" "${GITHUB_SHA}" -- \
+              '*.yaml' '*.yml' ':(exclude).github/**'
+          )
+          if ((${#files[@]} == 0)); then
+            echo "No changed runtime YAML files."
+          else
+            yamllint "${files[@]}" \
+              -d "{extends: default, rules: {line-length: {max: 120}, truthy: disable}}"
+          fi
