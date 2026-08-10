@@ -1,0 +1,63 @@
+{
+  "schema": 1,
+  "client": "osracer-firmware-client",
+  "bundles": {
+    "B01": {
+      "display_name": "Official package B01",
+      "app": {
+        "path": "b01/app.bin",
+        "size": 388144,
+        "sha256": "d331c267583a133f064ce4e9103ffc3167a214e18ddddf8a2df0274672056a07"
+      },
+      "recovery": {
+        "path": "b01/recovery.bin",
+        "size": 519216,
+        "sha256": "e01b058d269cbfa44e613d5fd0d2b4f5c384d0287679b7ed35c5c0a9c426acde"
+      },
+      "target": {
+        "project_version": "NEORACER_V1.2-20260714-gab06ac4",
+        "profile_id": "neo",
+        "nvs_schema": 1,
+        "protocol": "1.1"
+      },
+      "source_version_patterns": [
+        "^NEORACER_V1(?:[._-]|$)"
+      ],
+      "logical_backup": "legacy",
+      "nvs": {
+        "offset": 36864,
+        "size": 24576
+      },
+      "flash_size": 16777216
+    },
+    "B02": {
+      "display_name": "Official package B02",
+      "app": {
+        "path": "b02/app.bin",
+        "size": 429424,
+        "sha256": "1d8b5de7c17c2a297e4bfeb232b665d164166313504f489c3567204fad2f1401"
+      },
+      "recovery": {
+        "path": "b02/recovery.bin",
+        "size": 560496,
+        "sha256": "b4c40d7d27392f8d79ce36f25cd534293e26a7b47c060da4a6dd4a40ed64ea1e"
+      },
+      "target": {
+        "project_version": "OSRF-C03-T005-s1c7ef7e8766a",
+        "profile_id": "red",
+        "nvs_schema": 1,
+        "protocol": "1.1"
+      },
+      "source_version_patterns": [
+        "^OSRF-C03-",
+        "^OSRACER(?:[._-]|$)"
+      ],
+      "logical_backup": "managed",
+      "nvs": {
+        "offset": 36864,
+        "size": 24576
+      },
+      "flash_size": 16777216
+    }
+  }
+}

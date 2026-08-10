@@ -1,5 +1,29 @@
 # OSRacer - Autonomous Racing Car
 
+## Standalone firmware client
+
+The repository includes one Jetson Linux ARM64 firmware client with a CLI and a
+local browser interface. It embeds the approved official firmware packages,
+supports a strictly validated custom ESP32-S3 App image path, and provides an
+isolated full-erase recovery flow with mandatory raw NVS backup and two
+explicit confirmations.
+
+The supported command is `osracer-firmware-client`; the historical updater CLI
+is not distributed. The client does not require ROS or network access and does
+not update the ROS workspace.
+
+```bash
+./osracer-firmware-client ui
+```
+
+Builds and operational boundaries are documented in the
+[`中文说明`](docs/firmware_client_zh.md) and
+[`English guide`](docs/firmware_client_en.md).
+
+The B02 official-update path has passed Jetson and Red-vehicle acceptance. B01,
+custom App, and full-erase recovery paths have software coverage but still
+require their own physical acceptance before customer use.
+
 This repository is the ROS 2 runtime workspace for OSRacer vehicles. The
 documented AI runtime target is Jetson Orin Nano with JetPack 6.x, Ubuntu 22.04,
 and ROS 2 Humble; the chassis packages also support deployed Jetson systems

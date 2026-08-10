@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+### Standalone firmware client
+
+- Added one Linux ARM64 client with a shared update core, CLI, and local-only
+  browser interface with a persisted Chinese/English language switch.
+- Embedded two exact official firmware resources and validated their size,
+  SHA256, ESP32-S3 App format, and NVS partition layout before use.
+- Added official App OTA, customer App OTA, managed or legacy vehicle-parameter
+  backup, append-only private audit, and fail-closed delivery-uncertainty rules.
+- Added an isolated full-erase recovery flow with mandatory raw NVS backup,
+  two confirmations, device/security rebinding, NVS restore, and readback.
+- Added a reproducible PyInstaller build and Linux ARM64 CI artifact.
+- Accepted the B02 official-update path on Jetson and a Red vehicle. B01,
+  customer App, and full-erase paths remain software-validated pending their
+  own physical acceptance.
+- This pull request does not create a tag or Release.
+
 ### Bringup
 
 - Recorded the 2026-08-09 mainline baseline: the Red profile launch was merged

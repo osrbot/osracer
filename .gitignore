@@ -1,5 +1,6 @@
 # ROS 2 build artifacts
 build/
+dist/
 install/
 log/
 osracer_demo/logs/
@@ -11,6 +12,7 @@ __pycache__/
 *$py.class
 *.so
 .Python
+.firmware-client-build/
 
 # IDE
 .vscode/

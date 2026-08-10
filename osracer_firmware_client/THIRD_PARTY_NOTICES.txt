@@ -1,0 +1,22 @@
+OSRacer Firmware Client third-party notices
+============================================
+
+The source files authored for this repository remain available under the
+repository's MIT license. The self-contained executable also redistributes the
+following software:
+
+- esptool 5.3.1, Copyright Espressif Systems and contributors,
+  GPL-2.0-or-later: https://github.com/espressif/esptool/tree/v5.3.1
+- pySerial 3.5, Copyright Chris Liechti and contributors,
+  BSD-3-Clause: https://github.com/pyserial/pyserial/tree/v3.5
+- PyInstaller bootloader 6.22.0, Copyright PyInstaller Development Team,
+  GPL-2.0-or-later with the PyInstaller bootloader exception:
+  https://github.com/pyinstaller/pyinstaller/tree/v6.22.0
+
+The executable is distributed under GPL-2.0-or-later because it contains
+esptool. Corresponding client source and the exact build manifest are in the
+same osracer source release. Dependency license files and metadata are retained
+inside the packaged application.
+
+The embedded B01 and B02 binary resources are firmware data, not Python or
+esptool program code.
