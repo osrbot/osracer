@@ -153,6 +153,9 @@ A formal release also requires a clean Linux ARM64 build and verification on
 the oldest supported Jetson. No untested path is implied to be hardware
 accepted by the B02 result.
 
+Version 0.1 is maintained directly on `main`. Changes are limited to corrective
+fixes; feature expansion requires a separately approved development scope.
+
 ## 6. Legacy updater
 
 `osracer_firmware_update.py` is no longer a supported customer entry point and

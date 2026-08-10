@@ -20,6 +20,10 @@ Builds and operational boundaries are documented in the
 [`中文说明`](docs/firmware_client_zh.md) and
 [`English guide`](docs/firmware_client_en.md).
 
+Version 0.1 is in maintenance mode. Firmware-client changes are limited to
+corrective fixes on `main`; feature expansion requires a separately approved
+development scope.
+
 The B02 official-update path has passed Jetson and Red-vehicle acceptance. B01,
 custom App, and full-erase recovery paths have software coverage but still
 require their own physical acceptance before customer use.
