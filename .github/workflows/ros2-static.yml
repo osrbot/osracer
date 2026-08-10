@@ -2,16 +2,22 @@ name: ROS2 Static Checks
 
 on:
   push:
-    branches: [main, dev, feat-demo]
+    branches: [product/neo]
   pull_request:
-    branches: [main, dev, feat-demo]
+    branches: [product/neo]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   package-xml:
     name: package.xml validation
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
 
       - name: Install catkin_pkg
         run: pip install catkin_pkg
@@ -48,9 +54,9 @@ jobs:
     name: Launch file syntax check
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.10"
 
@@ -104,9 +110,11 @@ jobs:
     name: Unused import detection
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.10"
 
@@ -114,11 +122,22 @@ jobs:
         run: pip install autoflake
 
       - name: Check for unused imports
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: |
-          autoflake \
-            --check \
-            --remove-unused-variables \
-            --remove-all-unused-imports \
-            osracer_bringup/script/twist_bridge.py \
-            osracer_bringup/script/led_matrix.py \
-            osracer_bringup/script/chassis_ackermann.py
+          if [[ -z "${BASE_SHA}" || "${BASE_SHA}" =~ ^0+$ ]]; then
+            BASE_SHA="$(git rev-parse HEAD^)"
+          fi
+          mapfile -t files < <(
+            git diff --name-only --diff-filter=ACMR \
+              "${BASE_SHA}" "${GITHUB_SHA}" -- '*.py'
+          )
+          if ((${#files[@]} == 0)); then
+            echo "No changed Python files."
+          else
+            autoflake \
+              --check \
+              --remove-unused-variables \
+              --remove-all-unused-imports \
+              "${files[@]}"
+          fi
