@@ -974,15 +974,15 @@ class RaceMathTest(unittest.TestCase):
         ):
             self.assertIn(expected, review_text)
 
-    def test_phase_plan_matches_delivered_artifacts(self):
+    def test_phase_guide_matches_delivered_artifacts(self):
         package_root = Path(__file__).resolve().parents[1]
         phases_text = (package_root / 'PHASES_zh.md').read_text(encoding='utf-8')
         for section in (
-            '第一阶段：安全无地图跑圈',
-            '第二阶段：有地图轨迹跟踪',
-            '第三阶段：车辆能力标定',
-            '第四阶段：高级比赛/科研算法',
-            '当前验证状态',
+            '第一阶段：安全无地图行驶',
+            '第二阶段：轨迹录制与跟踪',
+            '第三阶段：车辆能力观测',
+            '第四阶段：高级控制与算法比较',
+            '功能成熟度',
         ):
             self.assertIn(section, phases_text)
         for artifact in (
@@ -1008,13 +1008,13 @@ class RaceMathTest(unittest.TestCase):
             'race_bringup.launch.py',
         ):
             self.assertIn(artifact, phases_text)
-        for verification in (
-            'helper 模块 import smoke test',
-            '安装布局模拟检查',
+        for public_reference in (
+            'README_zh.md',
             'ROS_VALIDATION_zh.md',
-            'validate_race_ros.sh',
+            'race_safe.yaml',
+            '实验性',
         ):
-            self.assertIn(verification, phases_text)
+            self.assertIn(public_reference, phases_text)
 
     def test_root_readme_links_to_race_docs(self):
         repo_root = Path(__file__).resolve().parents[2]

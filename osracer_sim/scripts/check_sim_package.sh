@@ -47,7 +47,7 @@ from pathlib import Path
 
 package_dir = Path(sys.argv[1])
 readme = (package_dir / 'README_zh.md').read_text(encoding='utf-8')
-sim_plan = (package_dir / 'SIM_DEVELOPMENT_PLAN_zh.md').read_text(encoding='utf-8')
+sim_architecture = (package_dir / 'SIM_ARCHITECTURE_zh.md').read_text(encoding='utf-8')
 sim_validation = (package_dir / 'SIM_VALIDATION_zh.md').read_text(encoding='utf-8')
 setup = ''
 setup_path = package_dir / 'setup.py'
@@ -74,19 +74,19 @@ for token in (
     'obstacle_preset',
     'obstacle_enabled',
     'eval_output_csv',
-    'SIM_DEVELOPMENT_PLAN_zh.md',
+    'SIM_ARCHITECTURE_zh.md',
     'SIM_VALIDATION_zh.md',
     'OSRacer simulation scenario matrix',
     '四阶段验收矩阵',
     'race_report_tools',
-    'kinematic -> Gazebo',
-    '四阶段开发路线',
+    '架构层级',
+    '模型边界',
 ):
-    if token not in setup and token not in readme and token not in sim_plan and token not in sim_validation:
+    if token not in setup and token not in readme and token not in sim_architecture and token not in sim_validation:
         raise SystemExit(f'missing package documentation for {token}')
 for path in (
     package_dir / 'package.xml',
-    package_dir / 'SIM_DEVELOPMENT_PLAN_zh.md',
+    package_dir / 'SIM_ARCHITECTURE_zh.md',
     package_dir / 'SIM_VALIDATION_zh.md',
     package_dir / 'launch' / 'base_sim.launch.py',
     package_dir / 'worlds' / 'osracer_empty.sdf',

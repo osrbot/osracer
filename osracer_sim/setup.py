@@ -22,7 +22,7 @@ setup(
         (f'share/{package_name}', [
             'package.xml',
             'README_zh.md',
-            'SIM_DEVELOPMENT_PLAN_zh.md',
+            'SIM_ARCHITECTURE_zh.md',
             'SIM_VALIDATION_zh.md',
         ]),
         (f'share/{package_name}/launch', glob('launch/*.launch.py')),
@@ -33,7 +33,7 @@ setup(
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='osrbot',
-    maintainer_email='osrbot@osrbot.com',
+    maintainer_email='winter@osrbot.com',
     description='Lightweight OSRacer simulation launch files and kinematic Ackermann simulator.',
     license='MIT',
     entry_points={

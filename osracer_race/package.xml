@@ -5,7 +5,7 @@
   <version>0.1.0</version>
   <description>Race-mode safety, planning, and control algorithms for OSRacer.</description>
 
-  <maintainer email="osrbot@osrbot.com">osrbot</maintainer>
+  <maintainer email="winter@osrbot.com">osrbot</maintainer>
   <license>MIT</license>
 
   <buildtool_depend>ament_python</buildtool_depend>

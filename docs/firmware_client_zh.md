@@ -128,28 +128,17 @@ dist/firmware-client/osracer-firmware-client
 dist/firmware-client/osracer-firmware-client.sha256
 ```
 
-构建脚本使用固定依赖版本，生成后自动运行版本、帮助和内置资源检查。GitHub CI
-使用 `ubuntu-22.04-arm` 生成短期测试 artifact，但不会自动创建 tag 或 Release。
+构建脚本使用固定依赖版本，并检查命令行入口、来源信息、许可证和内置固件资源。
+使用下载的可执行文件前，应通过随附的 SHA256 文件核对其完整性。
 
-本候选版本的验证状态：
+版本 0.1.1 面向 Linux ARM64 发布并内置受支持的官方固件资源。Official Update
+仅在设备身份、协议、Profile、电压和升级状态全部通过检查后选择固件。Custom
+App 和整片擦除恢复属于高级操作，只能使用经过授权的镜像，并应完整保留备份。
 
-- B02 官方更新已使用精确 `OSRACER_V1.1` App
-  `OSRF-C03-T006-s754f0664289e`，在 Jetson 和 Red 实车上完成真实串口、App
-  OTA、车辆配置备份与比对、READY 状态、约 200 Hz IMU，以及 ROS 运动和停止
-  验收；
-- B01 官方更新、客户 App 和整片擦除恢复已完成软件验证，但各自仍需在客户使用
-  前完成对应的实机验收。
+## 6. 支持入口
 
-正式 Release 还需要干净的 Linux ARM64 构建，并在支持列表中的最旧 Jetson 上
-复核。B02 的验收结果不代表其他路径已经通过硬件验收。
-
-0.1 版本直接在 `main` 维护，只接受缺陷修复；新增功能必须另行确认开发范围。
-
-## 6. 旧工具状态
-
-旧的 `osracer_firmware_update.py` 命令不再是正式入口，也不会随新客户端发布。
-经过验证的串口传输和配置解析代码只作为新客户端内部引擎保留；用户只运行
-`osracer-firmware-client`。现有历史 OTA WIP 工作区不被清理或覆盖。
+新部署统一使用 `osracer-firmware-client`。旧的
+`osracer_firmware_update.py` 命令不作为受支持的客户入口发布。
 
 ## 7. 许可证边界
 

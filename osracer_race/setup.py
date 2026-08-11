@@ -24,7 +24,7 @@ setup(
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='osrbot',
-    maintainer_email='osrbot@osrbot.com',
+    maintainer_email='winter@osrbot.com',
     description='Race-mode safety, planning, and control algorithms for OSRacer.',
     license='MIT',
     entry_points={
