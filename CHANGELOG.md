@@ -8,6 +8,9 @@
   `osrcore/main@937b2d2` T006 build selected for `OSRACER_V1.1`.
 - Corrected console digest labels so application images and persisted backup
   files are reported as `App SHA256` and `Backup file SHA256` respectively.
+- Re-accepted the exact updated B02 resource on Jetson and a Red vehicle: the
+  official App update preserved NVS, returned `red/schema-1/READY`, published
+  IMU data at approximately 200 Hz, and completed motion and stop checks.
 
 ## Unreleased
 

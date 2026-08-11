@@ -24,9 +24,12 @@ Version 0.1 is in maintenance mode. Firmware-client changes are limited to
 corrective fixes on `main`; feature expansion requires a separately approved
 development scope.
 
-The B02 official-update path has passed Jetson and Red-vehicle acceptance. B01,
-custom App, and full-erase recovery paths have software coverage but still
-require their own physical acceptance before customer use.
+Version 0.1.1 embeds the exact `OSRACER_V1.1` B02 App
+`OSRF-C03-T006-s754f0664289e`. Its official-update path has passed Jetson and
+Red-vehicle acceptance, including NVS preservation, READY-state verification,
+approximately 200 Hz IMU output, motion, and stop. B01, custom App, and
+full-erase recovery paths have software coverage but still require their own
+physical acceptance before customer use.
 
 This repository is the ROS 2 runtime workspace for OSRacer vehicles. The
 documented AI runtime target is Jetson Orin Nano with JetPack 6.x, Ubuntu 22.04,
