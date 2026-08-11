@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.1] - 2026-08-11
+
+### Firmware client
+
+- Updated the embedded B02 App and recovery resources to the exact clean
+  `osrcore/main@937b2d2` T006 build selected for `OSRACER_V1.1`.
+- Corrected console digest labels so application images and persisted backup
+  files are reported as `App SHA256` and `Backup file SHA256` respectively.
+
 ## Unreleased
 
 ### Maintenance
