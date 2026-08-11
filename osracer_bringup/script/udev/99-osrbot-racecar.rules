@@ -1,7 +1,0 @@
-KERNEL=="tty*", SUBSYSTEM=="tty", SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="5740", MODE:="0666", GROUP:="dialout",  SYMLINK+="osrbot_base"
-
-KERNEL=="tty*", SUBSYSTEM=="tty", SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374b",MODE:="0666", GROUP:="dialout",  SYMLINK+="osrbot_base"
-
-KERNEL=="tty*", SUBSYSTEM=="tty", SUBSYSTEMS=="usb", ATTRS{idVendor}=="303a", ATTRS{idProduct}=="1001",MODE:="0666", GROUP:="dialout",  SYMLINK+="osrbot_base"
-
-KERNEL=="tty*", SUBSYSTEM=="tty", SUBSYSTEMS=="usb", ATTRS{idVendor}=="303a", ATTRS{idProduct}=="4001", ATTRS{serial}=="OSRCOREV01", MODE:="0666", GROUP:="dialout",  SYMLINK+="osrbot_base"

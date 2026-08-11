@@ -12,6 +12,9 @@ def generate_launch_description():
     use_sim_time = LaunchConfiguration('use_sim_time')
     odom_topic = LaunchConfiguration('odom_topic')
     imu_topic = LaunchConfiguration('imu_topic')
+    base_profile = PathJoinSubstitution([
+        FindPackageShare('osracer_base'), 'config', 'vehicles', 'red.yaml'
+    ])
 
     description_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(PathJoinSubstitution([
@@ -30,13 +33,9 @@ def generate_launch_description():
         executable='ackermann_kinematic_sim_node',
         name='osracer_ackermann_kinematic_sim',
         output='screen',
-        parameters=[{
-            'wheelbase': ParameterValue(LaunchConfiguration('wheelbase'), value_type=float),
+        parameters=[base_profile, {
             'track_width': ParameterValue(LaunchConfiguration('track_width'), value_type=float),
             'wheel_radius': ParameterValue(LaunchConfiguration('wheel_radius'), value_type=float),
-            'max_speed_mps': ParameterValue(LaunchConfiguration('max_speed_mps'), value_type=float),
-            'max_steering_angle_deg': ParameterValue(
-                LaunchConfiguration('max_steering_angle_deg'), value_type=float),
             'odom_topic': odom_topic,
             'imu_topic': imu_topic,
             'publish_tf': ParameterValue(LaunchConfiguration('publish_tf'), value_type=bool),
@@ -66,11 +65,8 @@ def generate_launch_description():
         DeclareLaunchArgument('use_rviz', default_value='false', choices=['true', 'false']),
         DeclareLaunchArgument('odom_topic', default_value='/odometry/filtered'),
         DeclareLaunchArgument('imu_topic', default_value='/imu_filter'),
-        DeclareLaunchArgument('wheelbase', default_value='0.285'),
         DeclareLaunchArgument('track_width', default_value='0.215'),
         DeclareLaunchArgument('wheel_radius', default_value='0.0425'),
-        DeclareLaunchArgument('max_speed_mps', default_value='3.0'),
-        DeclareLaunchArgument('max_steering_angle_deg', default_value='30.0'),
         DeclareLaunchArgument('publish_tf', default_value='true', choices=['true', 'false']),
         DeclareLaunchArgument('publish_imu', default_value='true', choices=['true', 'false']),
         DeclareLaunchArgument('publish_scan', default_value='true', choices=['true', 'false']),

@@ -43,10 +43,10 @@ def overtake_command(command_speed, front_distance, left_ranges, right_ranges, w
 
     side = choose_wider_side(left_ranges, right_ranges)
     steering_deg = params['overtake_steering_deg'] * side
-    steering = math.radians(clamp(
-        steering_deg,
-        -params['max_steering_angle_deg'],
-        params['max_steering_angle_deg'],
-    ))
+    steering = clamp(
+        math.radians(steering_deg),
+        -params['max_steering_angle'],
+        params['max_steering_angle'],
+    )
     speed = overtake_speed(command_speed, params['overtake_speed_mps'])
     return True, (speed, steering)

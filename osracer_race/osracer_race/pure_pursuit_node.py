@@ -14,9 +14,9 @@ class PurePursuitNode(RaceControllerMixin, Node):
         super().__init__('pure_pursuit_node')
         self.declare_parameter('odom_topic', '/odometry/filtered')
         self.declare_parameter('raceline_file', '')
-        self.declare_parameter('wheelbase', 0.285)
+        self.declare_parameter('wheelbase')
         self.declare_parameter('lookahead_distance_m', 0.9)
-        self.declare_parameter('max_steering_angle_deg', 30.0)
+        self.declare_parameter('max_steering_angle')
         self.declare_parameter('default_speed_mps', 1.2)
         self.declare_parameter('max_straight_speed_mps', 3.0)
         self.declare_parameter('max_lateral_accel_mps2', 4.5)
@@ -48,7 +48,7 @@ class PurePursuitNode(RaceControllerMixin, Node):
         return {
             'wheelbase': float(self.get_parameter('wheelbase').value),
             'lookahead_distance_m': float(self.get_parameter('lookahead_distance_m').value),
-            'max_steering_angle_deg': float(self.get_parameter('max_steering_angle_deg').value),
+            'max_steering_angle': float(self.get_parameter('max_steering_angle').value),
             'default_speed_mps': float(self.get_parameter('default_speed_mps').value),
             'max_straight_speed_mps': float(self.get_parameter('max_straight_speed_mps').value),
             'max_lateral_accel_mps2': float(self.get_parameter('max_lateral_accel_mps2').value),

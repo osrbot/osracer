@@ -91,7 +91,7 @@ class VehicleObservation:
             f'    track_width: {vehicle_params["track_width"]}',
             f'    gear_ratio: {vehicle_params["gear_ratio"]}',
             f'    mass_kg: {vehicle_params["mass_kg"]}',
-            f'    max_steering_angle_deg: {vehicle_params["max_steering_angle_deg"]}',
+            f'    max_steering_angle: {vehicle_params["max_steering_angle"]}',
             f'    observed_max_speed_mps: {self.max_speed:.3f}',
             f'    observed_max_accel_mps2: {self.max_accel:.3f}',
             f'    observed_max_brake_mps2: {abs(self.max_brake):.3f}',

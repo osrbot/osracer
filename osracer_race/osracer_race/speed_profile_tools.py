@@ -1,5 +1,3 @@
-import math
-
 from osracer_race.common import (
     clamp,
     curvature_limited_speed,
@@ -9,7 +7,7 @@ from osracer_race.common import (
 
 
 def limit_race_command(command_speed, command_steering, base_speed, dt, params):
-    max_steering = math.radians(params['max_steering_angle_deg'])
+    max_steering = params['max_steering_angle']
     speed = finite_or_default(command_speed, 0.0)
     steering = clamp(finite_or_default(command_steering, 0.0), -max_steering, max_steering)
     target_speed = curvature_limited_speed(

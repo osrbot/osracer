@@ -17,8 +17,8 @@ not update the ROS workspace.
 ```
 
 Builds and operational boundaries are documented in the
-[`中文说明`](docs/firmware_client_zh.md) and
-[`English guide`](docs/firmware_client_en.md).
+[`中文说明`](tools/firmware_client/README_zh.md) and
+[`English guide`](tools/firmware_client/README.md).
 
 Version 0.1.1 includes the current supported official firmware resources. The
 client inspects the connected device, selects a compatible resource, preserves
@@ -40,6 +40,23 @@ profile-schema settings. Use only the firmware and profile combination specified
 for the connected vehicle.
 
 See [CHANGELOG.md](CHANGELOG.md) for published feature and fix summaries.
+
+## Repository chain
+
+The approved vehicle specification is projected through one maintained chain:
+
+1. `osrcore/main` owns firmware profiles, Proto 1.1, effective odometry
+   parameters, control, NVS, and hardware safety behavior.
+2. `osracer_base/main` owns the ROS chassis driver and the ROS-side vehicle
+   profile; this repository imports an exact Base commit through
+   `osracer.repos`.
+3. `osracer/main` owns bringup, SLAM, navigation, race, simulation, and user
+   examples. It does not copy the Base driver.
+4. `osracer_lab/main` consumes the public ROS interfaces for policies, Isaac,
+   Sim2Real, and Jetson development.
+
+Repeated geometry in Race, Sim, and Lab is validated against the approved
+values and is not treated as an independent parameter source.
 
 ## 1. Installation & Setup
 
@@ -108,15 +125,15 @@ sudo apt install ros-humble-nav2-bringup \
 ### 1.4 Serial Device Setup
 
 The chassis driver uses Python serial and the stable udev device
-`/dev/osrbot_base`. Configure serial permissions and install the packaged udev
-rules on the robot computer:
+`/dev/osrbot_base`. The chassis rule is owned by `osracer_base`; this repository
+only retains the optional camera and LED accessory rules:
 
 ```bash
-sudo usermod -aG dialout $USER
 sudo apt remove brltty
+ros2 run osracer_base install_udev_rules
+
+# Optional OSRacer camera and LED accessories:
 sudo bash osracer_bringup/script/udev/install_udev.sh
-sudo udevadm control --reload-rules
-sudo udevadm trigger
 ```
 
 Log out and back in after adding the user to `dialout`.
@@ -145,7 +162,7 @@ git submodule update --init --recursive
 
 The chassis runtime is maintained separately and pinned by `osracer.repos` to
 the accepted `osracer_base/main` snapshot at commit
-`f2c89dc300c407adb95b8b00bd1d828b6e95dbad`. The full commit keeps builds
+`0168b53dbd0b7d171bf45927cb24d5eacdf7cdc5`. The full commit keeps builds
 reproducible without following a moving branch. Import it beside this repository
 before building the workspace:
 
@@ -153,7 +170,7 @@ before building the workspace:
 cd ~/your_workspace/src
 vcs import . < osracer/osracer.repos
 test "$(git -C osracer_base rev-parse HEAD)" = \
-  "f2c89dc300c407adb95b8b00bd1d828b6e95dbad"
+  "0168b53dbd0b7d171bf45927cb24d5eacdf7cdc5"
 ```
 
 The VCS dependency is source-only at build time; no `osracer_base` business
@@ -245,9 +262,6 @@ the only installed chassis driver on `main`.
 | `firmware_version_timeout_s` | `0.3` | Timeout for reading firmware version metadata during serial startup |
 | `link_status_enabled` | `true` | Maintain the ROS host connection state on supported firmware |
 | `link_ping_period_s` | `1.0` | Connection-state refresh period while the serial port is connected |
-| `wheelbase` | `0.285` | Distance between front and rear axles (m) |
-| `max_speed` | `4.64` | ROS-side chassis speed ceiling from the tracked vehicle model; real tests retain their lower policy limit |
-| `max_steering_angle_deg` | `30.0` | Maximum steering angle, converted to radians for `osracer_base` |
 | `cmd_watchdog_timeout_s` | `0.5` | Stop-command watchdog timeout |
 | `reconnect_interval_s` | `2.0` | Serial reconnect interval |
 | `odom_twist_covariance` | `[0.02, 0.20, 1.0, 1.0, 1.0, 0.30]` | Odometry twist covariance diagonal `[vx, vy, vz, vroll, vpitch, vyaw]` for EKF consumers |
@@ -287,8 +301,10 @@ ros2 launch osracer_race pure_pursuit.launch.py
 ros2 launch osracer_race vehicle_id.launch.py
 ```
 
-The race package keeps measured vehicle parameters in
-`osracer_race/config/vehicle.yaml` and provides staged algorithms for safety,
+The Base `red.yaml` profile supplies the runtime wheelbase, profile speed
+ceiling, and steering limit to Bringup, Race, and Sim. The race package keeps only
+its reference drivetrain/model values in `osracer_race/config/vehicle.yaml` and
+provides staged algorithms for safety,
 Follow-the-Gap, Pure Pursuit, Stanley control, lap timing, and vehicle
 identification. It also includes raceline speed-profile tooling and a lightweight
 kinematic MPC entry point for early high-speed experiments. Race evaluation logs
@@ -436,90 +452,18 @@ ros2 launch osracer_debug debug_imu.launch.py
 ros2 launch osracer_debug debug_image.launch.py
 ```
 
-### 3.4 TorchScript Policy Inference
+### 3.4 Advanced Policy and Sim2Real Development
 
-Export a TorchScript policy from `osracer_lab` first, then point this node at `policy.pt`.
-The node is safe by default: `enabled` defaults to `False`, and the default speed clamp is `0.3 m/s`.
+Isaac Lab, policy inference, observation recording, TensorRT, Jetson
+measurement, and Sim2Real workflows are maintained in the separate
+[`osrbot/osracer_lab`](https://github.com/osrbot/osracer_lab) repository. This
+repository intentionally contains only the ROS integration topics consumed by
+those workflows, including `/ackermann_cmd`, `/odometry/filtered`, and
+`/imu_filter`.
 
-For Jetson Orin Nano Super 8GB deployment, see `docs/jetson_orin_runtime.md` and run the preflight check.
-For the first real-car low-speed test sequence, follow `docs/first_drive_runbook.md`.
-
-```bash
-tools/jetson_preflight.sh --policy /path/to/policy.pt
-```
-
-Optional offline replay smoke:
-
-```bash
-tools/jetson_preflight.sh --policy /path/to/policy.pt --offline-smoke --environment-output /tmp/osracer_jetson_environment.json
-```
-
-Read-only real-car readiness check:
-
-```bash
-tools/real_car_readiness_check.sh \
-  --policy /path/to/policy.pt \
-  --observations /tmp/osracer_policy_observations.csv \
-  --replay /tmp/osracer_policy_replay.csv
-
-tools/first_drive_gate.py \
-  --package-dir /path/to/osracer_jetson_deployment \
-  --policy-replay /tmp/osracer_policy_replay.csv \
-  --sensor-summary /tmp/osracer_sensor_preflight/sensor_summary.json \
-  --environment-report /tmp/osracer_jetson_environment.json \
-  --serial-latency /tmp/osracer_serial_latency.json \
-  --runtime-dir /tmp/osracer_runtime_monitor \
-  --output /tmp/osracer_first_drive_gate.json
-
-tools/first_drive_evidence_pack.py \
-  --gate-report /tmp/osracer_first_drive_gate.json \
-  --output-dir /tmp/osracer_first_drive_evidence_pack \
-  --overwrite
-
-tools/verify_first_drive_evidence_pack.py /tmp/osracer_first_drive_evidence_pack --require-pass
-```
-
-Runtime prerequisites:
-
-```bash
-sudo apt install ros-humble-ackermann-msgs
-python3 -m pip install torch
-```
-
-Use the same Python environment for `ros2 launch` and `torch`; otherwise the node will start only after the missing runtime dependency is installed.
-
-```bash
-ros2 launch osracer_bringup policy_inference.launch.py \
-  policy_path:=/tmp/osracer_policy_export_smoke/policy.pt
-```
-
-Enable non-zero policy commands only after the chassis bridge, odometry, IMU, and manual override are verified:
-
-```bash
-ros2 launch osracer_bringup policy_inference.launch.py \
-  policy_path:=/tmp/osracer_policy_export_smoke/policy.pt \
-  enabled:=True \
-  max_speed_mps:=0.3
-```
-
-Before enabling live control, replay recorded observations through the same TorchScript policy:
-
-```bash
-ros2 launch osracer_bringup policy_observation_recorder.launch.py \
-  output_path:=/tmp/osracer_policy_observations.csv
-
-tools/policy_replay_csv.py \
-  --policy /tmp/osracer_policy_export_smoke/policy.pt \
-  --input /tmp/osracer_policy_observations.csv \
-  --output /tmp/osracer_policy_replay.csv
-
-tools/policy_replay_summary.py /tmp/osracer_policy_replay.csv \
-  --max-speed-cmd 0.3 \
-  --max-abs-steering-cmd 0.488
-```
-
-The recorder subscribes to `/odometry/filtered`, `/imu_filter`, and `/ackermann_cmd`, then writes the 14-value drift observation CSV used by `osracer_lab`.
-The inference node subscribes to `/odometry/filtered` and `/imu_filter`, builds the same observation order, and publishes `ackermann_msgs/msg/AckermannDrive` to `/ackermann_cmd`.
+The maintained physical-parameter inventory and measurement worksheet are in
+the Lab documentation: [`hardware_parameters.md`](https://github.com/osrbot/osracer_lab/blob/main/docs/hardware_parameters.md)
+and [`real_car_parameter_fill_sheet.md`](https://github.com/osrbot/osracer_lab/blob/main/docs/real_car_parameter_fill_sheet.md).
 
 </details>
 

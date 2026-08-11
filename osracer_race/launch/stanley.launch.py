@@ -6,6 +6,8 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
+    base_profile = PathJoinSubstitution([
+        FindPackageShare('osracer_base'), 'config', 'vehicles', 'red.yaml'])
     vehicle_config = PathJoinSubstitution([
         FindPackageShare('osracer_race'), 'config', 'vehicle.yaml'])
     race_config = LaunchConfiguration('race_config')
@@ -31,13 +33,13 @@ def generate_launch_description():
             package='osracer_race',
             executable='safety_node',
             name='race_safety_node',
-            parameters=[vehicle_config, race_config],
+            parameters=[base_profile, vehicle_config, race_config],
             output='screen'),
         Node(
             package='osracer_race',
             executable='stanley_node',
             name='stanley_node',
-            parameters=[vehicle_config, race_config, {
+            parameters=[base_profile, vehicle_config, race_config, {
                 'ackermann_topic': '/race/tracking_ackermann_cmd',
                 'raceline_file': raceline,
             }],
@@ -46,25 +48,25 @@ def generate_launch_description():
             package='osracer_race',
             executable='obstacle_overtake_node',
             name='obstacle_overtake_node',
-            parameters=[vehicle_config, race_config],
+            parameters=[base_profile, vehicle_config, race_config],
             output='screen'),
         Node(
             package='osracer_race',
             executable='speed_profile_node',
             name='speed_profile_node',
-            parameters=[vehicle_config, race_config],
+            parameters=[base_profile, vehicle_config, race_config],
             output='screen'),
         Node(
             package='osracer_race',
             executable='lap_timer_node',
             name='lap_timer_node',
-            parameters=[vehicle_config, race_config],
+            parameters=[base_profile, vehicle_config, race_config],
             output='screen'),
         Node(
             package='osracer_race',
             executable='race_evaluator_node',
             name='race_evaluator_node',
-            parameters=[vehicle_config, race_config, {
+            parameters=[base_profile, vehicle_config, race_config, {
                 'raceline_file': raceline,
                 'output_csv': eval_output_csv,
             }],

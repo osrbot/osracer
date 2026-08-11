@@ -1,8 +1,10 @@
-#! /bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-sudo usermod -aG dialout $USER
-sudo usermod -aG video $USER
-sudo cp -f 99-osrbot-*.rules /etc/udev/rules.d/
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+sudo usermod -aG video "${USER}"
+sudo install -m 0644 "${SCRIPT_DIR}/99-osrbot-led-matrix.rules" /etc/udev/rules.d/99-osrbot-led-matrix.rules
+sudo install -m 0644 "${SCRIPT_DIR}/99-osrbot-usb-cam.rules" /etc/udev/rules.d/99-osrbot-usb-cam.rules
 sudo udevadm control --reload-rules
-sudo service udev restart
 sudo udevadm trigger

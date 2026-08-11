@@ -17,13 +17,13 @@ class SpeedProfileNode(Node):
         self.declare_parameter('output_ackermann_topic', '/ackermann_cmd')
         self.declare_parameter('odom_topic', '/odometry/filtered')
         self.declare_parameter('safety_stop_topic', '/race/safety_stop')
-        self.declare_parameter('wheelbase', 0.285)
+        self.declare_parameter('wheelbase')
         self.declare_parameter('max_straight_speed_mps', 3.0)
         self.declare_parameter('min_speed_mps', 0.8)
         self.declare_parameter('max_accel_mps2', 2.5)
         self.declare_parameter('max_brake_mps2', 3.5)
         self.declare_parameter('max_lateral_accel_mps2', 4.5)
-        self.declare_parameter('max_steering_angle_deg', 30.0)
+        self.declare_parameter('max_steering_angle')
         self.declare_parameter('command_timeout_s', 0.30)
         self.declare_parameter('watchdog_period_s', 0.05)
 
@@ -93,7 +93,7 @@ class SpeedProfileNode(Node):
             'max_accel_mps2': float(self.get_parameter('max_accel_mps2').value),
             'max_brake_mps2': float(self.get_parameter('max_brake_mps2').value),
             'max_lateral_accel_mps2': float(self.get_parameter('max_lateral_accel_mps2').value),
-            'max_steering_angle_deg': float(self.get_parameter('max_steering_angle_deg').value),
+            'max_steering_angle': float(self.get_parameter('max_steering_angle').value),
         }
 
     def watchdog_callback(self):

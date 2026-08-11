@@ -2,9 +2,7 @@
   ros__parameters:
     wheel_radius: 0.0425
     wheel_diameter: 0.085
-    wheelbase: 0.285
     track_width: 0.215
-    max_steering_angle_deg: 30.0
     gear_ratio: 10.55
     differential_ring_teeth: 40
     differential_pinion_teeth: 13

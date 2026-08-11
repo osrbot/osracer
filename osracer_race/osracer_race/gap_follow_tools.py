@@ -65,7 +65,7 @@ def gap_follow_command(scan, params):
         return None
 
     target_angle = scan_angle(scan, target_idx)
-    max_steering = math.radians(params['max_steering_angle_deg'])
+    max_steering = params['max_steering_angle']
     steering = clamp(params['follow_gain'] * target_angle, -max_steering, max_steering)
     speed = speed_for_steering(
         abs(steering),

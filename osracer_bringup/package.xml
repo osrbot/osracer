@@ -8,24 +8,19 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
   <build_depend>rclcpp</build_depend>
   <build_depend>rclpy</build_depend>
-  <build_depend>sensor_msgs</build_depend>
   <build_depend>std_msgs</build_depend>
   <build_export_depend>rclcpp</build_export_depend>
   <build_export_depend>rclpy</build_export_depend>
-  <build_export_depend>sensor_msgs</build_export_depend>
   <build_export_depend>std_msgs</build_export_depend>
   <exec_depend>rclcpp</exec_depend>
   <exec_depend>rclpy</exec_depend>
-  <exec_depend>ackermann_msgs</exec_depend>
   <exec_depend>imu_complementary_filter</exec_depend>
   <exec_depend>lakibeam1</exec_depend>
   <exec_depend>launch</exec_depend>
   <exec_depend>launch_ros</exec_depend>
-  <exec_depend>nav_msgs</exec_depend>
   <exec_depend>osracer_base</exec_depend>
   <exec_depend>python3-serial</exec_depend>
   <exec_depend>robot_localization</exec_depend>
-  <exec_depend>sensor_msgs</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>tf_transformations</exec_depend>
   <exec_depend>usb_cam</exec_depend>

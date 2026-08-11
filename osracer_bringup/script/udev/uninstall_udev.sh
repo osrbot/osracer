@@ -1,6 +1,8 @@
-#! /bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-sudo rm -f 99-osrbot-*.rules
+sudo rm -f \
+  /etc/udev/rules.d/99-osrbot-led-matrix.rules \
+  /etc/udev/rules.d/99-osrbot-usb-cam.rules
 sudo udevadm control --reload-rules
-sudo service udev restart
 sudo udevadm trigger

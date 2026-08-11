@@ -255,7 +255,7 @@
     name="left_steering_hinge_joint"
     type="revolute">
     <origin
-      xyz="0.11108 0.088168 -0.10247"
+      xyz="0.11108 0.078168 -0.10247"
       rpy="0 0 0" />
     <parent
       link="base_link" />
@@ -291,7 +291,8 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://osracer_description/meshes/Left_front_wheel_link.STL" />
+          filename="package://osracer_description/meshes/Left_front_wheel_link.STL"
+          scale="0.941 1 0.941" />
       </geometry>
       <material
         name="">
@@ -305,7 +306,8 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://osracer_description/meshes/Left_front_wheel_link.STL" />
+          filename="package://osracer_description/meshes/Left_front_wheel_link.STL"
+          scale="0.941 1 0.941" />
       </geometry>
     </collision>
   </link>
@@ -366,7 +368,7 @@
     name="right_steering_hinge_joint"
     type="revolute">
     <origin
-      xyz="0.10643 -0.1187 -0.10656"
+      xyz="0.10643 -0.1087 -0.10656"
       rpy="0 -0.061844 0" />
     <parent
       link="base_link" />
@@ -402,7 +404,8 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://osracer_description/meshes/right_front_wheel_link.STL" />
+          filename="package://osracer_description/meshes/right_front_wheel_link.STL"
+          scale="0.941 1 0.941" />
       </geometry>
       <material
         name="">
@@ -416,7 +419,8 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://osracer_description/meshes/right_front_wheel_link.STL" />
+          filename="package://osracer_description/meshes/right_front_wheel_link.STL"
+          scale="0.941 1 0.941" />
       </geometry>
     </collision>
   </link>
@@ -455,7 +459,8 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://osracer_description/meshes/left_rear_wheel_link.STL" />
+          filename="package://osracer_description/meshes/left_rear_wheel_link.STL"
+          scale="0.941 1 0.941" />
       </geometry>
       <material
         name="">
@@ -469,7 +474,8 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://osracer_description/meshes/left_rear_wheel_link.STL" />
+          filename="package://osracer_description/meshes/left_rear_wheel_link.STL"
+          scale="0.941 1 0.941" />
       </geometry>
     </collision>
   </link>
@@ -477,7 +483,7 @@
     name="left_rear_wheel_joint"
     type="continuous">
     <origin
-      xyz="-0.18068 0.10027 -0.10041"
+      xyz="-0.17785021060022 0.09027 -0.10041"
       rpy="0 0 0" />
     <parent
       link="base_link" />
@@ -508,7 +514,8 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://osracer_description/meshes/right_rear_wheel_link.STL" />
+          filename="package://osracer_description/meshes/right_rear_wheel_link.STL"
+          scale="0.941 1 0.941" />
       </geometry>
       <material
         name="">
@@ -522,7 +529,8 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://osracer_description/meshes/right_rear_wheel_link.STL" />
+          filename="package://osracer_description/meshes/right_rear_wheel_link.STL"
+          scale="0.941 1 0.941" />
       </geometry>
     </collision>
   </link>
@@ -530,7 +538,7 @@
     name="right_rear_wheel_joint"
     type="continuous">
     <origin
-      xyz="-0.180681048799559 -0.134728618898254 -0.100407328161273"
+      xyz="-0.177851259399779 -0.124728618898254 -0.100407328161273"
       rpy="0 0 0" />
     <parent
       link="base_link" />
