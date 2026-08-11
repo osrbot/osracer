@@ -133,8 +133,10 @@ dist/firmware-client/osracer-firmware-client.sha256
 
 本候选版本的验证状态：
 
-- B02 官方更新已在 Jetson 和 Red 实车上完成真实串口、App OTA、车辆配置备份
-  与比对，以及 ROS 运动验收；
+- B02 官方更新已使用精确 `OSRACER_V1.1` App
+  `OSRF-C03-T006-s754f0664289e`，在 Jetson 和 Red 实车上完成真实串口、App
+  OTA、车辆配置备份与比对、READY 状态、约 200 Hz IMU，以及 ROS 运动和停止
+  验收；
 - B01 官方更新、客户 App 和整片擦除恢复已完成软件验证，但各自仍需在客户使用
   前完成对应的实机验收。
 

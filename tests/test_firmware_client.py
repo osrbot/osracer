@@ -271,7 +271,7 @@ class BundleAndImageTest(unittest.TestCase):
         self.assertEqual(tuple(bundles), ("B01", "B02"))
         expected = {
             "B01": (388144, "d331c267583a133f064ce4e9103ffc3167a214e18ddddf8a2df0274672056a07"),
-            "B02": (429424, "1d8b5de7c17c2a297e4bfeb232b665d164166313504f489c3567204fad2f1401"),
+            "B02": (433456, "6b174fdb606c4d6bd0f511369d015bfceb31d7659fca5282d351b1981a0a2632"),
         }
         for bundle_id, bundle in bundles.items():
             self.assertEqual((bundle.app.size, bundle.app.sha256), expected[bundle_id])
@@ -285,14 +285,14 @@ class BundleAndImageTest(unittest.TestCase):
     def test_official_source_matching_never_maps_unknown_or_cross_profile(self):
         bundles = load_bundles()
         self.assertEqual(match_official_bundle("NEORACER_V1.1-test", bundles).bundle_id, "B01")
-        self.assertEqual(match_official_bundle("OSRF-C03-T005-s1c7ef7e8766a", bundles).bundle_id, "B02")
+        self.assertEqual(match_official_bundle("OSRF-C03-T006-s754f0664289e", bundles).bundle_id, "B02")
         self.assertIsNone(match_official_bundle("CUSTOM_BUILD", bundles))
 
     def test_apps_validate_and_recovery_merged_image_is_rejected_as_custom_app(self):
         b01 = REPO_ROOT / "osracer_firmware_client/resources/b01/app.bin"
         b02 = REPO_ROOT / "osracer_firmware_client/resources/b02/app.bin"
         self.assertEqual(validate_application_file(b01).size, 388144)
-        self.assertEqual(validate_application_file(b02).size, 429424)
+        self.assertEqual(validate_application_file(b02).size, 433456)
         with self.assertRaisesRegex(ImageValidationError, "bootloader and merged"):
             validate_application_file(
                 REPO_ROOT / "osracer_firmware_client/resources/b01/recovery.bin"
@@ -536,7 +536,7 @@ class ClientOperationTest(unittest.TestCase):
     def test_official_b02_reinstall_uses_managed_backup_and_compare(self):
         with tempfile.TemporaryDirectory() as directory:
             writes = []
-            version = "OSRF-C03-T005-s1c7ef7e8766a"
+            version = "OSRF-C03-T006-s754f0664289e"
             pre = FakeSerial(ota_handler(project_version=version, profile="red", managed=True), writes)
             post = FakeSerial(ota_handler(project_version=version, profile="red", managed=True), writes)
             clock = FakeClock()
@@ -556,7 +556,7 @@ class ClientOperationTest(unittest.TestCase):
     def test_official_update_waits_for_post_reboot_battery_telemetry(self):
         with tempfile.TemporaryDirectory() as directory:
             writes = []
-            version = "OSRF-C03-T005-s1c7ef7e8766a"
+            version = "OSRF-C03-T006-s754f0664289e"
             pre = FakeSerial(
                 ota_handler(project_version=version, profile="red", managed=True),
                 writes,
@@ -595,7 +595,7 @@ class ClientOperationTest(unittest.TestCase):
     def test_app_progress_events_are_limited_to_displayed_percent_changes(self):
         events = []
         client = FirmwareClient(event_sink=events.append)
-        total = 429_424
+        total = 433_456
 
         client._last_progress_percent = None
         for written in range(128, total, 128):
@@ -614,7 +614,7 @@ class ClientOperationTest(unittest.TestCase):
                 writes,
             )
             post = FakeSerial(
-                ota_handler(project_version="OSRF-C03-T005-s1c7ef7e8766a", profile="red"),
+                ota_handler(project_version="OSRF-C03-T006-s754f0664289e", profile="red"),
                 writes,
             )
             clock = FakeClock()
@@ -722,7 +722,7 @@ class ClientOperationTest(unittest.TestCase):
             writes = []
             source = FakeSerial(
                 ota_handler(
-                    project_version="OSRF-C03-T005-s1c7ef7e8766a",
+                    project_version="OSRF-C03-T006-s754f0664289e",
                     profile="neo",
                     managed=False,
                 ),

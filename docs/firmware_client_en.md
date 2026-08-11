@@ -144,8 +144,10 @@ but it does not create a tag or Release automatically.
 
 Validation status for this candidate:
 
-- B02 official update: accepted on Jetson with real serial, App OTA, vehicle
-  configuration backup and comparison, and Red-vehicle ROS motion checks.
+- B02 official update: the exact `OSRACER_V1.1` App
+  `OSRF-C03-T006-s754f0664289e` was accepted on Jetson with real serial, App
+  OTA, vehicle-configuration backup and comparison, READY-state verification,
+  approximately 200 Hz IMU output, and Red-vehicle ROS motion and stop checks.
 - B01 official update, custom App, and full-erase recovery: software-validated;
   each still requires physical acceptance before customer use.
 

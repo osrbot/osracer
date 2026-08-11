@@ -34,16 +34,16 @@
       "display_name": "Official package B02",
       "app": {
         "path": "b02/app.bin",
-        "size": 429424,
-        "sha256": "1d8b5de7c17c2a297e4bfeb232b665d164166313504f489c3567204fad2f1401"
+        "size": 433456,
+        "sha256": "6b174fdb606c4d6bd0f511369d015bfceb31d7659fca5282d351b1981a0a2632"
       },
       "recovery": {
         "path": "b02/recovery.bin",
-        "size": 560496,
-        "sha256": "b4c40d7d27392f8d79ce36f25cd534293e26a7b47c060da4a6dd4a40ed64ea1e"
+        "size": 564528,
+        "sha256": "447ef5a1ae10b78fbbe1189245f5675377f7f9ce3238d0d9d982f1d68e3a4139"
       },
       "target": {
-        "project_version": "OSRF-C03-T005-s1c7ef7e8766a",
+        "project_version": "OSRF-C03-T006-s754f0664289e",
         "profile_id": "red",
         "nvs_schema": 1,
         "protocol": "1.1"
