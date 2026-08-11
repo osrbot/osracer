@@ -149,13 +149,15 @@ jobs:
           OSRACER_BASE_SOURCE: ${{ runner.temp }}/osracer_ws/src/osracer_base
         run: python3 -m unittest discover -s tests -p 'test_osracer_base_integration.py' -v
 
-      - name: Install the complete public workspace dependencies
+      - name: Install workspace build and test dependencies
         run: |
           source /opt/ros/humble/setup.bash
           rosdep update --rosdistro humble
           rosdep install \
             --from-paths "$RUNNER_TEMP/osracer_ws/src" \
-            --ignore-src --rosdistro humble -r -y
+            --ignore-src --rosdistro humble \
+            --dependency-types build buildtool build_export test \
+            --skip-keys ament_python -y
 
       - name: Run Base protocol and mismatch regression
         run: |
