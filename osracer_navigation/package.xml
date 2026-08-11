@@ -3,7 +3,7 @@
   <name>osracer_navigation</name>
   <version>0.1.0</version>
   <description>Nav2 localization and navigation configuration for OSRacer.</description>
-  <maintainer email="osrbot@osrbot.com">osrbot Robotics</maintainer>
+  <maintainer email="winter@osrbot.com">osrbot Robotics</maintainer>
   <license>MIT</license>
   <license>Apache-2.0</license>
   <url type="website">https://www.osrbot.com/</url>

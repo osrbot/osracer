@@ -138,28 +138,26 @@ dist/firmware-client/osracer-firmware-client
 dist/firmware-client/osracer-firmware-client.sha256
 ```
 
-The build uses pinned dependencies and runs offline help, provenance, license,
-and embedded-resource checks. CI may create a short-lived Linux ARM64 artifact,
-but it does not create a tag or Release automatically.
+The build uses pinned dependencies and verifies the command-line interface,
+provenance metadata, licenses, and embedded firmware resources. Verify a
+downloaded executable with its accompanying SHA256 file before use.
 
-Validation status for this candidate:
+Version 0.1.1 is distributed for Linux ARM64 and includes the supported official
+firmware resources. Official update mode selects a resource only after the
+connected device passes identity, protocol, profile, voltage, and update-state
+checks. Custom App and full-erase recovery remain advanced operations and must
+be used only with an authorized image and a retained backup.
 
-- B02 official update: the exact `OSRACER_V1.1` App
-  `OSRF-C03-T006-s754f0664289e` was accepted on Jetson with real serial, App
-  OTA, vehicle-configuration backup and comparison, READY-state verification,
-  approximately 200 Hz IMU output, and Red-vehicle ROS motion and stop checks.
-- B01 official update, custom App, and full-erase recovery: software-validated;
-  each still requires physical acceptance before customer use.
+## 6. Supported entry point
 
-A formal release also requires a clean Linux ARM64 build and verification on
-the oldest supported Jetson. No untested path is implied to be hardware
-accepted by the B02 result.
+Use `osracer-firmware-client` for all new deployments. The legacy
+`osracer_firmware_update.py` command is not distributed as a supported customer
+interface.
 
-Version 0.1 is maintained directly on `main`. Changes are limited to corrective
-fixes; feature expansion requires a separately approved development scope.
+## 7. License
 
-## 6. Legacy updater
-
-`osracer_firmware_update.py` is no longer a supported customer entry point and
-is not included in the new client. Its validated transport and configuration
-parsing logic remains only as an internal engine of `osracer-firmware-client`.
+Repository-owned source remains available under the root MIT license. The
+self-contained executable also packages GPL-2.0-or-later `esptool`, so the
+executable is distributed under GPL-2.0-or-later. Exact dependency versions,
+source links, and notices are listed in
+`osracer_firmware_client/THIRD_PARTY_NOTICES.txt`.

@@ -3,7 +3,7 @@
 ## Standalone firmware client
 
 The repository includes one Jetson Linux ARM64 firmware client with a CLI and a
-local browser interface. It embeds the approved official firmware packages,
+local browser interface. It embeds the supported official firmware packages,
 supports a strictly validated custom ESP32-S3 App image path, and provides an
 isolated full-erase recovery flow with mandatory raw NVS backup and two
 explicit confirmations.
@@ -20,16 +20,9 @@ Builds and operational boundaries are documented in the
 [`中文说明`](docs/firmware_client_zh.md) and
 [`English guide`](docs/firmware_client_en.md).
 
-Version 0.1 is in maintenance mode. Firmware-client changes are limited to
-corrective fixes on `main`; feature expansion requires a separately approved
-development scope.
-
-Version 0.1.1 embeds the exact `OSRACER_V1.1` B02 App
-`OSRF-C03-T006-s754f0664289e`. Its official-update path has passed Jetson and
-Red-vehicle acceptance, including NVS preservation, READY-state verification,
-approximately 200 Hz IMU output, motion, and stop. B01, custom App, and
-full-erase recovery paths have software coverage but still require their own
-physical acceptance before customer use.
+Version 0.1.1 includes the current supported official firmware resources. The
+client inspects the connected device, selects a compatible resource, preserves
+NVS during App-only updates, and verifies the device after reconnection.
 
 This repository is the ROS 2 runtime workspace for OSRacer vehicles. The
 documented AI runtime target is Jetson Orin Nano with JetPack 6.x, Ubuntu 22.04,
@@ -38,22 +31,15 @@ running the same ROS 2 contract. The installation steps below are for rebuilding
 the robot workspace or preparing another ROS 2 Humble machine; normal field use
 starts from the launch and demo commands after the vehicle has been deployed.
 
-## Current Maintenance Baseline
+## Supported ROS runtime
 
-- `main` is the active development line. Its Red profile launch baseline was
-  merged as `8dd6cb1f40937fbcd06aef8bd71d1d32ee28eaa7`; it pins
-  `osracer_base/main@f2c89dc300c407adb95b8b00bd1d828b6e95dbad` and no longer
-  contains a duplicate serial chassis driver.
-- `product/neo@c329c21614f0335d9a8c7a12d2e638a70293052f` remains the complete,
-  frozen Neo customer ROS delivery. It does not automatically adopt Base or
-  mainline changes.
-- The former main and dev histories remain available through
-  `archive/main-before-feat-demo-20260805@6843ab1` and
-  `archive/dev-before-cleanup-20260809@bb927c8`; there is no active dev branch.
-- New ROS application work goes to `main`. Chassis protocol/profile support is
-  developed in `osracer_base/main` and then pinned here by an explicit commit.
+The workspace uses the separately versioned `osracer_base` package as its
+single chassis driver. The exact compatible revision is declared in
+`osracer.repos`, and vehicle selection is explicit through the profile and
+profile-schema settings. Use only the firmware and profile combination specified
+for the connected vehicle.
 
-See [CHANGELOG.md](CHANGELOG.md) for the development record.
+See [CHANGELOG.md](CHANGELOG.md) for published feature and fix summaries.
 
 ## 1. Installation & Setup
 
@@ -61,10 +47,12 @@ See [CHANGELOG.md](CHANGELOG.md) for the development record.
 <summary>Click to expand</summary>
 
 ### 1.1 System Requirements
+
 - **OS**: Ubuntu 22.04 (Jammy Jellyfish)
 - **ROS Version**: [ROS 2 Humble](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debs.html)
 
 ### 1.2 Install ROS 2 Humble
+
 If you haven't installed ROS 2 Humble yet, follow these steps:
 
 ```bash
@@ -95,6 +83,7 @@ source ~/.bashrc
 ```
 
 ### 1.3 Install Dependencies
+
 Install necessary ROS 2 packages and tools:
 
 ```bash
@@ -117,6 +106,7 @@ sudo apt install ros-humble-nav2-bringup \
 ```
 
 ### 1.4 Serial Device Setup
+
 The chassis driver uses Python serial and the stable udev device
 `/dev/osrbot_base`. Configure serial permissions and install the packaged udev
 rules on the robot computer:
@@ -202,9 +192,11 @@ run on the Jetson.
 <summary>Click to expand</summary>
 
 ### 3.1 Chassis Control
+
 Launch the Ackermann chassis driver. You can choose between raw odometry or EKF-fused odometry (IMU + Encoders).
 
 **Architecture Overview:**
+
 ```mermaid
 graph TD
     A[Serial Port /dev/osrbot_base] --> B[osracer_chassis node]
@@ -226,11 +218,13 @@ graph TD
 **Usage Options:**
 
 1. **Standard Mode (Default):** Use internal encoder-based odometry.
+
    ```bash
    ros2 launch osracer_bringup chassis_ackermann.launch.py
    ```
 
 2. **EKF Mode (Recommended for SLAM):** Use EKF to fuse IMU and encoders for better position estimation.
+
    ```bash
    ros2 launch osracer_bringup chassis_ackermann.launch.py use_ekf:=true
    ```
@@ -241,7 +235,7 @@ in-repository serial chassis implementation has been removed; `osracer_base` is
 the only installed chassis driver on `main`.
 
 | Parameter | Default | Description |
-|-----------|---------|-------------|
+| --- | --- | --- |
 | `use_ekf` | `false` | Enable/Disable Robot Localization (EKF) |
 | `publish_tf` | `auto` | Auto-set to `true` if EKF is off, `false` if EKF is on |
 | `port_name` | `/dev/osrbot_base` | Serial device port |
@@ -397,17 +391,19 @@ controller safety and overtaking smoke tests:
 ros2 launch osracer_sim race_sim.launch.py stage:=gap_follow obstacle_preset:=front
 ```
 
-See `osracer_sim/SIM_DEVELOPMENT_PLAN_zh.md` for the recommended simulation
-development route: kinematic first, Gazebo scene and bridge second, Gazebo joint
-control third, and calibrated vehicle dynamics last.
+See `osracer_sim/SIM_ARCHITECTURE_zh.md` for the supported simulation layers,
+interfaces, Gazebo integration, and model limitations.
 
 ### 3.2 Sensors
+
 **Lidar:**
+
 ```bash
 ros2 launch osracer_bringup lidar.launch.py
 ```
 
 **USB Camera:**
+
 ```bash
 ros2 launch osracer_bringup usb_cam.launch.py
 ```
@@ -423,6 +419,7 @@ ros2 run camera_calibration cameracalibrator --size 8x6 --square 0.03 image:=/rg
 ```
 
 ### 3.3 Debugging & Visualization
+
 View sensor data individually:
 
 ```bash
@@ -532,17 +529,18 @@ The inference node subscribes to `/odometry/filtered` and `/imu_filter`, builds 
 
 The OSRacer uses a two-layer magnetometer calibration system. The **ROS layer** (`osracer_calib`) fits an ellipsoid to raw sensor data and publishes the result as a latched topic. The **MCU layer** (`osrbot_tool.py`) stores the same calibration in the microcontroller's non-volatile flash so the firmware can apply corrections at the hardware level.
 
-
 <details>
 <summary>Click to expand</summary>
 
 ### 4.1 Calibration Concept
 
 Raw magnetometer readings form an ellipsoid in 3D space due to:
+
 - **Hard-iron distortion** — constant offset caused by permanent magnets and DC currents on the chassis.
 - **Soft-iron distortion** — axis-dependent scaling caused by ferromagnetic materials near the sensor.
 
 The calibration computes:
+
 - `b` (hard-iron vector, 3 values, unit: Tesla) — the ellipsoid center offset.
 - `A` (soft-iron matrix, 3×3 = 9 values, dimensionless) — rescales the ellipsoid back to a sphere.
 
@@ -551,6 +549,7 @@ Corrected reading: `B_cal = A × (B_raw − b)`
 ### 4.2 ROS-Side Calibration (`osracer_calib`)
 
 **Step 1 — Launch the chassis and calibration nodes:**
+
 ```bash
 # Terminal 1: chassis driver (must be running to publish magnetometer_data)
 ros2 launch osracer_bringup chassis_ackermann.launch.py
@@ -560,16 +559,19 @@ ros2 launch osracer_calib mag_calibration.launch.py
 ```
 
 **Step 2 — Start data collection:**
+
 ```bash
 ros2 service call /mag_calibration_node/start_calibration std_srvs/srv/Trigger {}
 ```
 
 **Step 3 — Rotate the robot** through all orientations (roll, pitch, yaw) until at least 200 samples are collected. Watch the status topic for progress:
+
 ```bash
 ros2 topic echo /mag_calibration_node/status
 ```
 
 **Step 4 — Stop and fit:**
+
 ```bash
 ros2 service call /mag_calibration_node/stop_calibration std_srvs/srv/Trigger {}
 ```
@@ -579,14 +581,14 @@ The node fits an ellipsoid to the samples, publishes the result to `/mag_bias` (
 **Topic encoding of `/mag_bias`:**
 
 | Field | Content |
-|---|---|
+| --- | --- |
 | `magnetic_field` | Hard-iron vector `b` [T] |
 | `magnetic_field_covariance[0..8]` | Soft-iron matrix `A` (3×3, row-major) |
 
 **Key parameters** (`osracer_calib/config/mag_calibration.yaml`):
 
 | Parameter | Default | Description |
-|---|---|---|
+| --- | --- | --- |
 | `mag_topic` | `magnetometer_data` | Raw input topic from chassis driver |
 | `mag_bias_topic` | `mag_bias` | Output topic for calibration result |
 | `min_samples` | `200` | Minimum samples required before fitting |
@@ -598,11 +600,13 @@ The node fits an ellipsoid to the samples, publishes the result to `/mag_bias` (
 After the ROS-side calibration is complete, push the 12 values (3 hard-iron + 9 soft-iron) to the MCU's NVS flash so the firmware also applies the correction.
 
 **Launch the serial debug tool:**
+
 ```bash
 python3 osracer_bringup/script/osrbot_tool.py
 ```
 
 **Read the calibration result** from `result.yaml` or the `/mag_bias` topic, then send it to the MCU:
+
 ```bash
 # mc set hx hy hz  s00 s01 s02  s10 s11 s12  s20 s21 s22
 mc set 0.000008 -0.000020 0.000015  0.998 0.002 -0.001  0.002 1.001 0.000  -0.001 0.000 0.999
@@ -611,14 +615,14 @@ mc set 0.000008 -0.000020 0.000015  0.998 0.002 -0.001  0.002 1.001 0.000  -0.00
 **Other MCU mag commands:**
 
 | Command | Description |
-|---|---|
+| --- | --- |
 | `mc get` | Query current MCU calibration values |
 | `mc reset` | Reset MCU calibration to identity (no correction) |
 | `mc cal [sec]` | Run onboard timed calibration (default 30 s, rotate 360°) |
 
 ### 4.4 Full Calibration Workflow Summary
 
-```
+```text
 1. ros2 launch osracer_bringup chassis_ackermann.launch.py
 2. ros2 launch osracer_calib mag_calibration.launch.py
 3. ros2 service call .../start_calibration  →  rotate robot  →  .../stop_calibration
@@ -635,34 +639,45 @@ After step 3, the ROS EKF/heading pipeline uses the calibration automatically (l
 ## 5. SLAM & Mapping
 
 ### 5.1 GMapping
+
 Launch GMapping SLAM:
+
 ```bash
 ros2 launch osracer_slam gmapping.launch.py
 ```
+
 Visualize GMapping:
+
 ```bash
 ros2 launch osracer_debug debug_mapping.launch.py 
 ```
 
 ### 5.2 Cartographer
+
 Launch Cartographer SLAM:
+
 ```bash
 ros2 launch osracer_slam cartographer.launch.py
 ```
+
 Visualize Cartographer:
+
 ```bash
 ros2 launch osracer_debug debug_cartographer.launch.py 
 ```
 
 ### 5.3 Save Map
+
 Save the generated map to disk:
 
 **For GMapping / Default:**
+
 ```bash
 ros2 launch osracer_slam map_save.launch.xml
 ```
 
 **For Cartographer:**
+
 ```bash
 ros2 launch osracer_slam map_save_cartographer.launch.xml
 ```
@@ -672,31 +687,39 @@ ros2 launch osracer_slam map_save_cartographer.launch.xml
 ## 6. Navigation
 
 ### 6.1 Navigation with SLAM (Recommended)
+
 Launch navigation while building a map simultaneously. Default planner: **TEB** (optimized for Ackermann steering).
 
 #### Switch Local Planner
+
 **Use DWB Planner:**
+
 ```bash
 ros2 launch osracer_navigation bringup_launch.py slam:=True planner:=dwb
 ```
 
 **Use TEB Planner (Default):**
+
 ```bash
 ros2 launch osracer_navigation bringup_launch.py slam:=True planner:=teb
 ```
 
 **Use Custom Parameter File:**
+
 ```bash
 ros2 launch osracer_navigation bringup_launch.py slam:=True params_file:=/path/to/custom_params.yaml
 ```
 
 #### Nav with Rviz2
+
 ```bash
 ros2 launch osracer_debug debug_navigation.launch.py
 ```
 
 ### 6.2 Navigation with Existing Map
+
 Navigate within a pre-built map using localization (AMCL) without online SLAM.
+
 ```bash
 ros2 launch osracer_navigation nav2.launch.py use_planner:=teb use_map:=/path/to/your/map.yaml  # teb
 
@@ -704,12 +727,12 @@ ros2 launch osracer_navigation nav2.launch.py use_planner:=dwb use_map:=/path/to
 ```
 
 Or use the default map with dwb local planner:
+
 ```bash
 ros2 launch osracer_navigation nav2.launch.py use_planner:=teb
 
 ros2 launch osracer_navigation nav2.launch.py use_planner:=dwb
 ```
-
 
 > **Note:** TEB is recommended for Ackermann vehicles due to its kinematic constraint support (`min_turning_radius`, `wheelbase`).
 
@@ -717,9 +740,12 @@ ros2 launch osracer_navigation nav2.launch.py use_planner:=dwb
 
 ## 7. Authors
 
-- **Zhihao ZHANG** - [zhangzhihao0618@gmail.com](mailto:zhangzhihao0618@gmail.com)
+- **Zhihao ZHANG**
 - **Kit So**
 - **Jintai WANG**
+- **dajianli**
+
+Project contact: [winter@osrbot.com](mailto:winter@osrbot.com)
 
 ## 8. License
 

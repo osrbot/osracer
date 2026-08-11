@@ -5,7 +5,7 @@
   <version>0.1.0</version>
   <description>Lightweight OSRacer simulation launch files and kinematic Ackermann simulator.</description>
 
-  <maintainer email="osrbot@osrbot.com">osrbot</maintainer>
+  <maintainer email="winter@osrbot.com">osrbot</maintainer>
   <license>MIT</license>
 
   <buildtool_depend>ament_python</buildtool_depend>

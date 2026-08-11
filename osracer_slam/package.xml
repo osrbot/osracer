@@ -3,7 +3,7 @@
   <name>osracer_slam</name>
   <version>0.1.0</version>
   <description>SLAM launch files, parameters, and map-save helpers for OSRacer.</description>
-  <maintainer email="osrbot@osrbot.com">osrbot</maintainer>
+  <maintainer email="winter@osrbot.com">osrbot</maintainer>
   <license>MIT</license>
   <buildtool_depend>ament_cmake</buildtool_depend>
   <build_depend>rclcpp</build_depend>

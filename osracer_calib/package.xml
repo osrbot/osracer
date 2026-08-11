@@ -10,7 +10,7 @@
     with magnetometer_pipeline/bias_remover.
   </description>
 
-  <maintainer email="osrbot@osrbot.com">osrbot</maintainer>
+  <maintainer email="winter@osrbot.com">osrbot</maintainer>
   <license>MIT</license>
 
   <buildtool_depend>ament_python</buildtool_depend>

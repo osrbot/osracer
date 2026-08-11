@@ -4,8 +4,8 @@
 `osracer_race` 四阶段算法先在无真车环境下跑通接口链路；它不是高保真轮胎、
 差速器或电机动力学模型。
 
-仿真开发路线和 Gazebo 取舍见
-`SIM_DEVELOPMENT_PLAN_zh.md`，验收指标见 `SIM_VALIDATION_zh.md`。
+仿真架构、能力和模型边界见 `SIM_ARCHITECTURE_zh.md`，验收指标见
+`SIM_VALIDATION_zh.md`。
 
 ## 设计边界
 

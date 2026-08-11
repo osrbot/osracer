@@ -1,96 +1,83 @@
-# OSRacer Race 四阶段开发清单
+# OSRacer Race 功能阶段与适用范围
 
-本文档用于审查 `osracer_race` 的阶段覆盖情况。比赛包不修改底层固件；导航包仅同步
-与实车阿克曼几何直接相关的参数。
+`osracer_race` 按四个功能阶段组织无地图行驶、轨迹跟踪、车辆参数观测和高级
+控制算法。各阶段共用最终速度/转角限制与安全停车链路，不修改底层固件。
 
-## 第一阶段：安全无地图跑圈
+## 第一阶段：安全无地图行驶
 
-目标：低速自主跑圈，前方危险时停车。
+适用于低速避障、基础赛道演示和安全链路验证。
 
-已实现：
+主要功能：
 
-- `safety_node.py`：LiDAR + 当前速度 TTC 急停。
-- `gap_follow_node.py`：Follow-the-Gap 无地图跑圈。
-- `speed_profile_node.py`：最终命令限幅，包含速度、制动、转角、横向加速度和 safety stop 限制。
-  上游控制器命令超时后会主动发布停车命令。
-- `lap_timer_node.py`：基于里程计起点区域的圈速统计。
-- `gap_follow.launch.py`：启动安全、Gap Follow、限幅和圈速节点。
-- `race_bringup.launch.py controller:=gap_follow`：一键启动整车 bringup 和无地图比赛模式。
+- `safety_node.py`：根据 LiDAR 和当前速度执行 TTC 安全停车；
+- `gap_follow_node.py`：执行 Follow-the-Gap 无地图控制；
+- `speed_profile_node.py`：限制速度、制动、转角和横向加速度，并处理安全停车
+  与上游命令超时；
+- `lap_timer_node.py`：基于里程计起点区域统计圈速；
+- `gap_follow.launch.py`：启动安全、Gap Follow、限幅和圈速节点；
+- `race_bringup.launch.py controller:=gap_follow`：同时启动整车 bringup 和
+  无地图控制链路。
 
-## 第二阶段：有地图轨迹跟踪
+## 第二阶段：轨迹录制与跟踪
 
-目标：基于 raceline 稳定跟踪，支持速度剖面。
+适用于已知赛道的 raceline 录制、速度剖面生成和闭环轨迹跟踪。
 
-已实现：
+主要功能：
 
-- `raceline_tools.py`：从 CSV 轨迹生成曲率和速度剖面。
-- `track_recorder_node.py`：从 `/odometry/filtered` 录制 `x,y,speed` 轨迹 CSV。
-- `pure_pursuit_node.py`：Pure Pursuit 跟踪。
-- `stanley_node.py`：Stanley 跟踪。
-- `obstacle_overtake_node.py`：有地图控制器前方近距离障碍绕行中间层。
-- `track_record.launch.py`：启动轨迹录制。
-- `pure_pursuit.launch.py`、`stanley.launch.py`：启动安全、跟踪、绕行、限幅、圈速和评测。
-- `config/tracks/example_raceline.csv`：示例 raceline。
+- `track_recorder_node.py`：将 `/odometry/filtered` 记录为轨迹 CSV；
+- `raceline_tools.py`：根据轨迹生成曲率和目标速度；
+- `track_record.launch.py`：启动轨迹录制；
+- `pure_pursuit_node.py`：执行 Pure Pursuit 跟踪；
+- `stanley_node.py`：执行 Stanley 跟踪；
+- `obstacle_overtake_node.py`：在轨迹控制链路中提供低速障碍物绕行；
+- `pure_pursuit.launch.py` 和 `stanley.launch.py`：组合安全、跟踪、绕行、
+  限幅、圈速与评测节点；
+- `config/tracks/example_raceline.csv`：提供轨迹文件格式示例。
 
-## 第三阶段：车辆能力标定
+## 第三阶段：车辆能力观测
 
-目标：把实车能力从估计值转为观测值。
+适用于在封闭安全场地记录车辆响应数据，为控制参数调整提供依据。
 
-已实现：
+`vehicle_id_node.py` 可观测以下指标：
 
-- `vehicle_id_node.py`：观测最高速度、最大加速度、最大制动减速度、
-  最大 yaw rate、最大横向加速度、最小转弯半径、速度响应时间常数和
-  转向响应延迟。
-- `vehicle_id.launch.py`：启动车辆辨识节点。
-- 默认输出 `/tmp/osracer_vehicle_identified.yaml`。
+- 最高速度；
+- 最大加速度和制动减速度；
+- 最大横摆角速度和横向加速度；
+- 最小转弯半径；
+- 速度响应时间常数；
+- 转向响应延迟。
 
-待实车继续增强：
+`vehicle_id.launch.py` 用于启动观测节点，默认结果写入
+`/tmp/osracer_vehicle_identified.yaml`。观测结果取决于测试场地、车辆状态和
+输入动作，不应直接作为其他车辆的通用参数。
 
-- 多组速度阶跃下的电机响应曲线拟合。
-- 多组转向阶跃下的舵机响应曲线拟合。
-- 打滑阈值辨识。
+## 第四阶段：高级控制与算法比较
 
-## 第四阶段：高级比赛/科研算法
+适用于教学、研究和低速算法评估。
 
-目标：支持算法对比、绕行和早期 MPC 实验。
+主要功能：
 
-已实现：
+- `mpc_controller_node.py`：轻量 kinematic shooting controller；
+- `mpc.launch.py`：组合安全、MPC、绕行、限幅、圈速和评测节点；
+- `race_evaluator_node.py`：记录速度、命令、横向误差和航向误差；
+- `race_report_tools.py`：汇总一个或多个评测 CSV；
+- `race_bringup.launch.py controller:=mpc`：启动整车 bringup 和 MPC
+  控制链路。
 
-- `mpc_controller_node.py`：轻量 kinematic shooting controller，按实车加减速和
-  速度响应时间裁剪可达速度候选，并结合 raceline 目标速度和路径进度选择命令。
-- `mpc.launch.py`：启动安全、MPC、绕行、限幅、圈速和评测。
-- `race_evaluator_node.py`：记录速度、命令、横向误差和航向误差 CSV。
-- `race_report_tools.py`：汇总一个或多个评测 CSV，便于算法对比。
-- `race_bringup.launch.py controller:=mpc`：一键启动整车 bringup 和 MPC 模式。
+当前 MPC 和障碍物绕行属于实验性功能，不能替代最终安全层、遥控接管或底层
+急停。高速使用前必须完成低速递进验证。
 
-待实车继续增强：
+## 功能成熟度
 
-- LTV-MPC 或非线性 MPC 替换当前轻量 shooting controller。
-- 对手车识别和多车超车策略。
-- 与真实赛道地图/轨迹优化器联动。
+| 功能 | 状态 | 使用边界 |
+| --- | --- | --- |
+| TTC 安全停车与 Gap Follow | 可用 | 从 `race_safe.yaml` 和低速场地开始 |
+| 轨迹录制、Pure Pursuit、Stanley | 可用 | 需要有效 odom、raceline 和安全限幅 |
+| 车辆能力观测 | 可用 | 输出仅适用于被测车辆和测试条件 |
+| 轻量 MPC 与障碍物绕行 | 实验性 | 仅用于研究和低速验证 |
 
-## 当前验证状态
+## 使用与验证
 
-本机已完成：
-
-- Python/launch 编译。
-- `package.xml` XML 解析。
-- YAML 参数解析。
-- helper 模块 import smoke test。
-- `raceline_tools` 和 `race_report_tools` 离线实跑。
-- 离线单元测试。
-- `scripts/check_race_package.sh` 自检脚本；在 ROS/colcon 存在时会自动构建 `osracer_race`。
-- `scripts/validate_race_ros.sh` 车端 ROS 验证脚本；构建后检查资源、CLI、launch 参数和可选 topic。
-- 安装布局模拟检查，覆盖安装后的 share 资源、文档、launch、脚本和测试。
-- 缓存、PDF、固件、分区表、隐私关键词扫描。
-- `ROS_VALIDATION_zh.md` ROS/实车验证清单。
-
-本机未完成：
-
-- 连接真实硬件后的 ROS topic 运行态检查。
-- 实车测试。
-
-未完成原因：串口、LiDAR、相机、RViz 和实车运动验证必须在车端 Jetson Orin Nano
-或连接真实车辆的 ROS 2 Humble 环境执行。
-
-ROS/实车验证步骤见 `ROS_VALIDATION_zh.md`。
+安装、参数和启动命令见 [`README_zh.md`](README_zh.md)。ROS 入口检查、低速
+安全验证、轨迹录制和控制器验证步骤见
+[`ROS_VALIDATION_zh.md`](ROS_VALIDATION_zh.md)。
