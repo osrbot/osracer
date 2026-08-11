@@ -22,7 +22,8 @@ class ConsoleEventRenderer:
         self._last_progress = -1
 
     def __call__(self, event: dict[str, Any]) -> None:
-        phase = str(event.get("phase", "operation")).replace("_", " ").title()
+        phase_key = str(event.get("phase", "operation"))
+        phase = phase_key.replace("_", " ").title()
         status = event.get("status")
         message = event.get("message", "")
         if status == "progress":
@@ -37,9 +38,13 @@ class ConsoleEventRenderer:
             return
         self.output(f"[{phase}] {message}")
         details = event.get("details", {})
+        digest_label = {
+            "validate": "App SHA256",
+            "backup": "Backup file SHA256",
+        }.get(phase_key, "SHA256")
         for label, key in (
             ("Backup file", "path"),
-            ("Backup SHA256", "sha256"),
+            (digest_label, "sha256"),
             ("Audit log", "audit_path"),
             ("Raw NVS backup", "raw_nvs_path"),
         ):

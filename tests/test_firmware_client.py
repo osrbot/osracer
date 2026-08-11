@@ -18,6 +18,7 @@ from osracer_firmware_client.bundles import (
     match_official_bundle,
     parse_partition_table,
 )
+from osracer_firmware_client.cli import ConsoleEventRenderer
 from osracer_firmware_client.images import ImageValidationError, validate_application_file
 from osracer_firmware_client.operations import ClientSettings, FirmwareClient
 from osracer_firmware_client.rom import RomSecurityInfo
@@ -240,6 +241,31 @@ class FakeRomFactory:
 
 
 class BundleAndImageTest(unittest.TestCase):
+    def test_console_renderer_labels_application_and_backup_digests(self):
+        lines = []
+        renderer = ConsoleEventRenderer(lines.append)
+
+        renderer(
+            {
+                "phase": "validate",
+                "status": "completed",
+                "message": "Custom application validated",
+                "details": {"sha256": "a" * 64},
+            }
+        )
+        renderer(
+            {
+                "phase": "backup",
+                "status": "completed",
+                "message": "Vehicle parameter backup stored",
+                "details": {"sha256": "b" * 64},
+            }
+        )
+
+        self.assertIn(f"  App SHA256: {'a' * 64}", lines)
+        self.assertIn(f"  Backup file SHA256: {'b' * 64}", lines)
+        self.assertNotIn(f"  Backup SHA256: {'a' * 64}", lines)
+
     def test_embedded_bundles_are_exact_and_neutrally_named(self):
         bundles = load_bundles()
         self.assertEqual(tuple(bundles), ("B01", "B02"))
