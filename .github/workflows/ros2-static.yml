@@ -156,7 +156,7 @@ jobs:
           rosdep install \
             --from-paths "$RUNNER_TEMP/osracer_ws/src" \
             --ignore-src --rosdistro humble \
-            --dependency-types build buildtool build_export test \
+            --dependency-types build,buildtool,build_export,test \
             --skip-keys ament_python -y
 
       - name: Run Base protocol and mismatch regression
