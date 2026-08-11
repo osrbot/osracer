@@ -42,7 +42,7 @@ def pure_pursuit_command(raceline, x, y, yaw, params):
 
     wheelbase = params['wheelbase']
     steering = math.atan2(2.0 * wheelbase * math.sin(target_angle), lookahead)
-    max_steering = math.radians(params['max_steering_angle_deg'])
+    max_steering = params['max_steering_angle']
     steering = clamp(steering, -max_steering, max_steering)
 
     fallback_curvature = abs(2.0 * math.sin(target_angle) / max(lookahead, 1e-3))
@@ -66,7 +66,7 @@ def stanley_command(raceline, x, y, yaw, current_speed, params):
         params['stanley_gain'] * cross_track_error,
         speed_for_gain + params['softening_speed_mps'],
     )
-    max_steering = math.radians(params['max_steering_angle_deg'])
+    max_steering = params['max_steering_angle']
 
     desired_speed = point_speed(p0, params['default_speed_mps'])
     curvature = point_curvature(p0)

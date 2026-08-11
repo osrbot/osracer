@@ -6,22 +6,28 @@
 
 ## 车辆参数
 
-当前默认车辆参数来自实车：
+当前车型参数已经确定。与编码器速度和里程计算直接相关的轮半径、减速比和
+编码器 PPR 以 `osrcore/main` 的 Red profile 为准；ROS 侧轴距、轮距、质量和
+Ackermann 模型参数由 Base/Race 配置维护：
 
-- 比例：1/10 阿克曼赛车
-- 差速器：40T/13T
-- 主传动：48T/14T
-- 总减速比：10.55:1
-- 轮径：85 mm
-- 轮半径：0.0425 m
-- 轴距：0.285 m
-- 轮距：0.215 m
-- 重量：约 3.2 kg
-- 电机空载转速：11000 RPM
-- 编码器：1024 线，单倍频
-- 理论空载最高速度：约 4.64 m/s
-- 默认最大转向角：30 deg
-- 默认最小转弯半径：0.50 m
+| 参数 | 当前值 | 来源与状态 |
+| --- | ---: | --- |
+| 比例 | 1/10 阿克曼赛车 | 产品类别 |
+| 轴距 | `0.285 m` | Base `red.yaml` 当前车型值 |
+| 最大转向角 | `30 deg` | Base `red.yaml` 软件上限 |
+| Profile 速度上限 | `4.64 m/s` | Base 软件上限，不是首次实车测试速度 |
+| 轮径 / 轮半径 | `85 mm / 0.0425 m` | `osrcore` Red profile 权威值 |
+| 轮距 | `0.215 m` | 当前 ROS 车型几何值 |
+| 质量 | `3.2 kg` | 当前整车模型值 |
+| 差速器 / 主传动 | `40T/13T`、`48T/14T` | 当前机械配置 |
+| 总减速比 | `10.55:1` | `osrcore` Red profile 权威值 |
+| 电机空载转速 | `11000 RPM` | 当前电机参数 |
+| 编码器 | `1024` 线、单倍频 | `osrcore` Red profile PPR 与当前 ROS 换算约定 |
+| 最小转弯半径 | `0.50 m` | 当前 Ackermann 模型值 |
+
+`race_safe.yaml` 和 `race_fast.yaml` 是比赛算法配置，不是首次上车验收限速。
+这些值不需要为本轮迁移再次测量。只有更换车型、轮胎、齿轮、电机、编码器或
+转向机构时，才重新建立参数变更记录并同步 `osrcore`、Base、Race 和 Lab。
 
 参数文件：
 
@@ -146,7 +152,8 @@ bash $(ros2 pkg prefix osracer_race)/share/osracer_race/scripts/validate_race_ro
 
 ## 参数文件说明
 
-- `vehicle.yaml`：实车几何、传动、编码器、电机、重量和理论速度参数。
+- `osracer_base/config/vehicles/red.yaml`：运行时轴距、Profile 速度上限和最大转角的唯一来源。
+- `vehicle.yaml`：当前车型的轮距、传动、电机、重量和 Ackermann 模型参数；轮半径、减速比和编码器 PPR 必须与 `osrcore` Red profile 一致，不重复 Base 运行参数。
 - `race_safe.yaml`：默认低速参数，首次上车必须使用。
 - `race_fast.yaml`：完整高速运行参数文件，只有在低速安全验证通过后使用。
 
@@ -158,7 +165,7 @@ bash $(ros2 pkg prefix osracer_race)/share/osracer_race/scripts/validate_race_ro
 - `max_accel_mps2` / `max_brake_mps2`：加速和制动斜率限制。
 - `speed_response_time_s`：MPC 估算可达速度候选时使用的速度响应时间。
 - `target_speed_weight` / `progress_weight`：MPC 的 raceline 速度跟踪和路径前进奖励权重。
-- `max_steering_angle_deg`：上位机转角限幅，默认 30 deg。
+- `max_steering_angle`：由 Base Profile 提供的弧度制上位机转角限幅。
 - `ttc_threshold_s` / `emergency_distance_m`：LiDAR 急停阈值。
 - `command_timeout_s` / `scan_timeout_s`：上游控制命令和 `/scan` 断流停车时间。
 
@@ -337,8 +344,9 @@ ros2 launch osracer_race vehicle_id.launch.py \
   `observed_max_lateral_accel_mps2`、`observed_min_turning_radius_m` 和
   `observed_steering_response_delay_s`。
 
-生成的 YAML 不会自动覆盖运行参数。建议人工审查后，再把可信结果同步到
-`vehicle.yaml` 或运行参数中。
+生成的 YAML 不会自动覆盖运行参数。建议人工审查后，将轴距、Profile 速度上限和
+最大转角同步到 `osracer_base` 对应 Profile；其余赛道参考参数保留在
+`vehicle.yaml`。
 
 ## 第四阶段：高级控制
 

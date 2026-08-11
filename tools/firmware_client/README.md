@@ -128,14 +128,14 @@ the displayed backup and audit paths and follow the result guidance.
 Build the customer executable on Linux ARM64:
 
 ```bash
-tools/build_firmware_client.sh
+tools/firmware_client/build.sh
 ```
 
 Outputs:
 
 ```text
-dist/firmware-client/osracer-firmware-client
-dist/firmware-client/osracer-firmware-client.sha256
+tools/firmware_client/dist/firmware-client/osracer-firmware-client
+tools/firmware_client/dist/firmware-client/osracer-firmware-client.sha256
 ```
 
 The build uses pinned dependencies and verifies the command-line interface,

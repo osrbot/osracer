@@ -11,6 +11,9 @@ def generate_launch_description():
     world = LaunchConfiguration('world')
     world_without_model = LaunchConfiguration('world_without_model')
     models_path = PathJoinSubstitution([FindPackageShare('osracer_sim'), 'models'])
+    base_profile = PathJoinSubstitution([
+        FindPackageShare('osracer_base'), 'config', 'vehicles', 'red.yaml'
+    ])
 
     base_sim = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(PathJoinSubstitution([
@@ -62,7 +65,7 @@ def generate_launch_description():
         executable='gazebo_ackermann_bridge_node',
         name='osracer_gazebo_ackermann_bridge',
         output='screen',
-        parameters=[{
+        parameters=[base_profile, {
             'ackermann_topic': LaunchConfiguration('ackermann_topic'),
         }],
         condition=IfCondition(LaunchConfiguration('use_gz_control')),

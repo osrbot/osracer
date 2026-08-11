@@ -3,6 +3,42 @@
 This changelog records user-visible features, compatibility updates, fixes, and
 operational limitations included in published releases.
 
+## [Unreleased]
+
+### ROS runtime integration
+
+- Uses the pinned `osracer_base` Red vehicle profile as the single source for
+  wheelbase, chassis speed limit, and maximum steering angle in bringup, race,
+  and simulation packages.
+- Keeps product launch files responsible only for runtime wiring such as the
+  serial port, frames, topics, and feature switches.
+- Assigns the chassis udev rule exclusively to `osracer_base`; the optional
+  bringup installer now manages only camera and LED accessory rules.
+- Aligns the description URDF wheelbase, track width, and wheel mesh radius with
+  the approved `0.285 / 0.215 / 0.0425 m` vehicle projection used by Race and
+  Sim.
+
+### Maintenance
+
+- Keeps only the standalone firmware client under `tools/`; policy inference,
+  Jetson measurement, TensorRT, and Sim2Real utilities move to `osracer_lab`.
+- Retains the supported firmware-client operations and embedded resources while
+  removing the superseded internal updater implementation.
+- Expands CI to build and test the complete maintained ROS workspace, validate
+  installed reference launches, and start the chassis launch against a missing
+  serial device without terminating the runtime.
+
+### Documentation
+
+- Documents the agreed parameter authority: firmware speed/odometry parameters
+  follow `osrcore`, ROS geometry follows Base/Race, and stale Lab geometry is an
+  alignment defect rather than an alternate parameter set requiring remeasurement.
+- Links the maintained hardware inventory and real-car measurement worksheet in
+  `osracer_lab` from the advanced-development section.
+- Documents the complete one-way Core to Base to OSRacer to Lab dependency
+  chain and treats repeated Race, Sim, and Lab geometry only as checked
+  projections of the approved vehicle specification.
+
 ## [0.1.1] - 2026-08-11
 
 ### Standalone firmware client

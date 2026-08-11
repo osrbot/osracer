@@ -40,24 +40,6 @@ def generate_launch_description():
         description='IMU sensor TF frame name'
     )
     
-    wheelbase_arg = DeclareLaunchArgument(
-        'wheelbase',
-        default_value='0.285',
-        description='Vehicle wheelbase (meters)'
-    )
-
-    max_speed_arg = DeclareLaunchArgument(
-        'max_speed',
-        default_value='4.64',
-        description='ROS-side chassis speed limit (meters/second)'
-    )
-    
-    max_steering_angle_arg = DeclareLaunchArgument(
-        'max_steering_angle_deg',
-        default_value='30.0',
-        description='Maximum steering angle (degrees)'
-    )
-
     cmd_timeout_arg = DeclareLaunchArgument(
         'cmd_watchdog_timeout_s',
         default_value='0.5',
@@ -132,29 +114,22 @@ def generate_launch_description():
         description='Map coordinate frame name'
     )
 
+    base_profile = PathJoinSubstitution([
+        FindPackageShare('osracer_base'),
+        'config', 'vehicles', 'red.yaml'
+    ])
+
     # Chassis node
     osracer_chassis_node = Node(
         package='osracer_base',
         executable='chassis_driver',
         name='osracer_chassis',
-        parameters=[{
+        parameters=[base_profile, {
             'port': LaunchConfiguration('port_name'),
             'baudrate': ParameterValue(LaunchConfiguration('baud_rate'), value_type=int),
-            'vehicle_profile': 'red',
-            'profile_schema': 1,
             'odom_frame_id': LaunchConfiguration('odom_frame'),
             'base_frame_id': LaunchConfiguration('base_frame'),
             'imu_frame_id': LaunchConfiguration('imu_frame'),
-            'wheelbase': ParameterValue(LaunchConfiguration('wheelbase'), value_type=float),
-            'max_speed': ParameterValue(LaunchConfiguration('max_speed'), value_type=float),
-            'speed_mode': 'high',
-            'max_steering_angle': ParameterValue(
-                PythonExpression([
-                    LaunchConfiguration('max_steering_angle_deg'),
-                    ' * 0.017453292519943295'
-                ]),
-                value_type=float
-            ),
             'cmd_timeout': ParameterValue(
                 LaunchConfiguration('cmd_watchdog_timeout_s'),
                 value_type=float
@@ -252,9 +227,6 @@ def generate_launch_description():
         odom_frame_arg,
         base_frame_arg,
         imu_frame_arg,
-        wheelbase_arg,
-        max_speed_arg,
-        max_steering_angle_arg,
         cmd_timeout_arg,
         reconnect_interval_arg,
         firmware_version_timeout_arg,

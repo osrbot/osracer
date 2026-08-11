@@ -92,7 +92,7 @@ def rollout_cost(raceline, x, y, yaw, speed, steering, speed_now, params):
 
 
 def mpc_command(raceline, x, y, yaw, speed_now, params):
-    max_steer = math.radians(params['max_steering_angle_deg'])
+    max_steer = params['max_steering_angle']
     max_speed = params['max_straight_speed_mps']
     min_speed = params['min_speed_mps']
     best_cost = math.inf

@@ -41,7 +41,7 @@ source_osracer_env() {
     set -u
   else
     echo "ERROR: osracer workspace setup not found."
-    echo "Set OSRACER_WS=/home/racecar/osracer_ws or build/source the workspace first."
+    echo "Set OSRACER_WS=~/osracer_ws or build/source the workspace first."
     exit 1
   fi
 }

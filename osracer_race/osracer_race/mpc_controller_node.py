@@ -14,8 +14,8 @@ class MpcControllerNode(RaceControllerMixin, Node):
         super().__init__('mpc_controller_node')
         self.declare_parameter('odom_topic', '/odometry/filtered')
         self.declare_parameter('raceline_file', '')
-        self.declare_parameter('wheelbase', 0.285)
-        self.declare_parameter('max_steering_angle_deg', 30.0)
+        self.declare_parameter('wheelbase')
+        self.declare_parameter('max_steering_angle')
         self.declare_parameter('max_straight_speed_mps', 3.0)
         self.declare_parameter('min_speed_mps', 0.8)
         self.declare_parameter('max_accel_mps2', 2.5)
@@ -57,7 +57,7 @@ class MpcControllerNode(RaceControllerMixin, Node):
     def controller_params(self):
         return {
             'wheelbase': float(self.get_parameter('wheelbase').value),
-            'max_steering_angle_deg': float(self.get_parameter('max_steering_angle_deg').value),
+            'max_steering_angle': float(self.get_parameter('max_steering_angle').value),
             'max_straight_speed_mps': float(self.get_parameter('max_straight_speed_mps').value),
             'min_speed_mps': float(self.get_parameter('min_speed_mps').value),
             'max_accel_mps2': float(self.get_parameter('max_accel_mps2').value),

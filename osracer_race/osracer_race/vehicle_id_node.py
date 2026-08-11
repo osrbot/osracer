@@ -18,11 +18,11 @@ class VehicleIdNode(Node):
         self.declare_parameter('log_period_s', 1.0)
         self.declare_parameter('output_file', '/tmp/osracer_vehicle_identified.yaml')
         self.declare_parameter('wheel_radius', 0.0425)
-        self.declare_parameter('wheelbase', 0.285)
+        self.declare_parameter('wheelbase')
         self.declare_parameter('track_width', 0.215)
         self.declare_parameter('gear_ratio', 10.55)
         self.declare_parameter('mass_kg', 3.2)
-        self.declare_parameter('max_steering_angle_deg', 30.0)
+        self.declare_parameter('max_steering_angle')
         self.observation = VehicleObservation()
         self.create_subscription(
             Odometry, self.get_parameter('odom_topic').value, self.odom_callback, 10)
@@ -61,7 +61,7 @@ class VehicleIdNode(Node):
             'track_width': self.get_parameter('track_width').value,
             'gear_ratio': self.get_parameter('gear_ratio').value,
             'mass_kg': self.get_parameter('mass_kg').value,
-            'max_steering_angle_deg': self.get_parameter('max_steering_angle_deg').value,
+            'max_steering_angle': self.get_parameter('max_steering_angle').value,
         }
 
 

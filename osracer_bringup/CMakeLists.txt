@@ -16,8 +16,6 @@ ament_python_install_package(script)
 # Install Python executables
 install(PROGRAMS
   script/led_matrix.py
-  script/policy_inference.py
-  script/policy_observation_recorder.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

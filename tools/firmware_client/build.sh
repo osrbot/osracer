@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 host_os="$(uname -s)"
 host_arch="$(uname -m)"
 
@@ -29,13 +29,13 @@ trap cleanup EXIT
 
 python3 -m venv "$build_root/venv"
 "$build_root/venv/bin/python" -m pip install --disable-pip-version-check \
-  --requirement "$project_root/requirements-firmware-client-build.txt"
+  --requirement "$project_root/requirements-build.txt"
 
 rm -rf -- "$project_root/dist/firmware-client" "$build_root/pyinstaller"
 mkdir -p "$project_root/dist/firmware-client" "$build_root/pyinstaller"
 
 "$build_root/venv/bin/python" \
-  "$project_root/tools/generate_firmware_client_build_info.py" \
+  "$project_root/generate_build_info.py" \
   --root "$project_root" \
   --output "$build_root/BUILD_INFO.json"
 

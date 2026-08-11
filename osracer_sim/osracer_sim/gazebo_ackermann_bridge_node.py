@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import math
 from typing import Iterable, Optional
 
 import rclpy
@@ -19,11 +18,11 @@ class GazeboAckermannBridge(Node):
         super().__init__('osracer_gazebo_ackermann_bridge')
 
         self.declare_parameter('ackermann_topic', '/ackermann_cmd')
-        self.declare_parameter('wheelbase', 0.285)
+        self.declare_parameter('wheelbase')
         self.declare_parameter('track_width', 0.215)
         self.declare_parameter('wheel_radius', 0.0425)
-        self.declare_parameter('max_speed_mps', 3.0)
-        self.declare_parameter('max_steering_angle_deg', 30.0)
+        self.declare_parameter('max_speed')
+        self.declare_parameter('max_steering_angle')
         self.declare_parameter('left_steering_topic', '/gazebo/left_steering_position')
         self.declare_parameter('right_steering_topic', '/gazebo/right_steering_position')
         self.declare_parameter('left_front_wheel_topic', '/model/osracer_simple/joint/Left_front_wheel_joint/cmd_vel')
@@ -34,8 +33,8 @@ class GazeboAckermannBridge(Node):
         self.wheelbase = float(self.get_parameter('wheelbase').value)
         self.track_width = float(self.get_parameter('track_width').value)
         self.wheel_radius = float(self.get_parameter('wheel_radius').value)
-        self.max_speed = float(self.get_parameter('max_speed_mps').value)
-        self.max_steering = math.radians(float(self.get_parameter('max_steering_angle_deg').value))
+        self.max_speed = float(self.get_parameter('max_speed').value)
+        self.max_steering = float(self.get_parameter('max_steering_angle').value)
 
         self.left_steering_pub = self.create_publisher(
             Float64, self.get_parameter('left_steering_topic').value, 10)

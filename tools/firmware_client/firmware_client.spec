@@ -26,7 +26,7 @@ datas += copy_metadata("esptool", recursive=True)
 datas += copy_metadata("pyserial", recursive=True)
 
 analysis = Analysis(  # noqa: F821 - injected by PyInstaller
-    [str(ROOT / "tools" / "firmware_client_entry.py")],
+    [str(ROOT / "entry.py")],
     pathex=[str(ROOT)],
     binaries=esptool_binaries,
     datas=datas,

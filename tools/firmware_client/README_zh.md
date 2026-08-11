@@ -118,14 +118,14 @@ SHA256，按物理恢复流程处理。
 正式客户包必须在 Linux ARM64 上构建：
 
 ```bash
-tools/build_firmware_client.sh
+tools/firmware_client/build.sh
 ```
 
 输出：
 
 ```text
-dist/firmware-client/osracer-firmware-client
-dist/firmware-client/osracer-firmware-client.sha256
+tools/firmware_client/dist/firmware-client/osracer-firmware-client
+tools/firmware_client/dist/firmware-client/osracer-firmware-client.sha256
 ```
 
 构建脚本使用固定依赖版本，并检查命令行入口、来源信息、许可证和内置固件资源。

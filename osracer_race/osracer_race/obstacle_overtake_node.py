@@ -22,7 +22,7 @@ class ObstacleOvertakeNode(Node):
         self.declare_parameter('overtake_clear_distance_m', 1.8)
         self.declare_parameter('overtake_speed_mps', 1.0)
         self.declare_parameter('overtake_steering_deg', 18.0)
-        self.declare_parameter('max_steering_angle_deg', 30.0)
+        self.declare_parameter('max_steering_angle')
 
         self.latest_scan = None
         self.overtake_active = False
@@ -87,7 +87,7 @@ class ObstacleOvertakeNode(Node):
             'overtake_clear_distance_m': float(self.get_parameter('overtake_clear_distance_m').value),
             'overtake_speed_mps': float(self.get_parameter('overtake_speed_mps').value),
             'overtake_steering_deg': float(self.get_parameter('overtake_steering_deg').value),
-            'max_steering_angle_deg': float(self.get_parameter('max_steering_angle_deg').value),
+            'max_steering_angle': float(self.get_parameter('max_steering_angle').value),
         }
 
     def publish_command(self, speed, steering):

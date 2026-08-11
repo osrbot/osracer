@@ -185,7 +185,7 @@ class RaceMathTest(unittest.TestCase):
             'max_accel_mps2': 2.5,
             'max_brake_mps2': 3.5,
             'max_lateral_accel_mps2': 4.5,
-            'max_steering_angle_deg': 30.0,
+            'max_steering_angle': math.radians(30.0),
         }
 
     def test_choose_wider_side(self):
@@ -240,7 +240,7 @@ class RaceMathTest(unittest.TestCase):
             'overtake_clear_distance_m': 1.8,
             'overtake_speed_mps': 1.0,
             'overtake_steering_deg': 18.0,
-            'max_steering_angle_deg': 30.0,
+            'max_steering_angle': math.radians(30.0),
         }
 
     def test_triangle_curvature(self):
@@ -408,7 +408,7 @@ class RaceMathTest(unittest.TestCase):
         return {
             'wheelbase': 0.285,
             'lookahead_distance_m': 1.0,
-            'max_steering_angle_deg': 30.0,
+            'max_steering_angle': math.radians(30.0),
             'default_speed_mps': 1.2,
             'max_straight_speed_mps': 3.0,
             'max_lateral_accel_mps2': 4.5,
@@ -418,7 +418,7 @@ class RaceMathTest(unittest.TestCase):
         return {
             'stanley_gain': 0.8,
             'softening_speed_mps': 0.6,
-            'max_steering_angle_deg': 30.0,
+            'max_steering_angle': math.radians(30.0),
             'default_speed_mps': 1.2,
             'max_straight_speed_mps': 3.0,
             'max_lateral_accel_mps2': 4.5,
@@ -427,7 +427,7 @@ class RaceMathTest(unittest.TestCase):
     def mpc_params(self):
         return {
             'wheelbase': 0.285,
-            'max_steering_angle_deg': 30.0,
+            'max_steering_angle': math.radians(30.0),
             'max_straight_speed_mps': 3.0,
             'min_speed_mps': 0.8,
             'max_accel_mps2': 2.5,
@@ -547,7 +547,7 @@ class RaceMathTest(unittest.TestCase):
             'gap_min_range_m': 0.65,
             'max_straight_speed_mps': 3.0,
             'min_speed_mps': 0.8,
-            'max_steering_angle_deg': 30.0,
+            'max_steering_angle': math.radians(30.0),
             'follow_gain': 0.75,
             'speed_steering_gain': 1.4,
         }
@@ -617,7 +617,6 @@ class RaceMathTest(unittest.TestCase):
             'max_brake_mps2',
             'speed_response_time_s',
             'max_lateral_accel_mps2',
-            'max_steering_angle_deg',
             'command_timeout_s',
             'watchdog_period_s',
             'ttc_threshold_s',
@@ -656,16 +655,19 @@ class RaceMathTest(unittest.TestCase):
             with (package_root / 'config' / filename).open(encoding='utf-8') as handle:
                 params = yaml.safe_load(handle)['/**']['ros__parameters']
             self.assertTrue(required.issubset(params), filename)
+            self.assertNotIn('max_steering_angle', params, filename)
 
-    def test_vehicle_config_matches_measured_ackermann_chassis(self):
+    def test_vehicle_reference_config_excludes_base_owned_runtime_values(self):
         package_root = Path(__file__).resolve().parents[1]
         with (package_root / 'config' / 'vehicle.yaml').open(encoding='utf-8') as handle:
             params = yaml.safe_load(handle)['/**']['ros__parameters']
 
+        self.assertNotIn('wheelbase', params)
+        self.assertNotIn('max_speed', params)
+        self.assertNotIn('max_steering_angle', params)
         self.assertAlmostEqual(params['wheel_radius'], 0.0425)
         self.assertAlmostEqual(params['wheel_diameter'], 0.085)
         self.assertAlmostEqual(params['wheel_diameter'], params['wheel_radius'] * 2.0)
-        self.assertAlmostEqual(params['wheelbase'], 0.285)
         self.assertAlmostEqual(params['track_width'], 0.215)
         self.assertEqual(params['encoder_cpr_motor'], 1024)
         self.assertEqual(params['encoder_multiplier'], 1)
@@ -682,40 +684,31 @@ class RaceMathTest(unittest.TestCase):
         theoretical_speed = wheel_rps * math.pi * params['wheel_diameter']
         self.assertAlmostEqual(params['theoretical_max_speed_mps'], theoretical_speed, places=2)
 
-        steering_rad = math.radians(params['max_steering_angle_deg'])
-        turning_radius = params['wheelbase'] / math.tan(steering_rad)
+        base_source = os.environ.get('OSRACER_BASE_SOURCE')
+        if not base_source:
+            self.skipTest('OSRACER_BASE_SOURCE not supplied')
+        with (Path(base_source) / 'config/vehicles/red.yaml').open(encoding='utf-8') as handle:
+            base_params = yaml.safe_load(handle)['/**']['ros__parameters']
+        turning_radius = base_params['wheelbase'] / math.tan(base_params['max_steering_angle'])
         self.assertAlmostEqual(params['minimum_turning_radius_m'], turning_radius, delta=0.01)
 
-    def test_primary_ackermann_packages_share_vehicle_geometry(self):
+    def test_runtime_packages_reference_base_profile_instead_of_copying_it(self):
         package_root = self.source_package_root()
         repo_root = package_root.parent
-        expected = {
-            'wheel_radius': '0.0425',
-            'wheelbase': '0.285',
-            'track_width': '0.215',
-            'max_steering_angle_deg': '30.0',
-        }
         paths = [
             repo_root / 'osracer_bringup' / 'launch' / 'chassis_ackermann.launch.py',
-            repo_root / 'osracer_description' / 'launch' / 'osracer_description.launch.py',
-            repo_root / 'osracer_navigation' / 'params' / 'teb_nav2_params.yaml',
+            *sorted((repo_root / 'osracer_race' / 'launch').glob('*.launch.py')),
+            repo_root / 'osracer_sim' / 'launch' / 'base_sim.launch.py',
+            repo_root / 'osracer_sim' / 'launch' / 'gazebo.launch.py',
         ]
         missing = [path for path in paths if not path.exists()]
         if missing:
             self.skipTest(f'source-tree package missing: {missing[0]}')
 
-        chassis_text = paths[0].read_text(encoding='utf-8')
-        description_text = paths[1].read_text(encoding='utf-8')
-        teb_text = paths[2].read_text(encoding='utf-8')
-
-        self.assertIn(f"default_value='{expected['wheelbase']}'", chassis_text)
-        self.assertIn(f"default_value='{expected['max_steering_angle_deg']}'", chassis_text)
-        self.assertIn(f'default_value="{expected["wheel_radius"]}"', description_text)
-        self.assertIn(f'default_value="{expected["wheelbase"]}"', description_text)
-        self.assertIn(f'default_value="{expected["track_width"]}"', description_text)
-        self.assertIn(f'default_value="{expected["max_steering_angle_deg"]}"', description_text)
-        self.assertIn(f"wheelbase: {expected['wheelbase']}", teb_text)
-        self.assertIn(f"line_end: [{expected['wheelbase']}, 0.0]", teb_text)
+        for path in paths:
+            text = path.read_text(encoding='utf-8')
+            self.assertIn("FindPackageShare('osracer_base')", text, path)
+            self.assertIn("'config', 'vehicles', 'red.yaml'", text, path)
 
     def test_chassis_uses_external_base_driver_only(self):
         package_root = self.source_package_root()
@@ -757,7 +750,7 @@ class RaceMathTest(unittest.TestCase):
             'track_width': 0.215,
             'gear_ratio': 10.55,
             'mass_kg': 3.2,
-            'max_steering_angle_deg': 30.0,
+            'max_steering_angle': math.radians(30.0),
         })
         self.assertIn('observed_max_speed_mps: 1.500', yaml_text)
         self.assertIn('observed_max_accel_mps2: 3.000', yaml_text)

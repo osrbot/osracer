@@ -11,8 +11,9 @@
 
 - 不修改底层固件。
 - 不替代真实车辆测试。
-- 第一版采用 kinematic Ackermann 模型，复用实车几何参数：
-  轴距 `0.285m`、轮距 `0.215m`、轮半径 `0.0425m`。
+- 第一版采用 kinematic Ackermann 模型。轴距 `0.285 m` 来自 Base `red`
+  Profile，轮距使用当前车型值 `0.215 m`，轮半径 `0.0425 m` 以
+  `osrcore/main` Red profile 为准。
 - 同时支持 `/ackermann_cmd` 和 `/cmd_vel` 输入。
 - 对齐 osrcore `s` 同步帧的 ROS 侧字段，发布 `/odometry/filtered`、`/imu_filter`、
   `/tf`、`/joint_states`、`/scan` 和 `/clock`。其中 `/imu_filter` 使用同一份
@@ -21,6 +22,14 @@
   轨迹录制的离线接口验证；也可以切回 `scan_environment:=hallway`。
 
 ## 基础仿真
+
+轻量仿真和 Gazebo 控制桥与实车启动使用同一份
+`osracer_base/config/vehicles/red.yaml`，轴距、Profile 速度上限和最大转角不在
+仿真包内重复维护；轮距、轮径和场景尺寸仍属于仿真模型参数。
+
+`osracer_lab` 现有 `0.235 m` 后轮距和 `0.050 m` 轮半径属于尚未对齐的旧模型值，
+不是另一套待选择车型参数。Lab 应对齐为 `0.215 m / 0.0425 m`；策略动作限幅
+可以低于车型上限，但不得改写车辆物理参数。
 
 ```bash
 ros2 launch osracer_sim base_sim.launch.py use_rviz:=true

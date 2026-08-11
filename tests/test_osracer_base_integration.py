@@ -11,7 +11,7 @@ import xml.etree.ElementTree as ET
 
 
 ROOT = Path(__file__).resolve().parents[1]
-BASE_SHA = "f2c89dc300c407adb95b8b00bd1d828b6e95dbad"
+BASE_SHA = "0168b53dbd0b7d171bf45927cb24d5eacdf7cdc5"
 BASE_URL = "https://github.com/osrbot/osracer_base.git"
 WORKFLOW_PATH = ROOT / ".github" / "workflows" / "ros2-static.yml"
 
@@ -54,7 +54,7 @@ class OsracerBaseIntegrationTests(unittest.TestCase):
         self.assertNotIn("geometry_msgs", dependencies)
         self.assertNotIn("tf2_ros", dependencies)
 
-    def test_product_launch_defaults_remain_explicit(self):
+    def test_product_launch_keeps_only_product_runtime_defaults(self):
         defaults = {}
         for node in ast.walk(self.launch_tree):
             if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Name):
@@ -68,9 +68,10 @@ class OsracerBaseIntegrationTests(unittest.TestCase):
 
         self.assertEqual(defaults["port_name"], "/dev/osrbot_base")
         self.assertEqual(defaults["baud_rate"], "460800")
-        self.assertEqual(defaults["wheelbase"], "0.285")
-        self.assertEqual(defaults["max_speed"], "4.64")
-        self.assertEqual(defaults["max_steering_angle_deg"], "30.0")
+        self.assertNotIn("wheelbase", defaults)
+        self.assertNotIn("max_speed", defaults)
+        self.assertNotIn("max_steering_angle", defaults)
+        self.assertNotIn("max_steering_angle_deg", defaults)
         self.assertEqual(defaults["cmd_watchdog_timeout_s"], "0.5")
         self.assertEqual(defaults["reconnect_interval_s"], "2.0")
         self.assertEqual(defaults["firmware_version_timeout_s"], "0.3")
@@ -96,7 +97,7 @@ class OsracerBaseIntegrationTests(unittest.TestCase):
         self.assertEqual(nodes.count(("osracer_base", "chassis_driver", "osracer_chassis")), 1)
         self.assertFalse(any(executable == "chassis_ackermann.py" for _, executable, _ in nodes))
 
-    def test_launch_maps_legacy_interface_to_base_parameters(self):
+    def test_launch_loads_base_red_profile_before_product_overrides(self):
         chassis_call = None
         for node in ast.walk(self.launch_tree):
             if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Name):
@@ -108,7 +109,10 @@ class OsracerBaseIntegrationTests(unittest.TestCase):
 
         parameters = _keyword(chassis_call, "parameters")
         self.assertIsInstance(parameters, ast.List)
-        parameter_dict = parameters.elts[0]
+        self.assertEqual(len(parameters.elts), 2)
+        self.assertIsInstance(parameters.elts[0], ast.Name)
+        self.assertEqual(parameters.elts[0].id, "base_profile")
+        parameter_dict = parameters.elts[1]
         self.assertIsInstance(parameter_dict, ast.Dict)
         parameter_names = {_constant_string(key) for key in parameter_dict.keys}
         self.assertEqual(
@@ -116,15 +120,9 @@ class OsracerBaseIntegrationTests(unittest.TestCase):
             {
                 "port",
                 "baudrate",
-                "vehicle_profile",
-                "profile_schema",
                 "odom_frame_id",
                 "base_frame_id",
                 "imu_frame_id",
-                "wheelbase",
-                "max_speed",
-                "speed_mode",
-                "max_steering_angle",
                 "cmd_timeout",
                 "reconnect_interval",
                 "firmware_version_timeout",
@@ -133,15 +131,17 @@ class OsracerBaseIntegrationTests(unittest.TestCase):
                 "publish_tf",
             },
         )
-        parameter_values = {
-            _constant_string(key): value
-            for key, value in zip(parameter_dict.keys, parameter_dict.values)
-        }
-        self.assertEqual(_constant_string(parameter_values["vehicle_profile"]), "red")
-        self.assertIsInstance(parameter_values["profile_schema"], ast.Constant)
-        self.assertEqual(parameter_values["profile_schema"].value, 1)
-        self.assertIn("0.017453292519943295", ast.unparse(parameter_dict))
-        self.assertIn("'speed_mode': 'high'", ast.unparse(parameter_dict))
+        self.assertIn("FindPackageShare('osracer_base')", self.launch_source)
+        self.assertIn("'config', 'vehicles', 'red.yaml'", self.launch_source)
+        for duplicated in (
+            "'vehicle_profile'",
+            "'profile_schema'",
+            "'wheelbase'",
+            "'max_speed'",
+            "'speed_mode'",
+            "'max_steering_angle'",
+        ):
+            self.assertNotIn(duplicated, ast.unparse(parameter_dict))
 
         remappings = ast.unparse(_keyword(chassis_call, "remappings"))
         self.assertIn("('/cmd_vel', 'cmd_vel')", remappings)
@@ -250,6 +250,94 @@ class OsracerBaseIntegrationTests(unittest.TestCase):
         joined_source = "\n".join(base_source)
         self.assertIn("AckermannDrive", joined_source)
         self.assertIn("ackermann_cmd", joined_source)
+
+        profile_text = (source / "config/vehicles/red.yaml").read_text(encoding="utf-8")
+        for expected in (
+            "vehicle_profile: red",
+            "profile_schema: 1",
+            "wheelbase: 0.285",
+            "max_speed: 4.64",
+            "speed_mode: high",
+            "max_steering_angle: 0.5235987756",
+        ):
+            self.assertIn(expected, profile_text)
+
+    def test_reference_packages_load_the_same_base_profile(self):
+        for package in ("osracer_race", "osracer_sim"):
+            package_root = ET.parse(ROOT / package / "package.xml").getroot()
+            dependencies = {
+                element.text
+                for tag in ("depend", "exec_depend")
+                for element in package_root.findall(tag)
+            }
+            self.assertIn("osracer_base", dependencies)
+
+        for path in sorted((ROOT / "osracer_race" / "launch").glob("*.launch.py")):
+            source = path.read_text(encoding="utf-8")
+            self.assertIn("FindPackageShare('osracer_base')", source, path)
+            self.assertIn("'config', 'vehicles', 'red.yaml'", source, path)
+
+        for path in (
+            ROOT / "osracer_sim/launch/base_sim.launch.py",
+            ROOT / "osracer_sim/launch/gazebo.launch.py",
+        ):
+            source = path.read_text(encoding="utf-8")
+            self.assertIn("FindPackageShare('osracer_base')", source, path)
+            self.assertIn("'config', 'vehicles', 'red.yaml'", source, path)
+
+    def test_description_geometry_matches_approved_vehicle_projection(self):
+        root = ET.parse(ROOT / "osracer_description/urdf/osracer.urdf").getroot()
+        joints = {}
+        for joint in root.findall("joint"):
+            origin = joint.find("origin")
+            if origin is not None:
+                joints[joint.attrib["name"]] = tuple(
+                    float(value)
+                    for value in origin.attrib.get("xyz", "0 0 0").split()
+                )
+
+        front_left = tuple(
+            left + wheel
+            for left, wheel in zip(
+                joints["left_steering_hinge_joint"],
+                joints["Left_front_wheel_joint"],
+            )
+        )
+        front_right = tuple(
+            right + wheel
+            for right, wheel in zip(
+                joints["right_steering_hinge_joint"],
+                joints["right_front_wheel_joint"],
+            )
+        )
+        rear_left = joints["left_rear_wheel_joint"]
+        rear_right = joints["right_rear_wheel_joint"]
+        wheelbase = (
+            (front_left[0] + front_right[0])
+            - (rear_left[0] + rear_right[0])
+        ) / 2.0
+
+        self.assertAlmostEqual(wheelbase, 0.285, places=9)
+        self.assertAlmostEqual(front_left[1] - front_right[1], 0.215, delta=1e-5)
+        self.assertAlmostEqual(rear_left[1] - rear_right[1], 0.215, delta=1e-5)
+
+        wheel_links = {
+            "Left_front_wheel_link",
+            "right_front_wheel_link",
+            "left_rear_wheel_link",
+            "right_rear_wheel_link",
+        }
+        scales = []
+        for link in root.findall("link"):
+            if link.attrib.get("name") not in wheel_links:
+                continue
+            for kind in ("visual", "collision"):
+                mesh = link.find(f"{kind}/geometry/mesh")
+                self.assertIsNotNone(mesh)
+                scales.append(
+                    tuple(float(value) for value in mesh.attrib["scale"].split())
+                )
+        self.assertEqual(scales, [(0.941, 1.0, 0.941)] * 8)
 
     def test_ci_runs_runtime_smoke_and_simulated_profile_mismatch(self):
         workflow = WORKFLOW_PATH.read_text(encoding="utf-8")

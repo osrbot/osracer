@@ -20,7 +20,7 @@ class GapFollowNode(Node):
         self.declare_parameter('gap_min_range_m', 0.65)
         self.declare_parameter('max_straight_speed_mps', 3.0)
         self.declare_parameter('min_speed_mps', 0.8)
-        self.declare_parameter('max_steering_angle_deg', 30.0)
+        self.declare_parameter('max_steering_angle')
         self.declare_parameter('follow_gain', 0.75)
         self.declare_parameter('speed_steering_gain', 1.4)
 
@@ -56,7 +56,7 @@ class GapFollowNode(Node):
             'gap_min_range_m': float(self.get_parameter('gap_min_range_m').value),
             'max_straight_speed_mps': float(self.get_parameter('max_straight_speed_mps').value),
             'min_speed_mps': float(self.get_parameter('min_speed_mps').value),
-            'max_steering_angle_deg': float(self.get_parameter('max_steering_angle_deg').value),
+            'max_steering_angle': float(self.get_parameter('max_steering_angle').value),
             'follow_gain': float(self.get_parameter('follow_gain').value),
             'speed_steering_gain': float(self.get_parameter('speed_steering_gain').value),
         }

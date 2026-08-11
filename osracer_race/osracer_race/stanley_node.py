@@ -16,7 +16,7 @@ class StanleyNode(RaceControllerMixin, Node):
         self.declare_parameter('raceline_file', '')
         self.declare_parameter('stanley_gain', 0.8)
         self.declare_parameter('softening_speed_mps', 0.6)
-        self.declare_parameter('max_steering_angle_deg', 30.0)
+        self.declare_parameter('max_steering_angle')
         self.declare_parameter('default_speed_mps', 1.2)
         self.declare_parameter('max_straight_speed_mps', 3.0)
         self.declare_parameter('max_lateral_accel_mps2', 4.5)
@@ -55,7 +55,7 @@ class StanleyNode(RaceControllerMixin, Node):
         return {
             'stanley_gain': float(self.get_parameter('stanley_gain').value),
             'softening_speed_mps': float(self.get_parameter('softening_speed_mps').value),
-            'max_steering_angle_deg': float(self.get_parameter('max_steering_angle_deg').value),
+            'max_steering_angle': float(self.get_parameter('max_steering_angle').value),
             'default_speed_mps': float(self.get_parameter('default_speed_mps').value),
             'max_straight_speed_mps': float(self.get_parameter('max_straight_speed_mps').value),
             'max_lateral_accel_mps2': float(self.get_parameter('max_lateral_accel_mps2').value),

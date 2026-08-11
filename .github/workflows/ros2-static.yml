@@ -11,7 +11,7 @@ jobs:
     name: package.xml validation
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
       - name: Install catkin_pkg
         run: pip install catkin_pkg
@@ -48,7 +48,7 @@ jobs:
     name: Launch file syntax check
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
@@ -104,7 +104,7 @@ jobs:
     name: Unused import detection
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
@@ -126,9 +126,9 @@ jobs:
     name: Pinned osracer_base integration
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
-      - uses: ros-tooling/setup-ros@v0.7
+      - uses: ros-tooling/setup-ros@649ef6bcd696da05bc27ceb3fab69d810c0daeab
         with:
           required-ros-distributions: humble
 
@@ -141,32 +141,55 @@ jobs:
           # The manifest contract test and exact post-import HEAD check validate the pin.
           vcs import "$RUNNER_TEMP/osracer_ws/src" < osracer.repos
           test "$(git -C "$RUNNER_TEMP/osracer_ws/src/osracer_base" rev-parse HEAD)" = \
-            "f2c89dc300c407adb95b8b00bd1d828b6e95dbad"
+            "0168b53dbd0b7d171bf45927cb24d5eacdf7cdc5"
+          ln -s "$GITHUB_WORKSPACE" "$RUNNER_TEMP/osracer_ws/src/osracer"
 
       - name: Validate the product launch contract against the dependency
         env:
           OSRACER_BASE_SOURCE: ${{ runner.temp }}/osracer_ws/src/osracer_base
         run: python3 -m unittest discover -s tests -p 'test_osracer_base_integration.py' -v
 
-      - name: Build and smoke-test the integrated Humble launch
+      - name: Install the complete public workspace dependencies
         run: |
           source /opt/ros/humble/setup.bash
-          rosdep update
+          rosdep update --rosdistro humble
           rosdep install \
-            --from-paths "$RUNNER_TEMP/osracer_ws/src/osracer_base" \
+            --from-paths "$RUNNER_TEMP/osracer_ws/src" \
             --ignore-src --rosdistro humble -r -y
+
+      - name: Run Base protocol and mismatch regression
+        run: |
+          source /opt/ros/humble/setup.bash
           PYTHONDONTWRITEBYTECODE=1 python3 -B \
             "$RUNNER_TEMP/osracer_ws/src/osracer_base/test/test_chassis_driver.py" \
             ConnectionLifecycleTests.test_unsupported_protocol_and_profile_mismatch_fail_before_stream \
             -v
-          ln -s "$GITHUB_WORKSPACE" "$RUNNER_TEMP/osracer_ws/src/osracer"
+
+      - name: Build and test every maintained ROS package
+        run: |
+          source /opt/ros/humble/setup.bash
           cd "$RUNNER_TEMP/osracer_ws"
-          colcon build --packages-select osracer_base osracer_bringup
+          colcon build --event-handlers console_direct+
+          colcon test --event-handlers console_direct+
+          colcon test-result --verbose
+
+      - name: Validate installed launch and reference packages
+        run: |
+          source /opt/ros/humble/setup.bash
+          source "$RUNNER_TEMP/osracer_ws/install/setup.bash"
+          cd "$RUNNER_TEMP/osracer_ws"
           test -x install/osracer_base/lib/osracer_base/chassis_driver
           test -z "$(find install/osracer_bringup -type f -name chassis_ackermann.py -print -quit)"
-          source install/setup.bash
           ros2 launch osracer_bringup chassis_ackermann.launch.py --show-args
+          ros2 launch osracer_race race_bringup.launch.py --show-args
+          ros2 launch osracer_sim base_sim.launch.py --show-args
+          bash install/osracer_race/share/osracer_race/scripts/validate_race_ros.sh
+          bash install/osracer_sim/share/osracer_sim/scripts/validate_sim_ros.sh
 
+      - name: Start the real launch with a missing serial device
+        run: |
+          source /opt/ros/humble/setup.bash
+          source "$RUNNER_TEMP/osracer_ws/install/setup.bash"
           test ! -e /dev/osracer_ci_missing
           smoke_log="$RUNNER_TEMP/osracer_chassis_missing_device.log"
           set +e
