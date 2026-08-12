@@ -123,7 +123,7 @@ jobs:
             tests/test_osracer_base_integration.py
 
   osracer-base-integration:
-    name: Pinned ROS dependency integration
+    name: Pinned osracer_base integration
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
