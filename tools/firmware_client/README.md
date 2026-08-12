@@ -142,7 +142,7 @@ The build uses pinned dependencies and verifies the command-line interface,
 provenance metadata, licenses, and embedded firmware resources. Verify a
 downloaded executable with its accompanying SHA256 file before use.
 
-Version 0.1.1 is distributed for Linux ARM64 and includes the supported official
+Version 0.1.2 is distributed for Linux ARM64 and includes the supported official
 firmware resources. Official update mode selects a resource only after the
 connected device passes identity, protocol, profile, voltage, and update-state
 checks. Custom App and full-erase recovery remain advanced operations and must

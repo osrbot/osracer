@@ -5,6 +5,15 @@ operational limitations included in published releases.
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-08-12
+
+### Firmware client
+
+- Updates the supported official OSRacer firmware resource and its exact
+  application, recovery, identity, size, and SHA256 metadata.
+- Retains vehicle-parameter backup, NVS-preserving App updates, post-reboot
+  identity checks, and isolated full-erase recovery behavior.
+
 ### Navigation and race
 
 - Uses the pinned OSRacer Ackermann recovery behavior with odometry-directed

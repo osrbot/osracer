@@ -131,7 +131,7 @@ tools/firmware_client/dist/firmware-client/osracer-firmware-client.sha256
 构建脚本使用固定依赖版本，并检查命令行入口、来源信息、许可证和内置固件资源。
 使用下载的可执行文件前，应通过随附的 SHA256 文件核对其完整性。
 
-版本 0.1.1 面向 Linux ARM64 发布并内置受支持的官方固件资源。Official Update
+版本 0.1.2 面向 Linux ARM64 发布并内置受支持的官方固件资源。Official Update
 仅在设备身份、协议、Profile、电压和升级状态全部通过检查后选择固件。Custom
 App 和整片擦除恢复属于高级操作，只能使用经过授权的镜像，并应完整保留备份。
 

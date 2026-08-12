@@ -20,7 +20,7 @@ Builds and operational boundaries are documented in the
 [`中文说明`](tools/firmware_client/README_zh.md) and
 [`English guide`](tools/firmware_client/README.md).
 
-Version 0.1.1 includes the current supported official firmware resources. The
+Version 0.1.2 includes the current supported official firmware resources. The
 client inspects the connected device, selects a compatible resource, preserves
 NVS during App-only updates, and verifies the device after reconnection.
 
