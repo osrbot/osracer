@@ -11,7 +11,7 @@ import xml.etree.ElementTree as ET
 
 
 ROOT = Path(__file__).resolve().parents[1]
-BASE_SHA = "0168b53dbd0b7d171bf45927cb24d5eacdf7cdc5"
+BASE_SHA = "6f9fabee09b9f6fe90d78497ba25c1f388a5e885"
 BASE_URL = "https://github.com/osrbot/osracer_base.git"
 WORKFLOW_PATH = ROOT / ".github" / "workflows" / "ros2-static.yml"
 
