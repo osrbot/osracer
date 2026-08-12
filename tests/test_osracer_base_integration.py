@@ -13,6 +13,7 @@ import xml.etree.ElementTree as ET
 ROOT = Path(__file__).resolve().parents[1]
 BASE_SHA = "6f9fabee09b9f6fe90d78497ba25c1f388a5e885"
 BASE_URL = "https://github.com/osrbot/osracer_base.git"
+DEPENDENCY_SHA = "4317556c6ea38bd149144136c9dbee6a53a1076e"
 WORKFLOW_PATH = ROOT / ".github" / "workflows" / "ros2-static.yml"
 
 
@@ -54,17 +55,22 @@ class OsracerBaseIntegrationTests(unittest.TestCase):
         self.assertNotIn("geometry_msgs", dependencies)
         self.assertNotIn("tf2_ros", dependencies)
 
-    def test_navigation_uses_installed_standard_backup_behavior(self):
-        obsolete_parameters = {
+    def test_navigation_uses_pinned_aggressive_backup_behavior(self):
+        required_parameters = {
             "default_distance",
             "default_speed",
+            "odom_topic",
+            "stopped_velocity_threshold",
             "fallback_recovery_direction",
             "enable_second_phase",
+            "scan_topic",
+            "scan_base_frame",
             "first_phase_distance_ratio",
             "second_phase_distance_ratio",
             "min_exit_clearance",
             "front_sector_deg",
             "rear_sector_deg",
+            "scan_timeout",
             "clear_local_costmap",
             "clear_global_costmap",
             "local_clear_service",
@@ -75,12 +81,43 @@ class OsracerBaseIntegrationTests(unittest.TestCase):
             source = (ROOT / "osracer_navigation" / "params" / name).read_text(
                 encoding="utf-8"
             )
-            self.assertEqual(source.count('plugin: "nav2_behaviors/BackUp"'), 1)
-            self.assertNotIn("osracer_aggressive_backup", source)
-            for parameter in obsolete_parameters:
-                self.assertNotIn(f"{parameter}:", source)
+            self.assertEqual(
+                source.count('plugin: "osracer_aggressive_backup/AggressiveBackUp"'),
+                1,
+            )
+            self.assertNotIn('plugin: "nav2_behaviors/BackUp"', source)
+            for parameter in required_parameters:
+                self.assertIn(f"{parameter}:", source)
+
+        package_root = ET.parse(ROOT / "osracer_navigation" / "package.xml").getroot()
+        dependencies = {element.text for element in package_root.findall("exec_depend")}
+        self.assertIn("osracer_aggressive_backup", dependencies)
+        self.assertIn("nav2_behaviors", dependencies)
+
+        dependency_root = ROOT / "osracer_dependency"
+        self.assertEqual(
+            subprocess.run(
+                ["git", "-C", str(dependency_root), "rev-parse", "HEAD"],
+                check=True,
+                capture_output=True,
+                text=True,
+            ).stdout.strip(),
+            DEPENDENCY_SHA,
+        )
+        plugin_root = ET.parse(
+            dependency_root / "osracer_aggressive_backup" / "package.xml"
+        ).getroot()
+        self.assertEqual(plugin_root.findtext("name"), "osracer_aggressive_backup")
 
         workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
+        self.assertIn("submodules: recursive", workflow)
+        self.assertIn(DEPENDENCY_SHA, workflow)
+        self.assertIn("Lakibeam_ROS2_Driver", workflow)
+        self.assertIn("camera_calibration", workflow)
+        self.assertIn("ros2_gmapping", workflow)
+        self.assertIn("teb_local_planner", workflow)
+        self.assertIn("osracer_dependency/$dependency_path/COLCON_IGNORE", workflow)
+        self.assertNotIn("cp -a", workflow)
         self.assertIn("validate_behavior_server.sh", workflow)
 
     def test_product_launch_keeps_only_product_runtime_defaults(self):

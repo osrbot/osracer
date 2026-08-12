@@ -7,9 +7,9 @@ operational limitations included in published releases.
 
 ### Navigation and race
 
-- Uses the standard Nav2 Backup behavior supplied by ROS 2 Humble and verifies
-  that both maintained navigation configurations can configure and activate the
-  Behavior Server.
+- Uses the pinned OSRacer Ackermann recovery behavior with odometry-directed
+  escape and costmap clearing, and verifies that both maintained navigation
+  configurations can configure and activate the Behavior Server.
 - Allows the MPC controller to use two-column racelines or empty speed cells by
   applying the configured default race speed.
 

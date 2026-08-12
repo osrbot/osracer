@@ -396,7 +396,26 @@ behavior_server:
     cycle_frequency: 10.0
     behavior_plugins: ["backup", "wait"]   # Spin removed – we only reverse
     backup:
-      plugin: "nav2_behaviors/BackUp"
+      plugin: "osracer_aggressive_backup/AggressiveBackUp"
+      default_distance: 0.6
+      default_speed: 0.6
+      odom_topic: odometry/filtered
+      stopped_velocity_threshold: 0.03
+      fallback_recovery_direction: backward
+      enable_second_phase: false
+      scan_topic: scan
+      scan_base_frame: base_link
+      first_phase_distance_ratio: 0.45
+      second_phase_distance_ratio: 0.55
+      min_exit_clearance: 0.45
+      front_sector_deg: 35.0
+      rear_sector_deg: 35.0
+      scan_timeout: 0.35
+      clear_local_costmap: true
+      clear_global_costmap: false
+      local_clear_service: local_costmap/clear_entirely_local_costmap
+      global_clear_service: global_costmap/clear_entirely_global_costmap
+      costmap_clear_wait_ms: 150.0
     wait:
       plugin: "nav2_behaviors/Wait"
       wait_duration: 2.0                   # Pause 2 s to let costmap update
