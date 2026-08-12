@@ -16,39 +16,43 @@ fi
 log_file=$(mktemp)
 server_pid=
 
+process_group_alive() {
+  [[ -n "$server_pid" ]] && kill -0 -- "-$server_pid" 2>/dev/null
+}
+
 cleanup() {
-  if [[ -n "$server_pid" ]] && kill -0 "$server_pid" 2>/dev/null; then
-    kill -INT "$server_pid" 2>/dev/null || true
+  if process_group_alive; then
+    kill -INT -- "-$server_pid" 2>/dev/null || true
     for _ in $(seq 1 20); do
-      if ! kill -0 "$server_pid" 2>/dev/null; then
+      if ! process_group_alive; then
         break
       fi
       sleep 0.1
     done
-    if kill -0 "$server_pid" 2>/dev/null; then
-      kill -TERM "$server_pid" 2>/dev/null || true
+    if process_group_alive; then
+      kill -TERM -- "-$server_pid" 2>/dev/null || true
       for _ in $(seq 1 20); do
-        if ! kill -0 "$server_pid" 2>/dev/null; then
+        if ! process_group_alive; then
           break
         fi
         sleep 0.1
       done
     fi
-    if kill -0 "$server_pid" 2>/dev/null; then
-      kill -KILL "$server_pid" 2>/dev/null || true
+    if process_group_alive; then
+      kill -KILL -- "-$server_pid" 2>/dev/null || true
     fi
-    wait "$server_pid" 2>/dev/null || true
   fi
+  [[ -z "$server_pid" ]] || wait "$server_pid" 2>/dev/null || true
   rm -f "$log_file"
 }
 trap cleanup EXIT
 
-ros2 run nav2_behaviors behavior_server \
+setsid ros2 run nav2_behaviors behavior_server \
   --ros-args --params-file "$params_file" >"$log_file" 2>&1 &
 server_pid=$!
 
 for _ in $(seq 1 50); do
-  if ! kill -0 "$server_pid" 2>/dev/null; then
+  if ! process_group_alive; then
     cat "$log_file" >&2
     exit 1
   fi
