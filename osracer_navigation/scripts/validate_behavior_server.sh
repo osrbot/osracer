@@ -19,6 +19,24 @@ server_pid=
 cleanup() {
   if [[ -n "$server_pid" ]] && kill -0 "$server_pid" 2>/dev/null; then
     kill -INT "$server_pid" 2>/dev/null || true
+    for _ in $(seq 1 20); do
+      if ! kill -0 "$server_pid" 2>/dev/null; then
+        break
+      fi
+      sleep 0.1
+    done
+    if kill -0 "$server_pid" 2>/dev/null; then
+      kill -TERM "$server_pid" 2>/dev/null || true
+      for _ in $(seq 1 20); do
+        if ! kill -0 "$server_pid" 2>/dev/null; then
+          break
+        fi
+        sleep 0.1
+      done
+    fi
+    if kill -0 "$server_pid" 2>/dev/null; then
+      kill -KILL "$server_pid" 2>/dev/null || true
+    fi
     wait "$server_pid" 2>/dev/null || true
   fi
   rm -f "$log_file"

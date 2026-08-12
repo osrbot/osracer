@@ -195,7 +195,8 @@ jobs:
           bash install/osracer_race/share/osracer_race/scripts/validate_race_ros.sh
           bash install/osracer_sim/share/osracer_sim/scripts/validate_sim_ros.sh
           for params in dwb_nav2_params.yaml teb_nav2_params.yaml; do
-            bash install/osracer_navigation/share/osracer_navigation/scripts/validate_behavior_server.sh \
+            timeout --signal=INT --kill-after=5s 30s \
+              bash install/osracer_navigation/share/osracer_navigation/scripts/validate_behavior_server.sh \
               "install/osracer_navigation/share/osracer_navigation/params/$params"
           done
 
