@@ -18,6 +18,7 @@ class MpcControllerNode(RaceControllerMixin, Node):
         self.declare_parameter('max_steering_angle')
         self.declare_parameter('max_straight_speed_mps', 3.0)
         self.declare_parameter('min_speed_mps', 0.8)
+        self.declare_parameter('default_speed_mps', 1.2)
         self.declare_parameter('max_accel_mps2', 2.5)
         self.declare_parameter('max_brake_mps2', 3.5)
         self.declare_parameter('speed_response_time_s', 0.30)
@@ -60,6 +61,7 @@ class MpcControllerNode(RaceControllerMixin, Node):
             'max_steering_angle': float(self.get_parameter('max_steering_angle').value),
             'max_straight_speed_mps': float(self.get_parameter('max_straight_speed_mps').value),
             'min_speed_mps': float(self.get_parameter('min_speed_mps').value),
+            'default_speed_mps': float(self.get_parameter('default_speed_mps').value),
             'max_accel_mps2': float(self.get_parameter('max_accel_mps2').value),
             'max_brake_mps2': float(self.get_parameter('max_brake_mps2').value),
             'speed_response_time_s': float(self.get_parameter('speed_response_time_s').value),

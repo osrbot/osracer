@@ -18,6 +18,10 @@ install(DIRECTORY launch params behavior_trees
     DESTINATION share/${PROJECT_NAME}/
 )
 
+install(PROGRAMS scripts/validate_behavior_server.sh
+    DESTINATION share/${PROJECT_NAME}/scripts
+)
+
 ament_export_dependencies(ament_cmake)
 ament_export_dependencies(rclcpp)
 ament_export_dependencies(rclpy)

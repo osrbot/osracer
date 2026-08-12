@@ -54,6 +54,35 @@ class OsracerBaseIntegrationTests(unittest.TestCase):
         self.assertNotIn("geometry_msgs", dependencies)
         self.assertNotIn("tf2_ros", dependencies)
 
+    def test_navigation_uses_installed_standard_backup_behavior(self):
+        obsolete_parameters = {
+            "default_distance",
+            "default_speed",
+            "fallback_recovery_direction",
+            "enable_second_phase",
+            "first_phase_distance_ratio",
+            "second_phase_distance_ratio",
+            "min_exit_clearance",
+            "front_sector_deg",
+            "rear_sector_deg",
+            "clear_local_costmap",
+            "clear_global_costmap",
+            "local_clear_service",
+            "global_clear_service",
+            "costmap_clear_wait_ms",
+        }
+        for name in ("dwb_nav2_params.yaml", "teb_nav2_params.yaml"):
+            source = (ROOT / "osracer_navigation" / "params" / name).read_text(
+                encoding="utf-8"
+            )
+            self.assertEqual(source.count('plugin: "nav2_behaviors/BackUp"'), 1)
+            self.assertNotIn("osracer_aggressive_backup", source)
+            for parameter in obsolete_parameters:
+                self.assertNotIn(f"{parameter}:", source)
+
+        workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
+        self.assertIn("validate_behavior_server.sh", workflow)
+
     def test_product_launch_keeps_only_product_runtime_defaults(self):
         defaults = {}
         for node in ast.walk(self.launch_tree):

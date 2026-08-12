@@ -5,6 +5,14 @@ operational limitations included in published releases.
 
 ## [Unreleased]
 
+### Navigation and race
+
+- Uses the standard Nav2 Backup behavior supplied by ROS 2 Humble and verifies
+  that both maintained navigation configurations can configure and activate the
+  Behavior Server.
+- Allows the MPC controller to use two-column racelines or empty speed cells by
+  applying the configured default race speed.
+
 ### ROS runtime integration
 
 - Uses the pinned `osracer_base` Red vehicle profile as the single source for
