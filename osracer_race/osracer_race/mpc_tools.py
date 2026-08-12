@@ -1,7 +1,7 @@
 import math
 
 from osracer_race.common import normalize_angle
-from osracer_race.tracking_tools import nearest_index, path_yaw_at
+from osracer_race.tracking_tools import nearest_index, path_yaw_at, point_speed
 
 
 def steering_candidates(max_steering):
@@ -77,7 +77,7 @@ def rollout_cost(raceline, x, y, yaw, speed, steering, speed_now, params):
     path_yaw = path_yaw_at(raceline, idx)
     path_error = math.hypot(px - p0[0], py - p0[1])
     heading_error = abs(normalize_angle(path_yaw - psi))
-    target_speed = p0[2]
+    target_speed = point_speed(p0, params['default_speed_mps'])
     target_speed_error = abs(speed - target_speed)
     progress = (px - x) * math.cos(path_yaw) + (py - y) * math.sin(path_yaw)
     speed_penalty = abs(speed - max(speed_now, 0.0)) * 0.05

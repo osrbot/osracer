@@ -345,29 +345,7 @@ behavior_server:
     cycle_frequency: 10.0
     behavior_plugins: ["backup", "wait"]   # Spin removed
     backup:
-      plugin: "osracer_aggressive_backup/AggressiveBackUp"
-      # Custom parameters – add if your version supports them
-      # If not, these will be ignored; you can set them via the Backup plugin's own config.
-      # We'll include them here for completeness.
-      default_distance: 0.6
-      default_speed: 0.6
-      odom_topic: odometry/filtered
-      stopped_velocity_threshold: 0.03
-      fallback_recovery_direction: backward
-      enable_second_phase: false
-      scan_topic: scan
-      scan_base_frame: base_link
-      first_phase_distance_ratio: 0.45
-      second_phase_distance_ratio: 0.55
-      min_exit_clearance: 0.45
-      front_sector_deg: 35.0
-      rear_sector_deg: 35.0
-      scan_timeout: 0.35
-      clear_local_costmap: true
-      clear_global_costmap: false
-      local_clear_service: local_costmap/clear_entirely_local_costmap
-      global_clear_service: global_costmap/clear_entirely_global_costmap
-      costmap_clear_wait_ms: 150.0
+      plugin: "nav2_behaviors/BackUp"
     wait:
       plugin: "nav2_behaviors/Wait"
       # If wait_duration is supported, add:
@@ -380,11 +358,6 @@ behavior_server:
     max_rotational_vel: 1.0
     min_rotational_vel: 0.4
     rotational_acc_lim: 3.2
-
-# Note: if your recoveries_server does not accept 'backup_vel', etc.,
-# you may need to move those parameters under a nested 'backup' namespace.
-# Check your Nav2 version – the above is standard for Humble and later.
-
 
 # =============================================================================
 # Robot State Publisher & Waypoint Follower

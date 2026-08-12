@@ -135,13 +135,17 @@ jobs:
       - name: Import the pinned chassis dependency
         run: |
           sudo apt-get update
-          sudo apt-get install -y python3-colcon-common-extensions python3-vcstool
+          sudo apt-get install -y \
+            python3-colcon-common-extensions \
+            python3-vcstool \
+            ros-humble-nav2-behaviors \
+            ros-humble-ros2lifecycle
           mkdir -p "$RUNNER_TEMP/osracer_ws/src"
           # vcstool 0.3.0 validate crashes on immutable commit SHA versions.
           # The manifest contract test and exact post-import HEAD check validate the pin.
           vcs import "$RUNNER_TEMP/osracer_ws/src" < osracer.repos
           test "$(git -C "$RUNNER_TEMP/osracer_ws/src/osracer_base" rev-parse HEAD)" = \
-            "0168b53dbd0b7d171bf45927cb24d5eacdf7cdc5"
+            "6f9fabee09b9f6fe90d78497ba25c1f388a5e885"
           ln -s "$GITHUB_WORKSPACE" "$RUNNER_TEMP/osracer_ws/src/osracer"
 
       - name: Validate the product launch contract against the dependency
@@ -190,6 +194,11 @@ jobs:
           ros2 launch osracer_sim base_sim.launch.py --show-args
           bash install/osracer_race/share/osracer_race/scripts/validate_race_ros.sh
           bash install/osracer_sim/share/osracer_sim/scripts/validate_sim_ros.sh
+          for params in dwb_nav2_params.yaml teb_nav2_params.yaml; do
+            timeout --signal=INT --kill-after=5s 30s \
+              bash install/osracer_navigation/share/osracer_navigation/scripts/validate_behavior_server.sh \
+              "install/osracer_navigation/share/osracer_navigation/params/$params"
+          done
 
       - name: Start the real launch with a missing serial device
         run: |

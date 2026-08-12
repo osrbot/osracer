@@ -287,6 +287,32 @@ class RaceMathTest(unittest.TestCase):
         self.assertEqual(points[0], (0.0, 0.0, 1.2, 0.1))
         self.assertEqual(profile_input[0], (0.0, 0.0, 1.2))
 
+    def test_mpc_accepts_two_three_column_and_empty_speed_racelines(self):
+        params = self.mpc_params()
+        for rows in (
+            '0.0,0.0\n1.0,0.0\n2.0,0.0\n',
+            '0.0,0.0,1.2\n1.0,0.0,1.2\n2.0,0.0,1.2\n',
+            '0.0,0.0,,0.0\n1.0,0.0,,0.0\n2.0,0.0,,0.0\n',
+        ):
+            with self.subTest(rows=rows), tempfile.TemporaryDirectory() as tmp:
+                path = Path(tmp) / 'raceline.csv'
+                path.write_text(rows, encoding='utf-8')
+                raceline = load_raceline(path)
+                speed, steering = mpc_command(
+                    raceline, 0.0, 0.0, 0.0, 1.0, params)
+            self.assertGreaterEqual(speed, params['min_speed_mps'])
+            self.assertAlmostEqual(steering, 0.0)
+
+    def test_load_raceline_rejects_invalid_middle_row(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'raceline.csv'
+            path.write_text(
+                '0.0,0.0\ninvalid,0.0\n2.0,0.0\n',
+                encoding='utf-8',
+            )
+            with self.assertRaises(ValueError):
+                load_raceline(path)
+
     def test_pure_pursuit_tracks_straight_raceline_without_steering(self):
         raceline = [(0.0, 0.0, 2.0, 0.0), (1.0, 0.0, 2.0, 0.0), (2.0, 0.0, 2.0, 0.0)]
         speed, steering = pure_pursuit_command(raceline, 0.0, 0.0, 0.0, self.pure_pursuit_params())
@@ -430,6 +456,7 @@ class RaceMathTest(unittest.TestCase):
             'max_steering_angle': math.radians(30.0),
             'max_straight_speed_mps': 3.0,
             'min_speed_mps': 0.8,
+            'default_speed_mps': 1.2,
             'max_accel_mps2': 2.5,
             'max_brake_mps2': 3.5,
             'speed_response_time_s': 0.30,
