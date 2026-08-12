@@ -151,10 +151,11 @@ git pull --ff-only --recurse-submodules
 If `git status` is not clean, preserve or commit the intended local work before
 pulling. Do not stage every file only to update the repository.
 
-`osracer_dependency` is a pinned submodule for OSR-controlled third-party ROS 2
-dependencies, including Lakibeam lidar, gmapping, camera calibration, and TEB
-related packages. It is part of the reproducible deployment surface, not an
-empty folder to remove. If it is missing after cloning, run:
+`osracer_dependency` is a pinned submodule for OSR-controlled ROS 2
+dependencies, including Lakibeam lidar, gmapping, camera calibration, TEB, and
+the Ackermann recovery behavior used by the maintained navigation profiles. It
+is part of the reproducible deployment surface, not an empty folder to remove.
+If it is missing after cloning, run:
 
 ```bash
 git submodule update --init --recursive

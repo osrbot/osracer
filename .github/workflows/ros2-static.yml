@@ -123,16 +123,18 @@ jobs:
             tests/test_osracer_base_integration.py
 
   osracer-base-integration:
-    name: Pinned osracer_base integration
+    name: Pinned ROS dependency integration
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          submodules: recursive
 
       - uses: ros-tooling/setup-ros@649ef6bcd696da05bc27ceb3fab69d810c0daeab
         with:
           required-ros-distributions: humble
 
-      - name: Import the pinned chassis dependency
+      - name: Import the pinned ROS dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -146,6 +148,12 @@ jobs:
           vcs import "$RUNNER_TEMP/osracer_ws/src" < osracer.repos
           test "$(git -C "$RUNNER_TEMP/osracer_ws/src/osracer_base" rev-parse HEAD)" = \
             "6f9fabee09b9f6fe90d78497ba25c1f388a5e885"
+          test "$(git -C "$GITHUB_WORKSPACE/osracer_dependency" rev-parse HEAD)" = \
+            "4317556c6ea38bd149144136c9dbee6a53a1076e"
+          for dependency_path in \
+            Lakibeam_ROS2_Driver camera_calibration ros2_gmapping teb_local_planner; do
+            touch "$GITHUB_WORKSPACE/osracer_dependency/$dependency_path/COLCON_IGNORE"
+          done
           ln -s "$GITHUB_WORKSPACE" "$RUNNER_TEMP/osracer_ws/src/osracer"
 
       - name: Validate the product launch contract against the dependency
@@ -174,7 +182,7 @@ jobs:
             ConnectionLifecycleTests.test_unsupported_protocol_and_profile_mismatch_fail_before_stream \
             -v
 
-      - name: Build and test every maintained ROS package
+      - name: Build product packages and the recovery dependency
         run: |
           source /opt/ros/humble/setup.bash
           cd "$RUNNER_TEMP/osracer_ws"
