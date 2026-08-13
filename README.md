@@ -125,9 +125,6 @@ ros2 launch osracer_slam slam_toolbox.launch.py
 
 # Navigation with the saved map and default controller
 ros2 launch osracer_navigation nav2.launch.py
-
-# Autonomous racing with the safe configuration
-ros2 launch osracer_race race_bringup.launch.py controller:=gap_follow
 ```
 
 ## Software Architecture
