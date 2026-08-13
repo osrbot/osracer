@@ -130,6 +130,13 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Isolate ROS setup from the preinstalled Firefox snap
+        run: |
+          if dpkg-query -W -f='${Status}' firefox 2>/dev/null | \
+            grep -q '^install ok installed$'; then
+            sudo apt-mark hold firefox
+          fi
+
       - uses: ros-tooling/setup-ros@649ef6bcd696da05bc27ceb3fab69d810c0daeab
         with:
           required-ros-distributions: humble
