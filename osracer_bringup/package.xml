@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <package format="3">
   <name>osracer_bringup</name>
-  <version>0.1.0</version>
+  <version>1.2.0</version>
   <description>OSRacer chassis, sensor, and robot bringup launch files and nodes.</description>
   <maintainer email="winter@osrbot.com">osrbot</maintainer>
   <license>MIT</license>

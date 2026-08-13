@@ -17,6 +17,8 @@
 
 ## 四阶段验收矩阵
 
+<!-- markdownlint-disable MD013 -->
+
 | 阶段 | 推荐场景 | 重点观察 | 最低通过条件 |
 | --- | --- | --- | --- |
 | 基础链路 | `base_sim.launch.py` | `/scan`、TF、joint 动画、odom、IMU | topic 存在，TF 连续，轮子和转向 joint 有变化，IMU yaw rate 随转弯变化 |
@@ -28,6 +30,8 @@
 | MPC | `stage:=mpc` | 轨迹跟踪、约束、求解稳定性 | CSV 有样本，命令速度/转向有限，未持续触发安全停 |
 | Gazebo world | `osracer_rect_track_obstacle.sdf` | world、模型、障碍物位置 | Gazebo launch 参数解析通过，障碍物位置对齐 kinematic front preset |
 | Gazebo bridge | `use_gz_bridge:=true use_gz_control:=true` | `/gazebo/scan`、IMU、joint command | bridge 参数解析通过，joint command topic 名称完整 |
+
+<!-- markdownlint-enable MD013 -->
 
 ## CSV 评估方式
 

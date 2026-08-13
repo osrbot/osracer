@@ -1,697 +1,265 @@
-# OSRacer - Autonomous Racing Car
+# OSRacer
 
-## Standalone firmware client
+<!-- markdownlint-disable MD013 MD033 -->
 
-The repository includes one Jetson Linux ARM64 firmware client with a CLI and a
-local browser interface. It embeds the supported official firmware packages,
-supports a strictly validated custom ESP32-S3 App image path, and provides an
-isolated full-erase recovery flow with mandatory raw NVS backup and two
-explicit confirmations.
+<p align="center">
+  <a href="./README.md">English</a> ·
+  <a href="./README_zh.md">简体中文</a>
+</p>
 
-The supported command is `osracer-firmware-client`; the historical updater CLI
-is not distributed. The client does not require ROS or network access and does
-not update the ROS workspace.
+<p align="center">
+  <img src="docs/assets/readme/osracer-hero.jpg" alt="OSRacer autonomous racing platform" width="100%">
+</p>
 
-```bash
-./osracer-firmware-client ui
-```
+<p align="center">
+  <strong>Open-source ROS 2 software for autonomous racing and mobile robot development.</strong>
+</p>
 
-Builds and operational boundaries are documented in the
-[`中文说明`](tools/firmware_client/README_zh.md) and
-[`English guide`](tools/firmware_client/README.md).
+<p align="center">
+  <a href="https://github.com/osrbot/osracer/actions/workflows/ros2-static.yml"><img src="https://github.com/osrbot/osracer/actions/workflows/ros2-static.yml/badge.svg" alt="ROS 2 CI"></a>
+  <a href="https://github.com/osrbot/osracer/releases"><img src="https://img.shields.io/github/v/release/osrbot/osracer?label=Release" alt="Latest release"></a>
+  <a href="https://docs.ros.org/en/humble/"><img src="https://img.shields.io/badge/ROS%202-Humble-22314E?logo=ros" alt="ROS 2 Humble"></a>
+  <a href="https://ubuntu.com/"><img src="https://img.shields.io/badge/Ubuntu-22.04-E95420?logo=ubuntu&logoColor=white" alt="Ubuntu 22.04"></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/License-MIT-2EA44F" alt="MIT License"></a>
+</p>
 
-Version 0.1.2 includes the current supported official firmware resources. The
-client inspects the connected device, selects a compatible resource, preserves
-NVS during App-only updates, and verifies the device after reconnection.
+OSRacer is OSRBOT's ROS 2 platform for vehicle bringup, perception, mapping,
+navigation, autonomous racing, simulation, calibration, and diagnostics. It
+provides a coherent development workspace for moving from a first real-vehicle
+connection to repeatable autonomy experiments.
 
-This repository is the ROS 2 runtime workspace for OSRacer vehicles. The
-documented AI runtime target is Jetson Orin Nano with JetPack 6.x, Ubuntu 22.04,
-and ROS 2 Humble; the chassis packages also support deployed Jetson systems
-running the same ROS 2 contract. The installation steps below are for rebuilding
-the robot workspace or preparing another ROS 2 Humble machine; normal field use
-starts from the launch and demo commands after the vehicle has been deployed.
+## Highlights
 
-## Supported ROS runtime
+- **Ackermann-native control** — velocity and steering interfaces designed for
+  compact autonomous vehicles.
+- **Integrated robot runtime** — chassis, odometry, inertial sensing, LiDAR,
+  camera, TF, and state estimation in one bringup path.
+- **Mapping and navigation** — maintained launch files and reference
+  configurations for SLAM and Nav2.
+- **Autonomous racing** — gap following, Pure Pursuit, Stanley, MPC, raceline
+  tracking, safety supervision, and evaluation tools.
+- **Simulation-ready workflows** — lightweight kinematic simulation and Gazebo
+  scenarios that use the same ROS interfaces as the vehicle.
+- **Built for secondary development** — package-level configuration,
+  calibration examples, debugging tools, and reproducible source dependencies.
 
-The workspace uses the separately versioned `osracer_base` package as its
-single chassis driver. The exact compatible revision is declared in
-`osracer.repos`, and vehicle selection is explicit through the profile and
-profile-schema settings. Use only the firmware and profile combination specified
-for the connected vehicle.
+## Latest Release
 
-See [CHANGELOG.md](CHANGELOG.md) for published feature and fix summaries.
+**OSRacer V1.2** is the current ROS 2 platform release. It provides:
 
-## Repository chain
+- a unified ROS 2 chassis integration through the pinned OSRacer Base release;
+- complete bringup, TF, odometry, IMU, LiDAR, camera, and state-estimation paths;
+- maintained SLAM, Nav2, autonomous-racing, simulation, calibration, and
+  diagnostic workflows;
+- an odometry-directed navigation recovery behavior with costmap clearing;
+- consistent vehicle geometry across Base, description, race, and simulation;
+- workspace CI covering source dependencies, ROS build, package tests, and
+  installed launch startup.
 
-The approved vehicle specification is projected through one maintained chain:
+See the [V1.2 release notes](https://github.com/osrbot/osracer/releases/tag/v1.2.0)
+for compatibility and upgrade information.
 
-1. `osrcore/main` owns firmware profiles, Proto 1.1, effective odometry
-   parameters, control, NVS, and hardware safety behavior.
-2. `osracer_base/main` owns the ROS chassis driver and the ROS-side vehicle
-   profile; this repository imports an exact Base commit through
-   `osracer.repos`.
-3. `osracer/main` owns bringup, SLAM, navigation, race, simulation, and user
-   examples. It does not copy the Base driver.
-4. `osracer_lab/main` consumes the public ROS interfaces for policies, Isaac,
-   Sim2Real, and Jetson development.
+## Quick Start
 
-Repeated geometry in Race, Sim, and Lab is validated against the approved
-values and is not treated as an independent parameter source.
+### Requirements
 
-## 1. Installation & Setup
+- Ubuntu 22.04
+- ROS 2 Humble
+- Git, `vcs`, `rosdep`, and `colcon`
+- Access to an OSRacer system for real-vehicle operation
 
-<details>
-<summary>Click to expand</summary>
-
-### 1.1 System Requirements
-
-- **OS**: Ubuntu 22.04 (Jammy Jellyfish)
-- **ROS Version**: [ROS 2 Humble](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debs.html)
-
-### 1.2 Install ROS 2 Humble
-
-If you haven't installed ROS 2 Humble yet, follow these steps:
+Install the ROS development tools if they are not already available:
 
 ```bash
-# Set locale
-locale  # check for UTF-8
-sudo apt update && sudo apt install locales
-sudo locale-gen en_US en_US.UTF-8
-sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
-export LANG=en_US.UTF-8
-
-# Add ROS 2 repository
-sudo apt install software-properties-common
-sudo add-apt-repository universe
-sudo apt update && sudo apt install curl -y
-sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://mirrors.ustc.edu.cn/ros2/ubuntu $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
-
-# Install ROS 2 packages
 sudo apt update
-sudo apt upgrade
-sudo apt install ros-humble-desktop-full
-sudo apt autoremove
-sudo apt install ros-dev-tools
-
-# Source setup script
-echo "source /opt/ros/humble/setup.bash" >>  ~/.bashrc
-source ~/.bashrc
+sudo apt install python3-colcon-common-extensions python3-rosdep python3-vcstool
 ```
 
-### 1.3 Install Dependencies
-
-Install necessary ROS 2 packages and tools:
+### Create the workspace
 
 ```bash
-sudo apt install python3-pip python3-serial python3-tk python3-vcstool libsuitesparse-dev
-sudo apt install ros-humble-nav2-bringup \
-                 ros-humble-libg2o \
-                 ros-humble-imu-tools \
-                 ros-humble-robot-localization \
-                 ros-humble-joint-state-publisher \
-                 ros-humble-joint-state-publisher-gui \
-                 ros-humble-usb-cam \
-                 ros-humble-cartographer-ros \
-                 ros-humble-cartographer-rviz \
-                 ros-humble-cv-bridge \
-                 ros-humble-rqt-tf-tree \
-                 ros-humble-tf-transformations \
-                 ros-humble-ros-gz-bridge \
-                 ros-humble-ros-gz-sim \
-                 ros-humble-ackermann-msgs -y
-```
+mkdir -p ~/osracer_ws/src
+cd ~/osracer_ws/src
 
-### 1.4 Serial Device Setup
-
-The chassis driver uses Python serial and the stable udev device
-`/dev/osrbot_base`. The chassis rule is owned by `osracer_base`; this repository
-only retains the optional camera and LED accessory rules:
-
-```bash
-sudo apt remove brltty
-ros2 run osracer_base install_udev_rules
-
-# Optional OSRacer camera and LED accessories:
-sudo bash osracer_bringup/script/udev/install_udev.sh
-```
-
-Log out and back in after adding the user to `dialout`.
-
-### 1.5 Update Source Code With Git
-
-```bash
-cd ~/your_workspace/src/osracer
-git status --short
-git pull --ff-only --recurse-submodules
-
-# git clone --recursive https://github.com/osrbot/osracer.git
-```
-
-If `git status` is not clean, preserve or commit the intended local work before
-pulling. Do not stage every file only to update the repository.
-
-`osracer_dependency` is a pinned submodule for OSR-controlled ROS 2
-dependencies, including Lakibeam lidar, gmapping, camera calibration, TEB, and
-the Ackermann recovery behavior used by the maintained navigation profiles. It
-is part of the reproducible deployment surface, not an empty folder to remove.
-If it is missing after cloning, run:
-
-```bash
-git submodule update --init --recursive
-```
-
-The chassis runtime is maintained separately and pinned by `osracer.repos` to
-the accepted `osracer_base/main` snapshot at commit
-`6f9fabee09b9f6fe90d78497ba25c1f388a5e885`. The full commit keeps builds
-reproducible without following a moving branch. Import it beside this repository
-before building the workspace:
-
-```bash
-cd ~/your_workspace/src
+git clone --recursive https://github.com/osrbot/osracer.git
 vcs import . < osracer/osracer.repos
-test "$(git -C osracer_base rev-parse HEAD)" = \
-  "6f9fabee09b9f6fe90d78497ba25c1f388a5e885"
+
+source /opt/ros/humble/setup.bash
+rosdep install --from-paths . --ignore-src --rosdistro humble -r -y
+
+cd ~/osracer_ws
+colcon build --symlink-install
+source install/setup.bash
 ```
 
-The VCS dependency is source-only at build time; no `osracer_base` business
-code is copied into this repository.
+The repository pins its source dependencies. Keep the imported
+`osracer_base` revision and the `osracer_dependency` submodule unchanged unless
+you are deliberately updating the complete workspace.
 
----
-
-</details>
-
-## 2. Quick Start (Bringup)
-
-Launch the complete robot system (Chassis, Sensors, TF):
+### Prepare the serial device
 
 ```bash
+ros2 run osracer_base install_udev_rules
+```
+
+Reconnect the USB cable after installing the rule. Log out and back in if your
+user was newly added to the `dialout` group.
+
+### Start the vehicle
+
+```bash
+source /opt/ros/humble/setup.bash
+source ~/osracer_ws/install/setup.bash
 ros2 launch osracer_bringup bringup.launch.py
 ```
 
----
+For the first motion test, raise the driven wheels clear of the floor and keep
+an emergency stop within reach.
 
-## 2.1 Development and Runtime Split
+### Start a workflow
 
-The robot computer is the Jetson Orin Nano running JetPack 6.x and ROS 2 Humble.
-Use it for hardware bringup, LiDAR/camera/serial access, SLAM, navigation, and
-real-car race tests.
+Run these commands in separate terminals after vehicle bringup:
 
-A separate development computer can be used for editing code, visualizing RViz,
-recording bags, and preparing maps or race lines. It should connect to the robot
-over the same ROS 2 network, but hardware drivers and final motion tests should
-run on the Jetson.
+```bash
+# SLAM Toolbox
+ros2 launch osracer_slam slam_toolbox.launch.py
 
----
+# Navigation with the saved map and default controller
+ros2 launch osracer_navigation nav2.launch.py
 
-## 3. Hardware Modules
+# Autonomous racing with the safe configuration
+ros2 launch osracer_race race_bringup.launch.py controller:=gap_follow
+```
 
-<details>
-<summary>Click to expand</summary>
-
-### 3.1 Chassis Control
-
-Launch the Ackermann chassis driver. You can choose between raw odometry or EKF-fused odometry (IMU + Encoders).
-
-**Architecture Overview:**
+## Software Architecture
 
 ```mermaid
-graph TD
-    A[Serial Port /dev/osrbot_base] --> B[osracer_chassis node]
-    B -- "Raw IMU (/imu)" --> C{use_ekf:=true?}
-    B -- "Raw Odom (/odom)" --> C
-    
-    C -- Yes --> D[Complementary Filter]
-    D -- "Filtered IMU (/imu_filter)" --> E[EKF Node]
-    C -- Yes --> E
-    E -- "Fused Odom (/odometry/filtered)" --> F[Navigation/Mapping]
-    E -- "TF: odom -> base_link" --> G[TF Tree]
-    
-    C -- No --> H["Direct Topic Remapping"]
-    H -- "/imu_filter" --> F
-    H -- "/odometry/filtered" --> F
-    B -- "TF: odom -> base_link" --> G
+flowchart LR
+    A[Vehicle sensors and controller] --> B[osracer_base]
+    B --> C[osracer_bringup]
+    C --> D[SLAM]
+    C --> E[Navigation]
+    C --> F[Autonomous racing]
+    G[Simulation] --> D
+    G --> E
+    G --> F
 ```
 
-**Usage Options:**
+`osracer_base` provides the chassis interface. This repository adds product
+bringup and higher-level ROS applications. Simulation follows the same command,
+odometry, scan, and TF conventions used by the vehicle.
 
-1. **Standard Mode (Default):** Use internal encoder-based odometry.
+## Packages
 
-   ```bash
-   ros2 launch osracer_bringup chassis_ackermann.launch.py
-   ```
+| Package | Purpose |
+| --- | --- |
+| `osracer_bringup` | Vehicle, sensor, state-estimation, camera, LiDAR, and accessory startup |
+| `osracer_description` | Robot description, meshes, TF, and RViz resources |
+| `osracer_slam` | SLAM Toolbox, Cartographer, GMapping, and map utilities |
+| `osracer_navigation` | Nav2 launch files and reference controller configurations |
+| `osracer_race` | Racing controllers, safety supervision, raceline tools, and evaluation |
+| `osracer_sim` | Kinematic and Gazebo simulation workflows |
+| `osracer_calib` | Camera and magnetometer calibration examples |
+| `osracer_debug` | RViz and rqt diagnostics for sensors, odometry, mapping, and navigation |
+| `osracer_demo` | Field bringup and low-speed demonstration tools |
 
-2. **EKF Mode (Recommended for SLAM):** Use EKF to fuse IMU and encoders for better position estimation.
+Advanced policy development, Isaac workflows, and Sim2Real research are
+maintained in [OSRacer Lab](https://github.com/osrbot/osracer_lab).
 
-   ```bash
-   ros2 launch osracer_bringup chassis_ackermann.launch.py use_ekf:=true
-   ```
+### Autonomous Racing
 
-This existing launch entry now starts the pinned `osracer_base/chassis_driver`
-while preserving the OSRacer product defaults and topic interface. The former
-in-repository serial chassis implementation has been removed; `osracer_base` is
-the only installed chassis driver on `main`.
+**Recommended first run sequence:** validate the vehicle with
+`race_safe.yaml`, begin with Gap Follow, record a low-speed raceline, compare
+the path-tracking controllers, and use `race_fast.yaml` only after the complete
+safety checklist passes.
 
-| Parameter | Default | Description |
-| --- | --- | --- |
-| `use_ekf` | `false` | Enable/Disable Robot Localization (EKF) |
-| `publish_tf` | `auto` | Auto-set to `true` if EKF is off, `false` if EKF is on |
-| `port_name` | `/dev/osrbot_base` | Serial device port |
-| `baud_rate` | `460800` | Serial baud rate for current osrcore firmware |
-| `vehicle_profile` | `red` | Required Base/firmware identity |
-| `profile_schema` | `1` | Required firmware profile schema |
-| `firmware_version_timeout_s` | `0.3` | Timeout for reading firmware version metadata during serial startup |
-| `link_status_enabled` | `true` | Maintain the ROS host connection state on supported firmware |
-| `link_ping_period_s` | `1.0` | Connection-state refresh period while the serial port is connected |
-| `cmd_watchdog_timeout_s` | `0.5` | Stop-command watchdog timeout |
-| `reconnect_interval_s` | `2.0` | Serial reconnect interval |
-| `odom_twist_covariance` | `[0.02, 0.20, 1.0, 1.0, 1.0, 0.30]` | Odometry twist covariance diagonal `[vx, vy, vz, vroll, vpitch, vyaw]` for EKF consumers |
+- [Racing guide](osracer_race/README_zh.md)
+- [Four-stage development guide](osracer_race/PHASES_zh.md)
+- [ROS and vehicle validation](osracer_race/ROS_VALIDATION_zh.md)
 
-The chassis node consumes the factory firmware telemetry stream for odometry,
-IMU, magnetometer, RC status, and battery voltage. Quaternion orientation is
-used directly for odometry pose/TF so roll and pitch remain available for slopes
-and 3D lidar use. Odometry covariance settings are ROS-side
-`nav_msgs/Odometry` metadata only and do not change firmware behavior.
-During serial startup, the node verifies firmware version, Proto 1.1,
-ProfileID, schema, and motion-ready state before enabling the stream. Identity
-or protocol mismatch is fail-closed. After a valid connection is established,
-host-link status maintenance remains best effort and does not change motion or
-telemetry semantics.
-
-### 3.1.1 Field Demo Tools
-
-This workspace includes `osracer_demo` for field checks and low-speed demos.
-It is a ROS-side package only; firmware source, flashing assets, and hardware
-PDFs stay in the firmware/hardware repositories.
-
-```bash
-ros2 run osracer_demo leader_demo
-ros2 run osracer_demo drive_demo warmup
-ros2 run osracer_demo odom_watch
-```
-
-### 3.1.2 Race Mode
-
-This workspace also includes `osracer_race` for RoboRacer/F1TENTH-style
-Ackermann racing. It is separate from Nav2 and routes race controllers through a
-final limiter before publishing `/ackermann_cmd`.
-
-```bash
-ros2 launch osracer_race gap_follow.launch.py
-ros2 launch osracer_race pure_pursuit.launch.py
-ros2 launch osracer_race vehicle_id.launch.py
-```
-
-The Base `red.yaml` profile supplies the runtime wheelbase, profile speed
-ceiling, and steering limit to Bringup, Race, and Sim. The race package keeps only
-its reference drivetrain/model values in `osracer_race/config/vehicle.yaml` and
-provides staged algorithms for safety,
-Follow-the-Gap, Pure Pursuit, Stanley control, lap timing, and vehicle
-identification. It also includes raceline speed-profile tooling and a lightweight
-kinematic MPC entry point for early high-speed experiments. Race evaluation logs
-are written as CSV for teaching and research comparisons.
-
-See `osracer_race/README_zh.md` for usage, `osracer_race/PHASES_zh.md` for the
-four-stage race roadmap, and `osracer_race/ROS_VALIDATION_zh.md` for ROS/vehicle
-validation steps.
-
-Recommended first run sequence:
-
-1. Build and run the installed self-check.
-2. Start with `race_safe.yaml` and verify LiDAR safety stop, command timeout,
-   and the lower-level emergency stop path.
-3. Run Gap Follow at low speed before recording a raceline.
-4. Compare Pure Pursuit, Stanley, and MPC with the generated CSV reports.
-5. Switch to `race_fast.yaml` only after low-speed safety and tracking are stable.
-
-After building on the vehicle or a ROS development machine, run:
+The installed validation entry does not publish a motion command:
 
 ```bash
 bash $(ros2 pkg prefix osracer_race)/share/osracer_race/scripts/validate_race_ros.sh
 ```
 
-### 3.1.3 Simulation
+### Development and Runtime Split
 
-`osracer_sim` provides a lightweight kinematic Ackermann simulator for teaching,
-SLAM/Nav2 smoke tests, and race-controller development without real hardware. It
-does not replace vehicle testing or high-fidelity tire/motor dynamics.
+Run the vehicle, sensor, SLAM, navigation, and racing nodes on the Jetson Orin Nano.
+Use a development computer for source editing, remote terminals, RViz,
+rosbag analysis, and preparing maps or racelines. Validate all motion-related
+changes on the vehicle with the low-speed safety configuration first.
 
-```bash
-ros2 launch osracer_sim base_sim.launch.py use_rviz:=true
-ros2 launch osracer_sim gazebo.launch.py
-ros2 launch osracer_sim slam_sim.launch.py use_rviz:=true
-ros2 launch osracer_sim navigation_sim.launch.py use_rviz:=true
-```
+## Dependencies
 
-Race-stage simulation examples:
-
-```bash
-ros2 launch osracer_sim race_sim.launch.py stage:=gap_follow
-ros2 launch osracer_sim race_sim.launch.py stage:=pure_pursuit
-ros2 launch osracer_sim race_sim.launch.py stage:=mpc
-```
-
-Pass `eval_output_csv:=/tmp/osracer_sim_eval_<stage>.csv` to collect comparable
-race evaluation logs from simulated controller runs.
-
-After building the workspace, validate installed simulation launch entries:
-
-```bash
-bash $(ros2 pkg prefix osracer_sim)/share/osracer_sim/scripts/validate_sim_ros.sh
-```
-
-Print the recommended four-stage simulation command matrix:
-
-```bash
-bash $(ros2 pkg prefix osracer_sim)/share/osracer_sim/scripts/print_sim_scenarios.sh
-```
-
-Simulation acceptance criteria are documented in
-`osracer_sim/SIM_VALIDATION_zh.md`, including topic checks, CSV metrics, Gazebo
-resource checks, and conditions that should block real-vehicle testing.
-
-The first simulation stage publishes `/odometry/filtered`, `/imu_filter`,
-`/tf`, `/joint_states`, `/scan`, and `/clock` from the measured OSRacer
-geometry. The default `/scan` is a rectangular-track raycast suitable for Gap
-Follow, TTC safety, and raceline recording smoke tests. The Gazebo entry starts
-the matching rectangular track world, a simplified OSRacer model, and the
-kinematic simulator; tire slip, drivetrain, and sensor noise model calibration
-are intentionally left for later validation work.
-
-On ROS 2 Humble / Ubuntu 22.04, the Gazebo launch uses Gazebo Fortress through
-`ign gazebo` internally. Start it with `ros2 launch osracer_sim gazebo.launch.py`;
-users do not need to call `gz sim` directly.
-
-Gazebo-native LiDAR and IMU topics can be bridged separately when needed:
-
-```bash
-ros2 launch osracer_sim gazebo.launch.py use_gz_bridge:=true publish_kinematic_clock:=false
-```
-
-Gazebo joint controllers can also receive `/ackermann_cmd`:
-
-```bash
-ros2 launch osracer_sim gazebo.launch.py use_gz_bridge:=true use_gz_control:=true publish_kinematic_clock:=false
-```
-
-Use the Gazebo obstacle world to match the kinematic `obstacle_preset:=front`
-scenario with a static cylinder in the lane:
-
-```bash
-ros2 launch osracer_sim gazebo.launch.py world:=$(ros2 pkg prefix osracer_sim)/share/osracer_sim/worlds/osracer_rect_track_obstacle.sdf
-```
-
-The kinematic `/scan` can include a deterministic circular obstacle for race
-controller safety and overtaking smoke tests:
-
-```bash
-ros2 launch osracer_sim race_sim.launch.py stage:=gap_follow obstacle_preset:=front
-```
-
-See `osracer_sim/SIM_ARCHITECTURE_zh.md` for the supported simulation layers,
-interfaces, Gazebo integration, and model limitations.
-
-### 3.2 Sensors
-
-**Lidar:**
-
-```bash
-ros2 launch osracer_bringup lidar.launch.py
-```
-
-**USB Camera:**
-
-```bash
-ros2 launch osracer_bringup usb_cam.launch.py
-```
-
-#### Camera Intrinsic Calibration with Calibration Plate 8*6
-
-```bash
-ros2 run camera_calibration cameracalibrator --size 8x6 --square 0.03 image:=/rgb/image_raw camera:=/rgb
-```
-
-```bash
-
-```
-
-### 3.3 Debugging & Visualization
-
-View sensor data individually:
-
-```bash
-# Odometry
-ros2 launch osracer_debug debug_odom.launch.py
-
-# Lidar
-ros2 launch osracer_debug debug_lidar.launch.py 
-
-# IMU
-ros2 launch osracer_debug debug_imu.launch.py 
-
-# Camera Image
-ros2 launch osracer_debug debug_image.launch.py
-```
-
-### 3.4 Advanced Policy and Sim2Real Development
-
-Isaac Lab, policy inference, observation recording, TensorRT, Jetson
-measurement, and Sim2Real workflows are maintained in the separate
-[`osrbot/osracer_lab`](https://github.com/osrbot/osracer_lab) repository. This
-repository intentionally contains only the ROS integration topics consumed by
-those workflows, including `/ackermann_cmd`, `/odometry/filtered`, and
-`/imu_filter`.
-
-The maintained physical-parameter inventory and measurement worksheet are in
-the Lab documentation: [`hardware_parameters.md`](https://github.com/osrbot/osracer_lab/blob/main/docs/hardware_parameters.md)
-and [`real_car_parameter_fill_sheet.md`](https://github.com/osrbot/osracer_lab/blob/main/docs/real_car_parameter_fill_sheet.md).
-
-</details>
-
----
-
-## 4. Magnetometer Soft-Iron / Hard-Iron Calibration
-
-The OSRacer uses a two-layer magnetometer calibration system. The **ROS layer** (`osracer_calib`) fits an ellipsoid to raw sensor data and publishes the result as a latched topic. The **MCU layer** (`osrbot_tool.py`) stores the same calibration in the microcontroller's non-volatile flash so the firmware can apply corrections at the hardware level.
-
-<details>
-<summary>Click to expand</summary>
-
-### 4.1 Calibration Concept
-
-Raw magnetometer readings form an ellipsoid in 3D space due to:
-
-- **Hard-iron distortion** — constant offset caused by permanent magnets and DC currents on the chassis.
-- **Soft-iron distortion** — axis-dependent scaling caused by ferromagnetic materials near the sensor.
-
-The calibration computes:
-
-- `b` (hard-iron vector, 3 values, unit: Tesla) — the ellipsoid center offset.
-- `A` (soft-iron matrix, 3×3 = 9 values, dimensionless) — rescales the ellipsoid back to a sphere.
-
-Corrected reading: `B_cal = A × (B_raw − b)`
-
-### 4.2 ROS-Side Calibration (`osracer_calib`)
-
-**Step 1 — Launch the chassis and calibration nodes:**
-
-```bash
-# Terminal 1: chassis driver (must be running to publish magnetometer_data)
-ros2 launch osracer_bringup chassis_ackermann.launch.py
-
-# Terminal 2: calibration node
-ros2 launch osracer_calib mag_calibration.launch.py
-```
-
-**Step 2 — Start data collection:**
-
-```bash
-ros2 service call /mag_calibration_node/start_calibration std_srvs/srv/Trigger {}
-```
-
-**Step 3 — Rotate the robot** through all orientations (roll, pitch, yaw) until at least 200 samples are collected. Watch the status topic for progress:
-
-```bash
-ros2 topic echo /mag_calibration_node/status
-```
-
-**Step 4 — Stop and fit:**
-
-```bash
-ros2 service call /mag_calibration_node/stop_calibration std_srvs/srv/Trigger {}
-```
-
-The node fits an ellipsoid to the samples, publishes the result to `/mag_bias` (latched, `sensor_msgs/MagneticField`), and saves it to `osracer_calib/config/result.yaml`. On the next launch, the saved calibration is automatically re-published.
-
-**Topic encoding of `/mag_bias`:**
-
-| Field | Content |
-| --- | --- |
-| `magnetic_field` | Hard-iron vector `b` [T] |
-| `magnetic_field_covariance[0..8]` | Soft-iron matrix `A` (3×3, row-major) |
-
-**Key parameters** (`osracer_calib/config/mag_calibration.yaml`):
-
-| Parameter | Default | Description |
+| Dependency | How it is provided | Purpose |
 | --- | --- | --- |
-| `mag_topic` | `magnetometer_data` | Raw input topic from chassis driver |
-| `mag_bias_topic` | `mag_bias` | Output topic for calibration result |
-| `min_samples` | `200` | Minimum samples required before fitting |
-| `load_calib_on_start` | `true` | Re-publish saved calibration on startup |
-| `save_calib_on_stop` | `true` | Auto-save result after successful calibration |
+| [`osracer_base`](https://github.com/osrbot/osracer_base) | Exact revision in [`osracer.repos`](osracer.repos) | ROS 2 chassis driver and vehicle interface |
+| [`osracer_dependency`](https://github.com/osrbot/osrbot_dependency) | Pinned Git submodule | OSRBOT-maintained ROS dependencies |
+| ROS packages | `package.xml` and `rosdep` | Standard ROS messages, drivers, SLAM, navigation, and visualization |
 
-### 4.3 Pushing Calibration to the MCU (`osrbot_tool.py`)
-
-After the ROS-side calibration is complete, push the 12 values (3 hard-iron + 9 soft-iron) to the MCU's NVS flash so the firmware also applies the correction.
-
-**Launch the serial debug tool:**
+If a package is missing after cloning, restore the declared source dependencies:
 
 ```bash
-python3 osracer_bringup/script/osrbot_tool.py
+cd ~/osracer_ws/src/osracer
+git submodule update --init --recursive
+
+cd ~/osracer_ws/src
+vcs import . < osracer/osracer.repos
 ```
 
-**Read the calibration result** from `result.yaml` or the `/mag_bias` topic, then send it to the MCU:
+## Configuration
 
-```bash
-# mc set hx hy hz  s00 s01 s02  s10 s11 s12  s20 s21 s22
-mc set 0.000008 -0.000020 0.000015  0.998 0.002 -0.001  0.002 1.001 0.000  -0.001 0.000 0.999
-```
+The main user-editable configuration is organized by function:
 
-**Other MCU mag commands:**
-
-| Command | Description |
+| Area | Location |
 | --- | --- |
-| `mc get` | Query current MCU calibration values |
-| `mc reset` | Reset MCU calibration to identity (no correction) |
-| `mc cal [sec]` | Run onboard timed calibration (default 30 s, rotate 360°) |
+| Vehicle geometry and ROS limits | Imported `osracer_base` package |
+| Bringup and state estimation | `osracer_bringup/param/` |
+| SLAM | `osracer_slam/param/` |
+| Navigation | `osracer_navigation/params/` |
+| Racing and racelines | `osracer_race/config/` |
+| Simulation worlds | `osracer_sim/worlds/` |
+| Calibration | `osracer_calib/config/` |
 
-### 4.4 Full Calibration Workflow Summary
+Keep configuration changes small and validate steering, stopping, TF, odometry,
+and sensor topics before enabling autonomous operation.
 
-```text
-1. ros2 launch osracer_bringup chassis_ackermann.launch.py
-2. ros2 launch osracer_calib mag_calibration.launch.py
-3. ros2 service call .../start_calibration  →  rotate robot  →  .../stop_calibration
-4. Read 12 values from result.yaml or /mag_bias
-5. python3 osrbot_tool.py  →  mc set <hx hy hz s00..s22>
-```
+## Firmware Updates
 
-After step 3, the ROS EKF/heading pipeline uses the calibration automatically (latched topic). After step 5, the MCU firmware also applies the correction at the hardware level.
+Firmware service is independent of the ROS workspace. Use
+[OSR Updater](https://github.com/osrbot/osr_updater) with the firmware file
+supplied by OSRBOT for your system. Do not substitute a firmware file from
+another delivery or an unknown source.
 
-</details>
+## Troubleshooting
 
----
+| Symptom | Recommended action |
+| --- | --- |
+| `/dev/osrbot_base` is missing | Reinstall the Base udev rule, reconnect USB, and verify `dialout` membership. |
+| A ROS package cannot be found | Initialize the submodule, import `osracer.repos`, run `rosdep`, rebuild, and source the workspace. |
+| The serial port is busy | Stop other ROS nodes or utilities that have opened the chassis device, then relaunch bringup. |
+| Sensor topics are not updating | Check the physical connection and inspect topic rate with `ros2 topic hz <topic>`. |
+| Navigation cannot start | Verify the map path and the `map → odom → base_footprint` TF chain, then check the scan topic. |
+| A firmware update fails | Stop vehicle motion, keep the update log and backup file, and contact OSRBOT before retrying an uncertain transfer. |
 
-## 5. SLAM & Mapping
+When requesting support, include the repository commit, ROS distribution,
+Jetson/Linux version, launch command, and the relevant terminal output.
 
-### 5.1 GMapping
+## Releases and Support
 
-Launch GMapping SLAM:
+- [Release notes](CHANGELOG.md)
+- [GitHub Releases](https://github.com/osrbot/osracer/releases)
+- [GitHub Issues](https://github.com/osrbot/osracer/issues)
+- Technical support and collaboration: [winter@osrbot.com](mailto:winter@osrbot.com)
 
-```bash
-ros2 launch osracer_slam gmapping.launch.py
-```
+## Authors
 
-Visualize GMapping:
+- Zhihao ZHANG
+- Kit So
+- Jintai WANG
+- dajianli
 
-```bash
-ros2 launch osracer_debug debug_mapping.launch.py 
-```
+## License
 
-### 5.2 Cartographer
-
-Launch Cartographer SLAM:
-
-```bash
-ros2 launch osracer_slam cartographer.launch.py
-```
-
-Visualize Cartographer:
-
-```bash
-ros2 launch osracer_debug debug_cartographer.launch.py 
-```
-
-### 5.3 Save Map
-
-Save the generated map to disk:
-
-**For GMapping / Default:**
-
-```bash
-ros2 launch osracer_slam map_save.launch.xml
-```
-
-**For Cartographer:**
-
-```bash
-ros2 launch osracer_slam map_save_cartographer.launch.xml
-```
-
----
-
-## 6. Navigation
-
-### 6.1 Navigation with SLAM (Recommended)
-
-Launch navigation while building a map simultaneously. Default planner: **TEB** (optimized for Ackermann steering).
-
-#### Switch Local Planner
-
-**Use DWB Planner:**
-
-```bash
-ros2 launch osracer_navigation bringup_launch.py slam:=True planner:=dwb
-```
-
-**Use TEB Planner (Default):**
-
-```bash
-ros2 launch osracer_navigation bringup_launch.py slam:=True planner:=teb
-```
-
-**Use Custom Parameter File:**
-
-```bash
-ros2 launch osracer_navigation bringup_launch.py slam:=True params_file:=/path/to/custom_params.yaml
-```
-
-#### Nav with Rviz2
-
-```bash
-ros2 launch osracer_debug debug_navigation.launch.py
-```
-
-### 6.2 Navigation with Existing Map
-
-Navigate within a pre-built map using localization (AMCL) without online SLAM.
-
-```bash
-ros2 launch osracer_navigation nav2.launch.py use_planner:=teb use_map:=/path/to/your/map.yaml  # teb
-
-ros2 launch osracer_navigation nav2.launch.py use_planner:=dwb use_map:=/path/to/your/map.yaml  # dwb
-```
-
-Or use the default map with dwb local planner:
-
-```bash
-ros2 launch osracer_navigation nav2.launch.py use_planner:=teb
-
-ros2 launch osracer_navigation nav2.launch.py use_planner:=dwb
-```
-
-> **Note:** TEB is recommended for Ackermann vehicles due to its kinematic constraint support (`min_turning_radius`, `wheelbase`).
-
----
-
-## 7. Authors
-
-- **Zhihao ZHANG**
-- **Kit So**
-- **Jintai WANG**
-- **dajianli**
-
-Project contact: [winter@osrbot.com](mailto:winter@osrbot.com)
-
-## 8. License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+OSRacer is released under the [MIT License](LICENSE).

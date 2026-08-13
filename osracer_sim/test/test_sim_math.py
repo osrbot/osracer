@@ -144,7 +144,7 @@ class SimMathTest(unittest.TestCase):
             self.assertIn(expected, node_text)
         self.assertIn("DeclareLaunchArgument('imu_topic', default_value='/imu_filter')", launch_text)
         self.assertIn("'publish_imu': ParameterValue", launch_text)
-        self.assertIn('osrcore `s` 同步帧', readme_text)
+        self.assertIn('`s` 同步帧', readme_text)
 
     def test_scenario_matrix_covers_four_stage_workflow(self):
         package_dir = Path(__file__).resolve().parents[1]

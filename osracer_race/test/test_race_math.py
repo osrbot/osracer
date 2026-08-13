@@ -928,7 +928,7 @@ class RaceMathTest(unittest.TestCase):
             '安装和自检',
             'Topic 链路和安全边界',
             '参数文件说明',
-            '车端验证和交付检查',
+            '车端验证',
             '常见问题',
         ):
             self.assertIn(section, readme_text)

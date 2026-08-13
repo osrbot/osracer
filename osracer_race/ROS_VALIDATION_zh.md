@@ -37,7 +37,8 @@ bash $(ros2 pkg prefix osracer_race)/share/osracer_race/scripts/check_race_packa
 - XML/YAML 检查通过。
 - helper 模块 import smoke test 通过。
 - 工具 smoke test 通过。
-- 如果当前机器有 ROS 2 Humble 和 `colcon`，脚本会自动执行 `colcon build --symlink-install --packages-select osracer_race`。
+- 如果当前机器有 ROS 2 Humble 和 `colcon`，脚本会自动构建
+  `osracer_race`。
 
 也可以运行车端 ROS 验证辅助脚本。该脚本只做构建后入口、launch 参数、
 配置路径和可选 topic 可见性检查，不会发布运动命令：
@@ -189,8 +190,9 @@ ros2 run osracer_race race_report_tools \
 切换示例：
 
 ```bash
+RACE_SHARE="$(ros2 pkg prefix osracer_race)/share/osracer_race"
 ros2 launch osracer_race race_bringup.launch.py \
   controller:=pure_pursuit \
-  race_config:=$(ros2 pkg prefix osracer_race)/share/osracer_race/config/race_fast.yaml \
+  race_config:="$RACE_SHARE/config/race_fast.yaml" \
   raceline_file:=/tmp/osracer_raceline.csv
 ```
