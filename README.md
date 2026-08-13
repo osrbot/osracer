@@ -43,9 +43,9 @@ connection to repeatable autonomy experiments.
 - **Built for secondary development** — package-level configuration,
   calibration examples, debugging tools, and reproducible source dependencies.
 
-## Latest Release
+## Current Version
 
-**OSRacer V1.2** is the current ROS 2 platform release. It provides:
+**OSRacer V1.2** is the current ROS 2 platform version. It provides:
 
 - a unified ROS 2 chassis integration through the pinned OSRacer Base release;
 - complete bringup, TF, odometry, IMU, LiDAR, camera, and state-estimation paths;
@@ -56,8 +56,7 @@ connection to repeatable autonomy experiments.
 - workspace CI covering source dependencies, ROS build, package tests, and
   installed launch startup.
 
-See the [V1.2 release notes](https://github.com/osrbot/osracer/releases/tag/v1.2.0)
-for compatibility and upgrade information.
+See the [changelog](CHANGELOG.md) for compatibility and upgrade information.
 
 ## Quick Start
 

@@ -5,7 +5,7 @@ operational limitations included in OSRacer releases.
 
 ## [Unreleased]
 
-## [1.2.0] - 2026-08-13
+## 1.2.0 - 2026-08-13
 
 ### Added
 
@@ -47,5 +47,3 @@ operational limitations included in OSRacer releases.
   release.
 - Firmware must implement the serial interface required by the imported Base
   revision.
-
-[1.2.0]: https://github.com/osrbot/osracer/releases/tag/v1.2.0

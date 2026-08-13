@@ -40,7 +40,7 @@ OSRacer 是 OSRBOT 面向车辆启动、环境感知、建图、导航、自动�
 
 ## 最新版本
 
-**OSRacer V1.2** 是当前 ROS 2 平台稳定版本，主要包括：
+**OSRacer V1.2** 是当前 ROS 2 平台源码版本，主要包括：
 
 - 通过固定版本的 OSRacer Base 提供统一 ROS 2 底盘接入；
 - 完整的车辆启动、TF、里程计、IMU、激光雷达、相机和状态估计链路；
@@ -49,8 +49,7 @@ OSRacer 是 OSRBOT 面向车辆启动、环境感知、建图、导航、自动�
 - Base、机器人描述、竞速与仿真之间一致的车辆几何参数；
 - 覆盖源码依赖、ROS 构建、功能包测试与安装后 Launch 启动的 CI。
 
-兼容性和升级信息请参阅
-[V1.2 版本说明](https://github.com/osrbot/osracer/releases/tag/v1.2.0)。
+兼容性和升级信息请参阅[更新日志](CHANGELOG.md)。
 
 ## 快速开始
 
