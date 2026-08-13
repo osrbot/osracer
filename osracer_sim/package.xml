@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>osracer_sim</name>
-  <version>0.1.0</version>
+  <version>1.2.0</version>
   <description>Lightweight OSRacer simulation launch files and kinematic Ackermann simulator.</description>
 
   <maintainer email="winter@osrbot.com">osrbot</maintainer>

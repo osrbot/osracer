@@ -6,12 +6,16 @@
 
 ## 架构层级
 
+<!-- markdownlint-disable MD013 -->
+
 | 层级 | 主要入口 | 能力 | 适用场景 |
 | --- | --- | --- | --- |
 | 轻量运动学 | `base_sim.launch.py`、`race_sim.launch.py` | Ackermann 运动、odom、TF、IMU、joint、raycast scan | 快速接口检查、算法回归、教学 |
 | SLAM/Nav2 | `slam_sim.launch.py`、`navigation_sim.launch.py` | 仿真定位、建图和导航入口 | 无真车环境下的 ROS 链路联调 |
 | Gazebo 场景 | `gazebo.launch.py` | 赛道、简化模型、LiDAR、IMU、clock bridge | 可视化和传感器桥接 |
 | Gazebo 控制 | `use_gz_control:=true` | 转向位置和车轮速度 joint command | 控制方向、几何和接口验证 |
+
+<!-- markdownlint-enable MD013 -->
 
 ## 轻量运动学仿真
 

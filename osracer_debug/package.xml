@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <package format="3">
   <name>osracer_debug</name>
-  <version>0.1.0</version>
+  <version>1.2.0</version>
   <description>RViz and rqt visualization launch files for OSRacer debugging.</description>
   <maintainer email="winter@osrbot.com">osrbot</maintainer>
   <license>MIT</license>

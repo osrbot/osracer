@@ -1,6 +1,7 @@
 # OSRacer 现场演示包
 
-这个包只包含 ROS 2 上位机演示工具，不包含 `osrcore` 底层固件源码、硬件 PDF、烧录分区表或本地交付配置。
+这个包提供 OSRacer 的 ROS 2 现场演示工具，用于快速启动底盘、建图、导航和
+基础运动验证流程。
 
 ## 前提
 
@@ -27,7 +28,7 @@ $(ros2 pkg prefix osracer_demo)/share/osracer_demo/scripts/install_desktop_short
 
 安装后桌面会出现 `OSRacer Demo`，双击即可打开图形控制台。
 
-图形控制台默认使用英文界面，便于公开 demo 和现场交付统一。
+图形控制台默认使用英文界面，以便在不同语言环境中保持一致的操作体验。
 
 如果双击后没有窗口，查看启动日志：
 
@@ -67,18 +68,27 @@ ros2 run osracer_demo odom_watch
 高级演示也可以直接用脚本启动：
 
 ```bash
-$(ros2 pkg prefix osracer_demo)/share/osracer_demo/scripts/start_basic_demo.sh
-$(ros2 pkg prefix osracer_demo)/share/osracer_demo/scripts/open_odom_rviz.sh
-$(ros2 pkg prefix osracer_demo)/share/osracer_demo/scripts/start_mapping_demo.sh
-$(ros2 pkg prefix osracer_demo)/share/osracer_demo/scripts/start_navigation_demo.sh
-$(ros2 pkg prefix osracer_demo)/share/osracer_demo/scripts/start_active_mapping_demo.sh gmapping
-$(ros2 pkg prefix osracer_demo)/share/osracer_demo/scripts/start_active_mapping_demo.sh cartographer
-$(ros2 pkg prefix osracer_demo)/share/osracer_demo/scripts/start_slam_navigation_demo.sh
-$(ros2 pkg prefix osracer_demo)/share/osracer_demo/scripts/save_map_demo.sh
-$(ros2 pkg prefix osracer_demo)/share/osracer_demo/scripts/stop_all_demo.sh
+DEMO_SCRIPTS="$(ros2 pkg prefix osracer_demo)/share/osracer_demo/scripts"
+"$DEMO_SCRIPTS/start_basic_demo.sh"
+"$DEMO_SCRIPTS/open_odom_rviz.sh"
+"$DEMO_SCRIPTS/start_mapping_demo.sh"
+"$DEMO_SCRIPTS/start_navigation_demo.sh"
+"$DEMO_SCRIPTS/start_active_mapping_demo.sh" gmapping
+"$DEMO_SCRIPTS/start_active_mapping_demo.sh" cartographer
+"$DEMO_SCRIPTS/start_slam_navigation_demo.sh"
+"$DEMO_SCRIPTS/save_map_demo.sh"
+"$DEMO_SCRIPTS/stop_all_demo.sh"
 ```
 
-导航和边建图边导航脚本会自动生成演示用低速 TEB 参数到 `~/osracer_demo/logs/runtime/teb_slow_nav2_params.yaml`，不修改 `osracer_navigation` 包内的正式参数。运行日志、后台 PID 状态和临时参数都集中在 `~/osracer_demo/logs/` 下，方便现场排查和清理。保存地图时默认使用 `osracer_slam` 包现有 map-save launch 文件里的默认 maps 目录，导航默认也读取同一个 `osracer_slam/maps/map.yaml`。`save_map_demo.sh` 会自动兼容普通建图和 Cartographer，每次保存都会更新默认导航地图 `map.yaml` / `map.pgm`，并额外保留一份带时间戳的归档地图。
+导航和边建图边导航脚本会自动生成演示用低速 TEB 参数到
+`~/osracer_demo/logs/runtime/teb_slow_nav2_params.yaml`，不会修改
+`osracer_navigation` 包内的正式参数。运行日志、后台 PID 状态和临时参数都集中在
+`~/osracer_demo/logs/` 下，方便现场排查和清理。
+
+保存地图时默认使用 `osracer_slam` 包现有 map-save launch 文件里的默认 maps
+目录，导航默认也读取同一个 `osracer_slam/maps/map.yaml`。`save_map_demo.sh`
+兼容普通建图和 Cartographer；每次保存都会更新默认导航地图 `map.yaml` /
+`map.pgm`，并额外保留一份带时间戳的归档地图。
 
 低速动作：
 
@@ -95,7 +105,9 @@ ros2 run osracer_demo drive_demo stop --yes
 - 默认通过 `/cmd_vel` 控制，走当前 `osracer_bringup` 链路。
 - 动作开始前默认需要确认，`--yes` 才会跳过确认。
 - `Ctrl-C` 或退出时会重复发布停车命令。
-- `stop_all_demo.sh` 会重复向 `/cmd_vel` 和 `/ackermann_cmd` 发布停车，再清理 demo 相关 Nav2、SLAM、RViz、底盘和传感器节点；不会按全局 `ros` 关键字杀掉其它 ROS 任务。
+- `stop_all_demo.sh` 会重复向 `/cmd_vel` 和 `/ackermann_cmd` 发布停车，再清理
+  demo 相关 Nav2、SLAM、RViz、底盘和传感器节点；不会按全局 `ros` 关键字
+  终止其他 ROS 任务。
 - 如果清理后仍有 demo 相关进程残留，`stop_all_demo.sh` 会在日志中打印匹配到的 PID 和命令，便于现场继续排查。
 - 图形控制台只保留一个 `Save Map`，并把边走边建图拆成 GMapping 和 Cartographer 两个入口。
 - 保存地图前会检查 `/map`，没有建图数据时会直接提示先启动建图。
