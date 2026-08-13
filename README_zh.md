@@ -116,9 +116,6 @@ ros2 launch osracer_slam slam_toolbox.launch.py
 
 # 使用已保存地图和默认控制器启动导航
 ros2 launch osracer_navigation nav2.launch.py
-
-# 使用安全配置启动自动驾驶竞速
-ros2 launch osracer_race race_bringup.launch.py controller:=gap_follow
 ```
 
 ## 软件架构
