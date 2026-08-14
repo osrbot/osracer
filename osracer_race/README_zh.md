@@ -6,15 +6,15 @@
 
 ## 车辆参数
 
-当前车辆参数已经确定。运行时轴距、转角和速度限制由随工作空间导入的
-OSRacer Base 配置提供；Race 配置保存竞速算法需要的机械与模型参数：
+真车的硬件轴距、转角和方向速度限制由底盘驱动在连接兼容控制器时自动读取。
+Race 配置保存竞速算法需要的上层机械与模型参考值，不替代控制器安全限制：
 
 | 参数 | 当前值 | 用途 |
 | --- | ---: | --- |
 | 比例 | 1/10 阿克曼赛车 | 产品类别 |
 | 轴距 | `0.285 m` | Ackermann 运动学 |
-| 最大转向角 | `30 deg` | ROS 软件限幅 |
-| 车辆速度上限 | `4.64 m/s` | 配置上限，不是首次实车测试速度 |
+| 最大转向角参考值 | `30 deg` | 竞速算法模型与上层限幅 |
+| 理论最高速度 | `4.64 m/s` | 传动模型参考值，不是控制器限制或首次实车测试速度 |
 | 轮径 / 轮半径 | `85 mm / 0.0425 m` | 车辆运动模型 |
 | 轮距 | `0.215 m` | 当前 ROS 车型几何值 |
 | 质量 | `3.2 kg` | 当前整车模型值 |
@@ -151,9 +151,9 @@ bash $(ros2 pkg prefix osracer_race)/share/osracer_race/scripts/validate_race_ro
 
 ## 参数文件说明
 
-- OSRacer Base 车辆配置：提供运行时轴距、车辆速度上限和最大转角。
-- `vehicle.yaml`：保存轮距、传动、电机、重量和竞速算法使用的 Ackermann
-  模型参数，不重复运行时限幅参数。
+- 兼容控制器：在真车连接时向底盘驱动提供硬件轴距、方向速度限制和最大转角。
+- `vehicle.yaml`：保存轴距、最大转角、轮距、传动、电机、重量等竞速算法模型
+  参考值；这些值不是控制器安全限制。
 - `race_safe.yaml`：默认低速参数，首次上车必须使用。
 - `race_fast.yaml`：完整高速运行参数文件，只有在低速安全验证通过后使用。
 
@@ -165,7 +165,7 @@ bash $(ros2 pkg prefix osracer_race)/share/osracer_race/scripts/validate_race_ro
 - `max_accel_mps2` / `max_brake_mps2`：加速和制动斜率限制。
 - `speed_response_time_s`：MPC 估算可达速度候选时使用的速度响应时间。
 - `target_speed_weight` / `progress_weight`：MPC 的 raceline 速度跟踪和路径前进奖励权重。
-- `max_steering_angle`：由 OSRacer Base 配置提供的弧度制转角限幅。
+- `max_steering_angle`：竞速算法使用的弧度制转角参考值与上层限幅。
 - `ttc_threshold_s` / `emergency_distance_m`：LiDAR 急停阈值。
 - `command_timeout_s` / `scan_timeout_s`：上游控制命令和 `/scan` 断流停车时间。
 
@@ -344,9 +344,9 @@ ros2 launch osracer_race vehicle_id.launch.py \
   `observed_max_lateral_accel_mps2`、`observed_min_turning_radius_m` 和
   `observed_steering_response_delay_s`。
 
-生成的 YAML 不会自动覆盖运行参数。建议人工审查后，将轴距、车辆速度上限和
-最大转角更新到使用中的 OSRacer Base 车辆配置；其余赛道参考参数保留在
-`vehicle.yaml`。
+生成的 YAML 不会自动覆盖运行参数。人工审查后，可将适用于上层算法的轴距、
+转角参考值和响应参数更新到 `vehicle.yaml` 或竞速策略配置。控制器硬件限制由
+兼容固件提供，不通过 Race 配置修改。
 
 ## 第四阶段：高级控制
 

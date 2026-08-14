@@ -11,10 +11,6 @@ def generate_launch_description():
     world = LaunchConfiguration('world')
     world_without_model = LaunchConfiguration('world_without_model')
     models_path = PathJoinSubstitution([FindPackageShare('osracer_sim'), 'models'])
-    base_profile = PathJoinSubstitution([
-        FindPackageShare('osracer_base'), 'config', 'vehicles', 'red.yaml'
-    ])
-
     base_sim = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(PathJoinSubstitution([
             FindPackageShare('osracer_sim'), 'launch', 'base_sim.launch.py'
@@ -23,6 +19,8 @@ def generate_launch_description():
             'use_sim_time': 'true',
             'use_rviz': LaunchConfiguration('use_rviz'),
             'publish_clock': LaunchConfiguration('publish_kinematic_clock'),
+            'use_gz_control': LaunchConfiguration('use_gz_control'),
+            'ackermann_topic': LaunchConfiguration('ackermann_topic'),
         }.items(),
     )
 
@@ -60,17 +58,6 @@ def generate_launch_description():
         ])),
     )
 
-    gazebo_ackermann_bridge = Node(
-        package='osracer_sim',
-        executable='gazebo_ackermann_bridge_node',
-        name='osracer_gazebo_ackermann_bridge',
-        output='screen',
-        parameters=[base_profile, {
-            'ackermann_topic': LaunchConfiguration('ackermann_topic'),
-        }],
-        condition=IfCondition(LaunchConfiguration('use_gz_control')),
-    )
-
     return LaunchDescription([
         SetEnvironmentVariable(
             'IGN_GAZEBO_RESOURCE_PATH',
@@ -99,6 +86,5 @@ def generate_launch_description():
         gazebo,
         gazebo_without_model,
         gz_bridge,
-        gazebo_ackermann_bridge,
         base_sim,
     ])

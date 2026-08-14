@@ -1,6 +1,7 @@
 import math
 import unittest
 from pathlib import Path
+import xml.etree.ElementTree as ET
 
 from osracer_sim.kinematics import (
     ackermann_front_angles,
@@ -179,6 +180,47 @@ class SimMathTest(unittest.TestCase):
         self.assertNotIn("'gz', 'sim'", launch_text)
         self.assertIn('IGN_GAZEBO_RESOURCE_PATH', launch_text)
         self.assertIn('GZ_SIM_RESOURCE_PATH', launch_text)
+
+    def test_simulation_model_is_explicit_and_independent_from_base(self):
+        package_dir = Path(__file__).resolve().parents[1]
+        base_text = (package_dir / 'launch' / 'base_sim.launch.py').read_text(
+            encoding='utf-8')
+        for name, default in (
+            ('wheelbase', '0.285'),
+            ('max_speed', '4.64'),
+            ('max_steering_angle', '0.5235987756'),
+        ):
+            self.assertIn(
+                f"DeclareLaunchArgument('{name}', default_value='{default}')",
+                base_text,
+            )
+            self.assertIn(f"LaunchConfiguration('{name}')", base_text)
+
+        launch_sources = [
+            path.read_text(encoding='utf-8')
+            for path in sorted((package_dir / 'launch').glob('*.launch.py'))
+        ]
+        self.assertTrue(launch_sources)
+        for source in launch_sources:
+            self.assertNotIn("FindPackageShare('osracer_base')", source)
+            self.assertNotIn('config/vehicles', source)
+
+        package_root = ET.parse(package_dir / 'package.xml').getroot()
+        dependencies = {
+            element.text
+            for tag in ('depend', 'exec_depend')
+            for element in package_root.findall(tag)
+        }
+        self.assertNotIn('osracer_base', dependencies)
+
+        gazebo_text = (package_dir / 'launch' / 'gazebo.launch.py').read_text(
+            encoding='utf-8')
+        for name in ('wheelbase', 'track_width', 'wheel_radius', 'max_speed',
+                     'max_steering_angle'):
+            self.assertNotIn(f"DeclareLaunchArgument('{name}'", gazebo_text)
+        self.assertIn("'use_gz_control': LaunchConfiguration('use_gz_control')", gazebo_text)
+        self.assertNotIn("executable='gazebo_ackermann_bridge_node'", gazebo_text)
+        self.assertIn("executable='gazebo_ackermann_bridge_node'", base_text)
 
 
 if __name__ == '__main__':
