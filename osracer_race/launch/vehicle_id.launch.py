@@ -6,8 +6,6 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
-    base_profile = PathJoinSubstitution([
-        FindPackageShare('osracer_base'), 'config', 'vehicles', 'red.yaml'])
     vehicle_config = PathJoinSubstitution([
         FindPackageShare('osracer_race'), 'config', 'vehicle.yaml'])
     race_config = LaunchConfiguration('race_config')
@@ -26,6 +24,6 @@ def generate_launch_description():
             package='osracer_race',
             executable='vehicle_id_node',
             name='vehicle_id_node',
-            parameters=[base_profile, vehicle_config, race_config, {'output_file': LaunchConfiguration('output_file')}],
+            parameters=[vehicle_config, race_config, {'output_file': LaunchConfiguration('output_file')}],
             output='screen'),
     ])

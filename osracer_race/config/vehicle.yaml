@@ -1,5 +1,8 @@
 /**:
   ros__parameters:
+    # Upper-layer model references for racing; not controller safety limits.
+    wheelbase: 0.285
+    max_steering_angle: 0.5235987756
     wheel_radius: 0.0425
     wheel_diameter: 0.085
     track_width: 0.215

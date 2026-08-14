@@ -114,17 +114,12 @@ def generate_launch_description():
         description='Map coordinate frame name'
     )
 
-    base_profile = PathJoinSubstitution([
-        FindPackageShare('osracer_base'),
-        'config', 'vehicles', 'red.yaml'
-    ])
-
     # Chassis node
     osracer_chassis_node = Node(
         package='osracer_base',
         executable='chassis_driver',
         name='osracer_chassis',
-        parameters=[base_profile, {
+        parameters=[{
             'port': LaunchConfiguration('port_name'),
             'baudrate': ParameterValue(LaunchConfiguration('baud_rate'), value_type=int),
             'odom_frame_id': LaunchConfiguration('odom_frame'),

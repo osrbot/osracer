@@ -3,7 +3,7 @@
     "osracer_base": {
       "type": "git",
       "url": "https://github.com/osrbot/osracer_base.git",
-      "version": "6f9fabee09b9f6fe90d78497ba25c1f388a5e885"
+      "version": "7f86bd99100bd5f3acb866077c8f4623c1f93565"
     }
   }
 }

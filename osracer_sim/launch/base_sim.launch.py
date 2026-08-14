@@ -1,5 +1,6 @@
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
@@ -12,9 +13,14 @@ def generate_launch_description():
     use_sim_time = LaunchConfiguration('use_sim_time')
     odom_topic = LaunchConfiguration('odom_topic')
     imu_topic = LaunchConfiguration('imu_topic')
-    base_profile = PathJoinSubstitution([
-        FindPackageShare('osracer_base'), 'config', 'vehicles', 'red.yaml'
-    ])
+    model_parameters = {
+        'wheelbase': ParameterValue(LaunchConfiguration('wheelbase'), value_type=float),
+        'track_width': ParameterValue(LaunchConfiguration('track_width'), value_type=float),
+        'wheel_radius': ParameterValue(LaunchConfiguration('wheel_radius'), value_type=float),
+        'max_speed': ParameterValue(LaunchConfiguration('max_speed'), value_type=float),
+        'max_steering_angle': ParameterValue(
+            LaunchConfiguration('max_steering_angle'), value_type=float),
+    }
 
     description_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(PathJoinSubstitution([
@@ -33,9 +39,7 @@ def generate_launch_description():
         executable='ackermann_kinematic_sim_node',
         name='osracer_ackermann_kinematic_sim',
         output='screen',
-        parameters=[base_profile, {
-            'track_width': ParameterValue(LaunchConfiguration('track_width'), value_type=float),
-            'wheel_radius': ParameterValue(LaunchConfiguration('wheel_radius'), value_type=float),
+        parameters=[model_parameters, {
             'odom_topic': odom_topic,
             'imu_topic': imu_topic,
             'publish_tf': ParameterValue(LaunchConfiguration('publish_tf'), value_type=bool),
@@ -60,13 +64,29 @@ def generate_launch_description():
         }],
     )
 
+    gazebo_ackermann_bridge = Node(
+        package='osracer_sim',
+        executable='gazebo_ackermann_bridge_node',
+        name='osracer_gazebo_ackermann_bridge',
+        output='screen',
+        parameters=[model_parameters, {
+            'ackermann_topic': LaunchConfiguration('ackermann_topic'),
+        }],
+        condition=IfCondition(LaunchConfiguration('use_gz_control')),
+    )
+
     return LaunchDescription([
         DeclareLaunchArgument('use_sim_time', default_value='true', choices=['true', 'false']),
         DeclareLaunchArgument('use_rviz', default_value='false', choices=['true', 'false']),
         DeclareLaunchArgument('odom_topic', default_value='/odometry/filtered'),
         DeclareLaunchArgument('imu_topic', default_value='/imu_filter'),
+        DeclareLaunchArgument('wheelbase', default_value='0.285'),
         DeclareLaunchArgument('track_width', default_value='0.215'),
         DeclareLaunchArgument('wheel_radius', default_value='0.0425'),
+        DeclareLaunchArgument('max_speed', default_value='4.64'),
+        DeclareLaunchArgument('max_steering_angle', default_value='0.5235987756'),
+        DeclareLaunchArgument('ackermann_topic', default_value='/ackermann_cmd'),
+        DeclareLaunchArgument('use_gz_control', default_value='false', choices=['true', 'false']),
         DeclareLaunchArgument('publish_tf', default_value='true', choices=['true', 'false']),
         DeclareLaunchArgument('publish_imu', default_value='true', choices=['true', 'false']),
         DeclareLaunchArgument('publish_scan', default_value='true', choices=['true', 'false']),
@@ -88,4 +108,5 @@ def generate_launch_description():
         DeclareLaunchArgument('initial_yaw_deg', default_value='0.0'),
         description_launch,
         sim_node,
+        gazebo_ackermann_bridge,
     ])

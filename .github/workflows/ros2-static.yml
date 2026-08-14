@@ -154,7 +154,7 @@ jobs:
           # The manifest contract test and exact post-import HEAD check validate the pin.
           vcs import "$RUNNER_TEMP/osracer_ws/src" < osracer.repos
           test "$(git -C "$RUNNER_TEMP/osracer_ws/src/osracer_base" rev-parse HEAD)" = \
-            "6f9fabee09b9f6fe90d78497ba25c1f388a5e885"
+            "7f86bd99100bd5f3acb866077c8f4623c1f93565"
           test "$(git -C "$GITHUB_WORKSPACE/osracer_dependency" rev-parse HEAD)" = \
             "4317556c6ea38bd149144136c9dbee6a53a1076e"
           for dependency_path in \
@@ -186,7 +186,7 @@ jobs:
           source /opt/ros/humble/setup.bash
           PYTHONDONTWRITEBYTECODE=1 python3 -B \
             "$RUNNER_TEMP/osracer_ws/src/osracer_base/test/test_chassis_driver.py" \
-            ConnectionLifecycleTests.test_unsupported_protocol_and_profile_mismatch_fail_before_stream \
+            ConnectionLifecycleTests.test_protocol_profile_and_vehicle_contract_fail_before_stream \
             -v
 
       - name: Build product packages and the recovery dependency

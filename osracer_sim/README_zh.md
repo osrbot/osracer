@@ -11,8 +11,9 @@
 
 - 仿真流程无需修改车辆控制器固件。
 - 不替代真实车辆测试。
-- 第一版采用 kinematic Ackermann 模型。轴距 `0.285 m` 由 OSRacer Base
-  车辆配置提供；仿真模型使用轮距 `0.215 m` 和轮半径 `0.0425 m`。
+- 第一版采用 kinematic Ackermann 模型。轴距、速度和最大转角由
+  `base_sim.launch.py` 的显式仿真参数提供；它们不是控制器硬件限制。
+- 仿真模型使用轮距 `0.215 m` 和轮半径 `0.0425 m`。
 - 同时支持 `/ackermann_cmd` 和 `/cmd_vel` 输入。
 - 对齐 osrcore `s` 同步帧的 ROS 侧字段，发布 `/odometry/filtered`、`/imu_filter`、
   `/tf`、`/joint_states`、`/scan` 和 `/clock`。其中 `/imu_filter` 使用同一份
@@ -22,11 +23,21 @@
 
 ## 基础仿真
 
-轻量仿真和 Gazebo 控制桥使用 OSRacer Base 提供的车辆配置。轴距、车辆速度
-上限和最大转角不在仿真包内重复维护；轮距、轮径和场景尺寸属于仿真模型参数。
+轻量仿真和 Gazebo 控制桥使用 `base_sim.launch.py` 集中定义的显式模型参数，
+不需要真实控制器或串口。轴距、速度、最大转角、轮距、轮径和场景尺寸都只属于
+仿真模型；导航和 TEB 参数仍是独立的上层算法调参。
 
 ```bash
 ros2 launch osracer_sim base_sim.launch.py use_rviz:=true
+```
+
+可以为独立仿真场景覆盖模型参数：
+
+```bash
+ros2 launch osracer_sim base_sim.launch.py \
+  wheelbase:=0.285 \
+  max_speed:=4.64 \
+  max_steering_angle:=0.5235987756
 ```
 
 该命令会启动：

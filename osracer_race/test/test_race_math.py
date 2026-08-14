@@ -684,14 +684,14 @@ class RaceMathTest(unittest.TestCase):
             self.assertTrue(required.issubset(params), filename)
             self.assertNotIn('max_steering_angle', params, filename)
 
-    def test_vehicle_reference_config_excludes_base_owned_runtime_values(self):
+    def test_vehicle_reference_config_contains_upper_layer_model_values(self):
         package_root = Path(__file__).resolve().parents[1]
         with (package_root / 'config' / 'vehicle.yaml').open(encoding='utf-8') as handle:
             params = yaml.safe_load(handle)['/**']['ros__parameters']
 
-        self.assertNotIn('wheelbase', params)
+        self.assertAlmostEqual(params['wheelbase'], 0.285)
         self.assertNotIn('max_speed', params)
-        self.assertNotIn('max_steering_angle', params)
+        self.assertAlmostEqual(params['max_steering_angle'], math.radians(30.0))
         self.assertAlmostEqual(params['wheel_radius'], 0.0425)
         self.assertAlmostEqual(params['wheel_diameter'], 0.085)
         self.assertAlmostEqual(params['wheel_diameter'], params['wheel_radius'] * 2.0)
@@ -711,31 +711,24 @@ class RaceMathTest(unittest.TestCase):
         theoretical_speed = wheel_rps * math.pi * params['wheel_diameter']
         self.assertAlmostEqual(params['theoretical_max_speed_mps'], theoretical_speed, places=2)
 
-        base_source = os.environ.get('OSRACER_BASE_SOURCE')
-        if not base_source:
-            self.skipTest('OSRACER_BASE_SOURCE not supplied')
-        with (Path(base_source) / 'config/vehicles/red.yaml').open(encoding='utf-8') as handle:
-            base_params = yaml.safe_load(handle)['/**']['ros__parameters']
-        turning_radius = base_params['wheelbase'] / math.tan(base_params['max_steering_angle'])
+        turning_radius = params['wheelbase'] / math.tan(params['max_steering_angle'])
         self.assertAlmostEqual(params['minimum_turning_radius_m'], turning_radius, delta=0.01)
 
-    def test_runtime_packages_reference_base_profile_instead_of_copying_it(self):
+    def test_race_launches_use_only_race_model_and_strategy_configs(self):
         package_root = self.source_package_root()
         repo_root = package_root.parent
-        paths = [
-            repo_root / 'osracer_bringup' / 'launch' / 'chassis_ackermann.launch.py',
-            *sorted((repo_root / 'osracer_race' / 'launch').glob('*.launch.py')),
-            repo_root / 'osracer_sim' / 'launch' / 'base_sim.launch.py',
-            repo_root / 'osracer_sim' / 'launch' / 'gazebo.launch.py',
-        ]
+        paths = sorted((repo_root / 'osracer_race' / 'launch').glob('*.launch.py'))
         missing = [path for path in paths if not path.exists()]
         if missing:
             self.skipTest(f'source-tree package missing: {missing[0]}')
 
         for path in paths:
             text = path.read_text(encoding='utf-8')
-            self.assertIn("FindPackageShare('osracer_base')", text, path)
-            self.assertIn("'config', 'vehicles', 'red.yaml'", text, path)
+            self.assertNotIn("FindPackageShare('osracer_base')", text, path)
+            self.assertNotIn('config/vehicles', text, path)
+            self.assertIn("FindPackageShare('osracer_race')", text, path)
+            self.assertIn("'config', 'vehicle.yaml'", text, path)
+            self.assertIn('race_config', text, path)
 
     def test_chassis_uses_external_base_driver_only(self):
         package_root = self.source_package_root()

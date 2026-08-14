@@ -45,14 +45,14 @@ connection to repeatable autonomy experiments.
 
 ## Current Version
 
-**OSRacer V1.2** is the current ROS 2 platform version. It provides:
+**OSRacer V1.3** is the current ROS 2 platform version. It provides:
 
 - a unified ROS 2 chassis integration through the pinned OSRacer Base release;
 - complete bringup, TF, odometry, IMU, LiDAR, camera, and state-estimation paths;
 - maintained SLAM, Nav2, autonomous-racing, simulation, calibration, and
   diagnostic workflows;
 - an odometry-directed navigation recovery behavior with costmap clearing;
-- consistent vehicle geometry across Base, description, race, and simulation;
+- automatic chassis capability adaptation with independent racing and simulation models;
 - workspace CI covering source dependencies, ROS build, package tests, and
   installed launch startup.
 
@@ -210,13 +210,19 @@ The main user-editable configuration is organized by function:
 
 | Area | Location |
 | --- | --- |
-| Vehicle geometry and ROS limits | Imported `osracer_base` package |
+| Controller geometry and operating limits | Read automatically by `osracer_base` from a compatible controller |
 | Bringup and state estimation | `osracer_bringup/param/` |
 | SLAM | `osracer_slam/param/` |
 | Navigation | `osracer_navigation/params/` |
-| Racing and racelines | `osracer_race/config/` |
-| Simulation worlds | `osracer_sim/worlds/` |
+| Racing model, strategies, and racelines | `osracer_race/config/` |
+| Simulation model and worlds | `osracer_sim` launch arguments and `osracer_sim/worlds/` |
 | Calibration | `osracer_calib/config/` |
+
+On a vehicle, the chassis driver reads geometry and operating limits from the
+controller when the serial link is established. Racing configuration remains
+an upper-layer algorithm model, while simulation uses explicit launch model
+arguments and does not require a controller. Robot description and sensor TF
+remain product-integration configuration.
 
 Keep configuration changes small and validate steering, stopping, TF, odometry,
 and sensor topics before enabling autonomous operation.

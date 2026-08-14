@@ -1,9 +1,21 @@
 # Changelog
 
+<!-- markdownlint-configure-file {"MD024": {"siblings_only": true}} -->
+
 This changelog records user-visible features, compatibility updates, fixes, and
 operational limitations included in OSRacer releases.
 
 ## [Unreleased]
+
+## 1.3.0 - 2026-08-15
+
+### Changed
+
+- Adapts the chassis driver to geometry and operating limits reported by a
+  compatible controller when the serial connection is established.
+- Keeps racing model references in the racing package and defines simulation
+  geometry and limits as explicit launch arguments, without changing robot
+  description or TF ownership.
 
 ## 1.2.0 - 2026-08-13
 
